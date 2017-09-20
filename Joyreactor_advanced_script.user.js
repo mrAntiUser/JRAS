@@ -1286,6 +1286,7 @@ const JRAS_CurrVersion = '1.7.0';
         const $pcInfoUser = $postContainer.find('sitm#jras-PostControlInfo');
         $pcInfoUser.find('a#jras-pcInfoUser').attr('href', $infoUserA.attr('href')).text($infoUserA.text());
         $pcInfoUser.append($infoUserDate.clone());
+        makeUserTooltips($pcInfoUser.find('a#jras-pcInfoUser'));
         postControlSlider($pcInfoUser, itmHeight + $infoUserA.width() + $infoUserDate.width(), itmHeight);
 
         postControlSlider($postContainer.find('sitm#jras-PostControlShare'), 132, itmHeight)
