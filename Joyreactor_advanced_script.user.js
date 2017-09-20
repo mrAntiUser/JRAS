@@ -8,7 +8,7 @@
 // @include     *jr-proxy.com*
 // @require     http://ajax.googleapis.com/ajax/libs/jquery/2.2.0/jquery.min.js
 // @require     https://code.jquery.com/ui/1.11.4/jquery-ui.min.js
-// @version     1.6.7
+// @version     1.7.0
 // @author      AntiUser (http://joyreactor.cc/user/AntiUser)
 // @grant       GM_getValue
 // @grant       GM_setValue
@@ -17,10 +17,24 @@
 // @grant       GM_xmlhttpRequest
 // ==/UserScript==
 
-const JRAS_CurrVersion = '1.6.7';
+const JRAS_CurrVersion = '1.7.0';
 
 /* RELEASE NOTES
- 1.6.7
+ 1.7.0
+   + Блок управления постом доступный в любом месте самого поста
+     + Информация (автор, дата)
+     + шары (все что было плюс добавил телеграм)
+     + рейтинг
+     + ссылки
+   Опции
+     + Блок управления постом [true]
+     + Только в полном посте [false]
+     + Скрывать блок шарных кнопок поста [false]
+     + Скрывать блок рейтинга поста [false]
+     + Верхний стопор для блока внутри поста (px) [10]
+     + Нижний стопор для блока внутри поста (px) [10]
+     + Верхняя позиция на экране (px) [30]
+ 1.6.7 - http://old.reactor.cc/post/3235468
    + Показывать в правом баре для лучших коментов [true]
    + Загружать данные тега для Tooltip'а [true]
    + Показывать в ленте [true]
@@ -28,12 +42,12 @@ const JRAS_CurrVersion = '1.6.7';
    + Показывать в правом баре для трендов [true]
    + Показывать в правом баре для любимых тегов [true]
    + Показывать в правом баре для интересного [true]
- 1.6.0
+ 1.6.0 - http://old.reactor.cc/post/3233487
    + Tooltip'ы для тегов
  1.5.23
    * fix таблиц с гифками на олде
    + версия скрипта в заголовке окна скрипта
- 1.5.21
+ 1.5.21 - http://old.reactor.cc/post/3151778
    + fix таблиц на олде
    * поправлено определение цветовой гаммы страницы
  1.5.19
@@ -44,7 +58,7 @@ const JRAS_CurrVersion = '1.6.7';
    * поддержка сайта old.jr-proxy.com
  1.5.16
    * опечатки
- 1.5.15
+ 1.5.15 - http://old.reactor.cc/post/3079550
    + Скрывать комментарий без возможности просмотра [false]
    + Показывать в заблокированном комментрарии ник юзера [true]
    + Удалять пост из ленты полностью [false]
@@ -52,14 +66,14 @@ const JRAS_CurrVersion = '1.6.7';
    + Показывать в заблокированном посте ник юзера [true]
  1.5.12
    + Определение логина юзера по ссылке, а не по тексту (в свете Soldat AntiUser)
- 1.5.11
+ 1.5.11 - http://old.reactor.cc/post/2832945
    + В Tooltip'е юзера отметка о том Online ли он или нет (красный - нет, зеленый - да)
  1.5.10
    * Анимация показа/скрытия верхней панели
    + Опция удаление Share buttons [false]
  1.5.8
    + Теперь работает на странице "Обсуждаемое"
- 1.5.7
+ 1.5.7 - http://old.reactor.cc/post/2760618
    + Показывать аватары пользователей в комментариях [true] (ТОЛЬКО СТАРЫЙ ДИЗАЙН)
    + Показывать аватары только в полном посте [false] (ТОЛЬКО СТАРЫЙ ДИЗАЙН)
    + Размер показываемых аватаров в пикселях [35] (ТОЛЬКО СТАРЫЙ ДИЗАЙН)
@@ -68,7 +82,7 @@ const JRAS_CurrVersion = '1.6.7';
    * Поменял жирноту в Tooltip'е юзера
    * Вернул на гифки линк "Ссылка на гифку" в старом дизайне
    * мелкие исправления
- 1.5.0
+ 1.5.0 - http://old.reactor.cc/post/2611233
    + В Tooltip'е юзера информация модератор ли
    + В Tooltip'е юзера информация из блока "Профиль"
  1.4.11
@@ -77,7 +91,7 @@ const JRAS_CurrVersion = '1.6.7';
  1.4.10
    * при сворачивании к паренту (collapseToParent) не учитывалось текущее состояние ветвей и
      некотрые ветви разворачивались если были свернуты
- 1.4.9
+ 1.4.9 - http://old.reactor.cc/post/2536817
    + добавлен новый адрес на котором работает скрипт - jr-proxy.com
    + свернуть/развернуть все комментарии
    + раскрытие редиректных ссылок. опция - [true]
@@ -85,7 +99,7 @@ const JRAS_CurrVersion = '1.6.7';
  1.4.3
    + Уменьшение комментариев при раскрытии их в ленте (кроме хрома)
    * мелкие исправления
- 1.4.0
+ 1.4.0 - http://old.reactor.cc/post/2527831
    + Уменьшение больших комментариев (опционально)
    + Новые опции
    - Уменьшать большие комментарии [true]
@@ -93,7 +107,7 @@ const JRAS_CurrVersion = '1.6.7';
    - Уменьшать до (px) [72]
  1.3.18
    + Диалог настроек закрывается при нажатии "сохранить"
- 1.3.17
+ 1.3.17 - http://old.reactor.cc/post/2524192
    + опция "Убирать цветовую отметку донатера" в тултипах [false]
    + опция при каком количестве медальки скрывать [60] (0 - показывать все)
    * опция сколько показывать, если скрывать  [40]
@@ -106,10 +120,10 @@ const JRAS_CurrVersion = '1.6.7';
    + для комментариев маленькая кнопка collapseToParent при отсутствии большой collapseNode рисуется выше
    * поправлена высота ника в тултипе
    * мелкие исправления
- 1.3.6
+ 1.3.6 - http://old.reactor.cc/post/2514832
    + сворачивание комментариев наверх к паренту
    * не блокировался юзер в комментариях при раскрытии их в ленте в новом дизайне
- 1.3.2
+ 1.3.2 - http://old.reactor.cc/post/2513114
    + отправка сообщения пользователю из tooltip'а
    + возможность ограничить количество сразу выводимых в tooltip'е медалек
    + плавающая верхняя панель в новой дизайне
@@ -140,14 +154,14 @@ const JRAS_CurrVersion = '1.6.7';
    - топы в правой колонке
    - на авах в правой колонке
    * мелкие исправления
- 1.2.0
+ 1.2.0 - http://old.reactor.cc/post/2504300
    + просмотр информации по пользователю при наведении мыши на его ник
    + возможность добавить в друзья, заблокировать пользователя из tooltip'а
    * мелкие исправления
  1.1.3
    * в хроме на новом дизайне не строилось дерево комментариев при раскрытии их в ленте
    * по той же причине не блокировались комментарии пользователей
- 1.1.0
+ 1.1.0 - http://old.reactor.cc/post/2497823
    + GUI для настройки JRAS
    * не блокировались теги на новом дизайне
  1.0.6
@@ -157,25 +171,17 @@ const JRAS_CurrVersion = '1.6.7';
    * в случае нахождения блокированного юзера в коментах, мог быть заблокирован пост
  1.0.2
    * Не работал в хроме из-за неверного определения адреса документа
- 1.0.0
+ 1.0.0 - http://old.reactor.cc/post/2485300
    + release
 
-
- TODO:
-   Свое избранное
-   переработать блокировку тегов
-   Экспорт/импорт настроек
- Хотелки
-   * при добавлении комментария (на олде) аватарка у нового коммента не отображается
-   * для олда бы кнопку добавления в избранное перенести в конец поста
-   * блок управления постом отвязать от контента и привязать к экрану
  */
 
-(function(){
+(function(win){
 
   'use strict';
 
-  console.log(' ================ start JRAS - ');
+  win.console.log(' ================ start JRAS - ');
+  const MutationObserver = window.MutationObserver || window.WebKitMutationObserver || window.MozMutationObserver;
 
   const defLoadTooltipSize = 212;
   const defUserTooltipSize = 212;
@@ -186,32 +192,34 @@ const JRAS_CurrVersion = '1.6.7';
 
   const userOptions = initOptions();
   userOptions.loadUserData(page.currentUser);
+  try{
+    addNewCSSClasses();
+    themeDependentCSS();
+    makePropElements();
+    makeAllUserTooltip();
+    makeAllTagTooltip();
+    makePostControls();
+    procTopbar();
+    removeRedirectLink();
+    removeShareButtons();
 
-  addNewCSSClasses();
-  themeDependentCSS();
-  makePropElements();
-  makeAllUserTooltip();
-  makeAllTagTooltip();
-  procTopbar();
-  removeRedirectLink();
-  removeShareButtons();
+    if (page.pageIs('post') || page.pageIs('discussion')){
+      showHiddenComments();
+      correctCommentSize();
+      makeTreeComments();
+      makeAvatarOnOldDesign();
+    }
 
-  if (page.pageIs('post') || page.pageIs('discussion')){
-    showHiddenComments();
-    correctImageInComment();
-    correctCommentSize();
-    makeTreeComments();
-    makeAvatarOnOldDesign();
+    userRemove(userOptions.data.BlockUsers);
+    tagRemove(userOptions.data.BlockTags, true);
+
+    subscribeShowComment();
+
+  }catch(err){
+    win.console.log("~~JRAS_ERROR: " + err + ' (line ' + (err.lineNumber || '') + ')')
   }
 
-  let blockUsersAsFindStr = 'a:contains(' + userOptions.data.BlockUsers.join('), a:contains(') + ')';
-  userRemove(userOptions.data.BlockUsers);
-  tagRemove(userOptions.data.BlockTags, true);
-
-  subscribeShowComment();
-
-  console.log(' ================ end JRAS');
-
+  win.console.log(' ================ end JRAS');
 
   //=====================================================================================================
 
@@ -220,249 +228,368 @@ const JRAS_CurrVersion = '1.6.7';
       data: {
         currentLng: {
           dt: null,
-          guiDesc: function(){
-            return lng.getVal('JRAS_GUI_SELECTLANGUAGE')
-          }
+          def: 'ru',
+          type: 'combobox',
+          init: function(){this.dt = this.def},
+          guiDesc: function(){return lng.getVal('JRAS_GUI_SELECTLANGUAGE')},
+          values: function(){return lng.getLangs()}
         },
         correctRedirectLink: {
           dt: null,
-          guiDesc: function(){
-            return lng.getVal('JRAS_GUI_CORRECTREDIRECTLINK')
-          }
+          def: true,
+          type: 'checkbox',
+          init: function(){this.dt = this.def},
+          guiDesc: function(){return lng.getVal('JRAS_GUI_CORRECTREDIRECTLINK')}
         },
         removeShareButtons: {
           dt: null,
-          guiDesc: function(){
-            return lng.getVal('JRAS_GUI_REMOVESHAREBUTTONS')
-          }
+          def: false,
+          type: 'checkbox',
+          init: function(){this.dt = this.def},
+          guiDesc: function(){return lng.getVal('JRAS_GUI_REMOVESHAREBUTTONS')}
         },
         makeAvatarOnOldDesign: {
           dt: null,
-          guiDesc: function(){
-            return lng.getVal('JRAS_GUI_MAKEAVATARONOLDDESIGN')
-          }
+          def: true,
+          type: 'checkbox',
+          init: function(){this.dt = this.def},
+          guiDesc: function(){return lng.getVal('JRAS_GUI_MAKEAVATARONOLDDESIGN')}
         },
         makeAvatarOnlyFullPost: {
           dt: null,
-          guiDesc: function(){
-            return lng.getVal('JRAS_GUI_MAKEAVATARONLYFULLPOST')
-          }
+          def: false,
+          type: 'checkbox',
+          init: function(){this.dt = this.def},
+          guiDesc: function(){ return lng.getVal('JRAS_GUI_MAKEAVATARONLYFULLPOST')}
         },
         avatarHeight: {
           dt: null,
-          validator: function(val){
-            return $.isNumeric(val) && val >= 5 && val <= 300;
-          },
-          guiDesc: function(){
-            return lng.getVal('JRAS_GUI_AVATARHEIGHT')
-          }
+          def: 35,
+          type: 'number',
+          min: 5,
+          max: 300,
+          init: function(){this.dt = this.def},
+          validator: function(val){return $.isNumeric(val) && val >= this.min && val <= this.max},
+          guiDesc: function(){return lng.getVal('JRAS_GUI_AVATARHEIGHT')}
         },
         makeTreeComments: {
           dt: null,
-          guiDesc: function(){
-            return lng.getVal('JRAS_GUI_MAKETREECOMMENTS')
-          }
+          def: true,
+          type: 'checkbox',
+          init: function(){this.dt = this.def},
+          guiDesc: function(){return lng.getVal('JRAS_GUI_MAKETREECOMMENTS')}
         },
         treeCommentsOnlyFullPost: {
           dt: null,
-          guiDesc: function(){
-            return lng.getVal('JRAS_GUI_TREECOMMENTSONLYFULLPOST')
-          }
+          def: false,
+          type: 'checkbox',
+          init: function(){this.dt = this.def},
+          guiDesc: function(){return lng.getVal('JRAS_GUI_TREECOMMENTSONLYFULLPOST')}
         },
         whenCollapseMakeRead: {
           dt: null,
-          guiDesc: function(){
-            return lng.getVal('JRAS_GUI_WHENCOLLAPSEMAKEREAD')
-          }
+          def: true,
+          type: 'checkbox',
+          init: function(){this.dt = this.def},
+          guiDesc: function(){return lng.getVal('JRAS_GUI_WHENCOLLAPSEMAKEREAD')}
         },
         isToBeLoadingUserData: {
           dt: null,
-          guiDesc: function(){
-            return lng.getVal('JRAS_GUI_ISTOBELOADINGUSERDATA')
-          }
+          def: true,
+          type: 'checkbox',
+          init: function(){this.dt = this.def},
+          guiDesc: function(){return lng.getVal('JRAS_GUI_ISTOBELOADINGUSERDATA')}
         },
         hideUserAwardsWhen: {
           dt: null,
-          guiDesc: function(){
-            return lng.getVal('JRAS_GUI_HIDEUSERAWARDSWHEN')
+          def: 60,
+          type: 'combobox',
+          init: function(){this.dt = this.def},
+          guiDesc: function(){return lng.getVal('JRAS_GUI_HIDEUSERAWARDSWHEN')},
+          values: function(){
+            const retVal = {};
+            for(let i = 0; i < 101; i += 5){
+              if (i != 0 && i < 20){continue}
+              retVal[i] = i;
+            }
+            return retVal;
           }
         },
         minShowUserAwards: {
           dt: null,
-          guiDesc: function(){
-            return lng.getVal('JRAS_GUI_MINSHOWUSERAWARDS')
+          def: 40,
+          type: 'combobox',
+          init: function(){this.dt = this.def},
+          guiDesc: function(){return lng.getVal('JRAS_GUI_MINSHOWUSERAWARDS')},
+          values: function(){
+            const retVal = {};
+            for(let i = 10; i < 101; i += 10){ retVal[i] = i }
+            return retVal;
           }
         },
         fixedTopbar: {
           dt: null,
-          guiDesc: function(){
-            return lng.getVal('JRAS_GUI_FIXEDTOPBAR')
-          }
+          def: true,
+          type: 'checkbox',
+          init: function(){this.dt = this.def},
+          guiDesc: function(){return lng.getVal('JRAS_GUI_FIXEDTOPBAR')}
         },
         hideFixedTopbar: {
           dt: null,
-          guiDesc: function(){
-            return lng.getVal('JRAS_GUI_HIDEFIXEDTOPBAR')
-          }
+          def: true,
+          type: 'checkbox',
+          init: function(){this.dt = this.def},
+          guiDesc: function(){return lng.getVal('JRAS_GUI_HIDEFIXEDTOPBAR')}
         },
         showUTOnLine: {
           dt: null,
-          guiDesc: function(){
-            return lng.getVal('JRAS_GUI_SHOWUTONLINE')
-          }
+          def: true,
+          type: 'checkbox',
+          init: function(){this.dt = this.def},
+          guiDesc: function(){return lng.getVal('JRAS_GUI_SHOWUTONLINE')}
         },
         showUTOnComment: {
           dt: null,
-          guiDesc: function(){
-            return lng.getVal('JRAS_GUI_SHOWUTONCOMMENT')
-          }
+          def: true,
+          type: 'checkbox',
+          init: function(){this.dt = this.def},
+          guiDesc: function(){return lng.getVal('JRAS_GUI_SHOWUTONCOMMENT')}
         },
         showUTOnPrivateMess: {
           dt: null,
-          guiDesc: function(){
-            return lng.getVal('JRAS_GUI_SHOWUTONPRIVATEMESS')
-          }
+          def: true,
+          type: 'checkbox',
+          init: function(){this.dt = this.def},
+          guiDesc: function(){return lng.getVal('JRAS_GUI_SHOWUTONPRIVATEMESS')}
         },
         showUTOnPeople: {
           dt: null,
-          guiDesc: function(){
-            return lng.getVal('JRAS_GUI_SHOWUTONPEOPLE')
-          }
+          def: true,
+          type: 'checkbox',
+          init: function(){this.dt = this.def},
+          guiDesc: function(){return lng.getVal('JRAS_GUI_SHOWUTONPEOPLE')}
         },
         showUTOnSidebarTopUsers: {
           dt: null,
-          guiDesc: function(){
-            return lng.getVal('JRAS_GUI_SHOWUTONSIDEBARTOPUSERS')
-          }
+          def: true,
+          type: 'checkbox',
+          init: function(){this.dt = this.def},
+          guiDesc: function(){return lng.getVal('JRAS_GUI_SHOWUTONSIDEBARTOPUSERS')}
         },
         showUTOnTopComments: {
           dt: null,
-          guiDesc: function(){
-            return lng.getVal('JRAS_GUI_SHOWUTONTOPCOMMENTS')
-          }
+          def: true,
+          type: 'checkbox',
+          init: function(){this.dt = this.def},
+          guiDesc: function(){return lng.getVal('JRAS_GUI_SHOWUTONTOPCOMMENTS')}
         },
         showUTOnSidebarOnline: {
           dt: null,
-          guiDesc: function(){
-            return lng.getVal('JRAS_GUI_SHOWUTONSIDEBARONLINE')
-          }
+          def: true,
+          type: 'checkbox',
+          init: function(){this.dt = this.def},
+          guiDesc: function(){return lng.getVal('JRAS_GUI_SHOWUTONSIDEBARONLINE')}
         },
         showHiddenComments: {
           dt: null,
-          guiDesc: function(){
-            return lng.getVal('JRAS_GUI_SHOWHIDDENCOMMENTS')
-          }
+          def: false,
+          type: 'checkbox',
+          init: function(){this.dt = this.def},
+          guiDesc: function(){return lng.getVal('JRAS_GUI_SHOWHIDDENCOMMENTS')}
         },
         showHiddenCommentsMark: {
           dt: null,
-          guiDesc: function(){
-            return lng.getVal('JRAS_GUI_SHOWHIDDENCOMMENTSMARK')
-          }
+          def: true,
+          type: 'checkbox',
+          init: function(){this.dt = this.def},
+          guiDesc: function(){return lng.getVal('JRAS_GUI_SHOWHIDDENCOMMENTSMARK')}
         },
         isToBeLoadingTagData: {
           dt: null,
-          guiDesc: function(){
-            return lng.getVal('JRAS_GUI_ISTOBELOADINGTAGDATA')
-          }
+          def: true,
+          type: 'checkbox',
+          init: function(){this.dt = this.def},
+          guiDesc: function(){return lng.getVal('JRAS_GUI_ISTOBELOADINGTAGDATA')}
         },
         showTTOnTrends: {
           dt: null,
-          guiDesc: function(){
-            return lng.getVal('JRAS_GUI_SHOWTTONTRENDS')
-          }
+          def: true,
+          type: 'checkbox',
+          init: function(){this.dt = this.def},
+          guiDesc: function(){return lng.getVal('JRAS_GUI_SHOWTTONTRENDS')}
         },
         showTTOnLikeTags: {
           dt: null,
-          guiDesc: function(){
-            return lng.getVal('JRAS_GUI_SHOWTTONLIKETAGS')
-          }
+          def: true,
+          type: 'checkbox',
+          init: function(){this.dt = this.def},
+          guiDesc: function(){return lng.getVal('JRAS_GUI_SHOWTTONLIKETAGS')}
         },
         showTTOnInteresting: {
           dt: null,
-          guiDesc: function(){
-            return lng.getVal('JRAS_GUI_SHOWTTONINTERESTING')
-          }
+          def: true,
+          type: 'checkbox',
+          init: function(){this.dt = this.def},
+          guiDesc: function(){return lng.getVal('JRAS_GUI_SHOWTTONINTERESTING')}
         },
         showTTOnLine: {
           dt: null,
-          guiDesc: function(){
-            return lng.getVal('JRAS_GUI_SHOWTTONLINE')
-          }
+          def: true,
+          type: 'checkbox',
+          init: function(){this.dt = this.def},
+          guiDesc: function(){return lng.getVal('JRAS_GUI_SHOWTTONLINE')}
         },
         showTTFullPost: {
           dt: null,
-          guiDesc: function(){
-            return lng.getVal('JRAS_GUI_SHOWTTFULLPOST')
-          }
+          def: true,
+          type: 'checkbox',
+          init: function(){this.dt = this.def},
+          guiDesc: function(){return lng.getVal('JRAS_GUI_SHOWTTFULLPOST')}
         },
         delUserComment: {
           dt: null,
-          guiDesc: function(){
-            return lng.getVal('JRAS_GUI_DELUSERCOMMENT')
-          }
+          def: false,
+          type: 'checkbox',
+          init: function(){this.dt = this.def},
+          guiDesc: function(){return lng.getVal('JRAS_GUI_DELUSERCOMMENT')}
         },
         showUserNameDelComment: {
           dt: null,
-          guiDesc: function(){
-            return lng.getVal('JRAS_GUI_SHOWUSERNAMEDELCOMMENT')
-          }
+          def: true,
+          type: 'checkbox',
+          init: function(){this.dt = this.def},
+          guiDesc: function(){return lng.getVal('JRAS_GUI_SHOWUSERNAMEDELCOMMENT')}
         },
         fullDelUserPost: {
           dt: null,
-          guiDesc: function(){
-            return lng.getVal('JRAS_GUI_FULLDELUSERPOST')
-          }
+          def: false,
+          type: 'checkbox',
+          init: function(){this.dt = this.def},
+          guiDesc: function(){return lng.getVal('JRAS_GUI_FULLDELUSERPOST')}
         },
         delUserPost: {
           dt: null,
-          guiDesc: function(){
-            return lng.getVal('JRAS_GUI_DELUSERPOST')
-          }
+          def: false,
+          type: 'checkbox',
+          init: function(){this.dt = this.def},
+          guiDesc: function(){return lng.getVal('JRAS_GUI_DELUSERPOST')}
         },
         showUserNameDelPost: {
           dt: null,
-          guiDesc: function(){
-            return lng.getVal('JRAS_GUI_SHOWUSERNAMEDELPOST')
-          }
+          def: true,
+          type: 'checkbox',
+          init: function(){this.dt = this.def},
+          guiDesc: function(){return lng.getVal('JRAS_GUI_SHOWUSERNAMEDELPOST')}
         },
         chatlaneToPacaki: {   // Убирать цветовую отметку донатера
           dt: null,
-          guiDesc: function(){
-            return lng.getVal('JRAS_GUI_CHATLANETOPACAKI')
-          }
+          def: false,
+          type: 'checkbox',
+          init: function(){this.dt = this.def},
+          guiDesc: function(){return lng.getVal('JRAS_GUI_CHATLANETOPACAKI')}
         },
         collapseComments: {
           dt: null,
-          guiDesc: function(){
-            return lng.getVal('JRAS_GUI_COLLAPSECOMMENTS')
-          }
+          def: false,
+          type: 'checkbox',
+          init: function(){this.dt = this.def},
+          guiDesc: function(){return lng.getVal('JRAS_GUI_COLLAPSECOMMENTS')}
         },
         collapseCommentsOnlyFullPost: {
           dt: null,
-          guiDesc: function(){
-            return lng.getVal('JRAS_GUI_COLLAPSECOMMENTSONLYFULLPOST')
-          }
+          def: false,
+          type: 'checkbox',
+          init: function(){this.dt = this.def},
+          guiDesc: function(){return lng.getVal('JRAS_GUI_COLLAPSECOMMENTSONLYFULLPOST')}
         },
         collapseCommentWhenSize: {
           dt: null,
-          validator: function(val){
-            return $.isNumeric(val) && val >= 20 && val <= 10000;
-          },
-          guiDesc: function(){
-            return lng.getVal('JRAS_GUI_COLLAPSECOMMENTWHENSIZE')
-          }
+          def: 110,
+          type: 'number',
+          min: 20,
+          max: 10000,
+          init: function(){this.dt = this.def},
+          validator: function(val){return $.isNumeric(val) && val >= this.min && val <= this.max},
+          guiDesc: function(){return lng.getVal('JRAS_GUI_COLLAPSECOMMENTWHENSIZE')}
         },
         collapseCommentToSize: {
           dt: null,
-          validator: function(val){
-            return $.isNumeric(val) && val >= 20 && val <= 10000;
-          },
-          guiDesc: function(){
-            return lng.getVal('JRAS_GUI_COLLAPSECOMMENTTOSIZE')
-          }
+          def: 72,
+          type: 'number',
+          min: 20,
+          max: 10000,
+          init: function(){this.dt = this.def},
+          validator: function(val){return $.isNumeric(val) && val >= this.min && val <= this.max},
+          guiDesc: function(){return lng.getVal('JRAS_GUI_COLLAPSECOMMENTTOSIZE')}
+        },
+        pcbShowPostControl: {
+          dt: null,
+          def: true,
+          type: 'checkbox',
+          init: function(){this.dt = this.def},
+          guiDesc: function(){return lng.getVal('JRAS_GUI_PCBSHOWPOSTCONTROL')}
+        },
+        pcbShowInFullPost: {
+          dt: null,
+          def: false,
+          type: 'checkbox',
+          init: function(){this.dt = this.def},
+          guiDesc: function(){return lng.getVal('JRAS_GUI_PCBSHOWINFULLPOST')}
+        },
+        pcbHideJRShareBlock: {
+          dt: null,
+          def: false,
+          type: 'checkbox',
+          init: function(){this.dt = this.def},
+          guiDesc: function(){return lng.getVal('JRAS_GUI_PCBHIDEJRSHAREBLOCK')}
+        },
+        pcbHideJRRatingBlock: {
+          dt: null,
+          def: false,
+          type: 'checkbox',
+          init: function(){this.dt = this.def},
+          guiDesc: function(){return lng.getVal('JRAS_GUI_PCBHIDEJRRATINGBLOCK')}
+        },
+        pcbTopBorder: {
+          dt: null,
+          def: 10,
+          type: 'number',
+          min: 0,
+          max: 200,
+          init: function(){this.dt = this.def},
+          validator: function(val){return $.isNumeric(val) && val >= this.min && val <= this.max},
+          guiDesc: function(){return lng.getVal('JRAS_GUI_PCBTOPBORDER')}
+        },
+        pcbBottomBorder: {
+          dt: null,
+          def: 10,
+          type: 'number',
+          min: 0,
+          max: 200,
+          init: function(){this.dt = this.def},
+          validator: function(val){return $.isNumeric(val) && val >= this.min && val <= this.max},
+          guiDesc: function(){return lng.getVal('JRAS_GUI_PCBBOTTOMBORDER')}
+        },
+        pcbTopScreenPos: {
+          dt: null,
+          def: 30,
+          type: 'number',
+          min: 0,
+          max: 200,
+          init: function(){this.dt = this.def},
+          validator: function(val){return $.isNumeric(val) && val >= this.min && val <= this.max},
+          guiDesc: function(){return lng.getVal('JRAS_GUI_PCBTOPSCREENPOS')}
         },
         BlockUsers: [],
         BlockTags: []
+      },
+
+      each: function(func){
+        if (func === undefined){return}
+        for(let dItm in this.data){
+          if((dItm == undefined) || (dItm == 'BlockUsers') || (dItm == 'BlockTags')){continue}
+          func(dItm, this.data[dItm]);
+        }
       },
 
       val: function(option, value){
@@ -473,6 +600,8 @@ const JRAS_CurrVersion = '1.6.7';
             if (this.data[option]['validator']){
               if (this.data[option].validator(value)){
                 this.data[option].dt = value;
+              }else{
+                this.data[option].init();
               }
             }else{
               this.data[option].dt = value;
@@ -480,50 +609,13 @@ const JRAS_CurrVersion = '1.6.7';
           }
         }
       },
+
       getGuiDesc: function(option){
-        return this.data[option].guiDesc();
+        return (this.data[option]) ? this.data[option].guiDesc() : option;
       },
 
       setDef: function(){
-        this.data.currentLng.dt = 'ru';
-        this.data.correctRedirectLink.dt = true;
-        this.data.removeShareButtons.dt = false;
-        this.data.makeAvatarOnOldDesign.dt = true;
-        this.data.makeAvatarOnlyFullPost.dt = false;
-        this.data.avatarHeight.dt = 35;
-        this.data.makeTreeComments.dt = true;
-        this.data.treeCommentsOnlyFullPost.dt = false;
-        this.data.whenCollapseMakeRead.dt = true;
-        this.data.isToBeLoadingUserData.dt = true;
-        this.data.hideUserAwardsWhen.dt = 60;
-        this.data.minShowUserAwards.dt = 40;
-        this.data.fixedTopbar.dt = true;
-        this.data.hideFixedTopbar.dt = true;
-        this.data.showUTOnLine.dt = true;
-        this.data.showUTOnComment.dt = true;
-        this.data.showUTOnPrivateMess.dt = true;
-        this.data.showUTOnPeople.dt = true;
-        this.data.showUTOnSidebarTopUsers.dt = true;
-        this.data.showUTOnSidebarOnline.dt = true;
-        this.data.showHiddenComments.dt = false;
-        this.data.showHiddenCommentsMark.dt = true;
-        this.data.showUTOnTopComments.dt = true;
-        this.data.isToBeLoadingTagData.dt = true;
-        this.data.showTTOnLine.dt = true;
-        this.data.showTTFullPost.dt = true;
-        this.data.showTTOnTrends.dt = true;
-        this.data.showTTOnLikeTags.dt = true;
-        this.data.showTTOnInteresting.dt = true;
-        this.data.chatlaneToPacaki.dt = false;
-        this.data.delUserComment.dt = false;
-        this.data.showUserNameDelComment.dt = true;
-        this.data.fullDelUserPost.dt = false;
-        this.data.delUserPost.dt = false;
-        this.data.showUserNameDelPost.dt = true;
-        this.data.collapseComments.dt = false;
-        this.data.collapseCommentsOnlyFullPost.dt = false;
-        this.data.collapseCommentWhenSize.dt = 110;
-        this.data.collapseCommentToSize.dt = 72;
+        this.each(function(optName, opt){ opt.init() });
         this.data.BlockUsers = [];
         this.data.BlockTags = [];
       },
@@ -546,13 +638,9 @@ const JRAS_CurrVersion = '1.6.7';
       saveUserData: function(forUser){
         this.removeSavedUserData(forUser);
         const pref = forUser + '_';
-
-        for(let i in this.data){
-          if((i === undefined) || (i == 'BlockUsers') || (i == 'BlockTags')){
-            continue
-          }
-          GM_setValue(pref + i, this.data[i].dt);
-        }
+        this.each(function(optName, opt){
+          GM_setValue(pref + optName, opt.dt);
+        });
         for(let i = 0; i < this.data.BlockUsers.length; i++){
           GM_setValue(pref + 'BlockUsers_name_' + i, this.data.BlockUsers[i]);
         }
@@ -564,7 +652,6 @@ const JRAS_CurrVersion = '1.6.7';
       loadUserDataFrom: function(prefix){
         let retVal = false;
         const posf = '.*';
-
         let keys = GM_listValues();
         this.data.BlockUsers = [];
         this.data.BlockTags = [];
@@ -720,18 +807,19 @@ const JRAS_CurrVersion = '1.6.7';
           $topbar.find('.topbar_inner').css({'transition': 'top .4s cubic-bezier(.45,.05,.55,.95)', 'top': '-40px'});
           $topbar.css({'transition': 'height .4s cubic-bezier(.45,.05,.55,.95)', 'height': '10px'});
           $topbar.hover(function(e) {
-            let a = $(window).scrollTop() < 38 ? -$(window).scrollTop() : '-40px';
+            let a = $(win).scrollTop() < 38 ? -$(window).scrollTop() : '-40px';
             $(this).find('.topbar_inner').css('top', e.type === 'mouseenter' ? '0' : a);
-            a = $(window).scrollTop() < 38 ? 45 - $(window).scrollTop() : '10px';
+            a = $(win).scrollTop() < 38 ? 45 - $(window).scrollTop() : '10px';
             $(this).css('height', e.type === 'mouseenter' ? '45px' : a);
           });
-          if ($(window).scrollTop() < 38){
+          if ($(win).scrollTop() < 38){
             $topbar.mouseenter();
             $topbar.mouseleave();
           }
         };
         checkPos();
-        $(window).scroll(function(){
+        $(window).on('scroll', function(){
+        // $(win).scroll(function(){
           checkPos();
         });
       }
@@ -740,6 +828,7 @@ const JRAS_CurrVersion = '1.6.7';
 
   function userRemove(userNameArr){
     let currentUser;
+    const blockUsersAsFindStr = 'a:contains(' + userOptions.data.BlockUsers.join('), a:contains(') + ')';
     $(blockUsersAsFindStr).parent('div.uhead_nick').closest('div.article').each(function(idx, elm){
       currentUser = $(this).find(blockUsersAsFindStr).text();
       if(userNameArr.indexOf(currentUser) != -1){
@@ -749,7 +838,7 @@ const JRAS_CurrVersion = '1.6.7';
         }
         elm.parentElement.style.paddingBottom = '40px';
         makeBlockPostElements(elm, elm.parentElement.id, lng.getVal('JRAS_POSTBLOCKBYUSER'), currentUser, '', false);
-        console.info('  user - ' + currentUser + ' : hide post - ' + elm.parentElement.id);
+        // win.console.info('  user - ' + currentUser + ' : hide post - ' + elm.parentElement.id);
         $(this).hide();
       }
     });
@@ -759,7 +848,7 @@ const JRAS_CurrVersion = '1.6.7';
         //       $(this).remove(); // для просто удаления. Будет пустой комент
         //       return;
         makeBlockCommElements(elm, elm.parentElement.id, lng.getVal('JRAS_COMMBLOCKBYUSER'), currentUser);
-        console.info('  user - ' + currentUser + ' : hide comment - ' + elm.parentElement.id);
+        // win.console.info('  user - ' + currentUser + ' : hide comment - ' + elm.parentElement.id);
         $(this).hide();
       }
     })
@@ -783,16 +872,10 @@ const JRAS_CurrVersion = '1.6.7';
         // return;
         elm.parentElement.style.paddingBottom = '40px';
         makeBlockPostElements(elm, elm.parentElement.id, lng.getVal('JRAS_POSTBLOCKBYTAG'), foundTagStr, '', true);
-        console.info('hide post by tag - ' + foundTagStr);
+        // win.console.info('hide post by tag - ' + foundTagStr);
         $(this).hide();
       }
     })
-  }
-
-  function correctImageInComment(){
-    //$('div[id^=comment].comment>div[id^=comment_txt_].txt>div.image').each(function(idx, elm){
-    //console.log(elm);
-    //})
   }
 
   function showHiddenComments($inElm){
@@ -863,7 +946,7 @@ const JRAS_CurrVersion = '1.6.7';
           complete: function(){
             if (!opt.correctPos) {return}
             const tmp = $(this).closest('div[id^=comment].comment').offset().top;
-            if(tmp < unsafeWindow.pageYOffset){
+            if(tmp < win.pageYOffset){
               $('html, body')
                 .animate({
                   scrollTop: tmp - 20
@@ -905,13 +988,11 @@ const JRAS_CurrVersion = '1.6.7';
   }
 
   function subscribeShowComment(){
-    const MutationObserver = window.MutationObserver || window.WebKitMutationObserver || window.MozMutationObserver;
     const observer = new MutationObserver(function(mutations){
       mutations.forEach(function(mutation){
         if (mutation.type === 'childList'){
 
           setTimeout(function(){
-
 
               if (userOptions.val('showUTOnComment')){
                 makeUserTooltips($(mutation.addedNodes).find('span.reply-link > a:first-child'), 'a');
@@ -941,7 +1022,7 @@ const JRAS_CurrVersion = '1.6.7';
                     }
                   })
                 }
-
+                const blockUsersAsFindStr = 'a:contains(' + userOptions.data.BlockUsers.join('), a:contains(') + ')';
                 $(itm).find(blockUsersAsFindStr).closest('div[id^=comment_txt_].txt').each(function(idx, elm){
                   const currUser = $.trim($(this).find(blockUsersAsFindStr).text());
                   if (userOptions.data.BlockUsers.indexOf(currUser) != -1){
@@ -980,6 +1061,12 @@ const JRAS_CurrVersion = '1.6.7';
     }
   }
 
+  function blinkElement($element, count){
+    for(let i = 0; i < count; i++){
+      $element.fadeTo('fast', 0.3).fadeTo('fast', 1.0);
+    }
+  }
+
   function makeTreeCommentNode(elm, commentID){
     if($(elm).find('span#treeColl' + commentID)[0]){
       return
@@ -1014,10 +1101,10 @@ const JRAS_CurrVersion = '1.6.7';
           // и помигаем :)
           $('html, body')
             .animate({
-              scrollTop: $par.prev().offset().top - (unsafeWindow.innerHeight / 4)
+              scrollTop: $par.prev().offset().top - (win.innerHeight / 4)
             }, {
               complete: function(){
-                if($(elm).offset().top > unsafeWindow.pageYOffset + unsafeWindow.innerHeight){
+                if($(elm).offset().top > win.pageYOffset + win.innerHeight){
                   $('html, body')
                     .animate({
                       scrollTop: $(elm).parent().prev().offset().top - 20
@@ -1147,420 +1234,186 @@ const JRAS_CurrVersion = '1.6.7';
     }
   }
 
-  function makePropElements(){
-    if(page.isNewDesign){
-      $('div.topbar_right:first div.lang_select').after(
-        '<label id="jras_prop-button" style="cursor: pointer;" class="lang_select" for="modal-1">JRAS</label>'
-      );
-      $('label#jras_prop-button').click(openProp);
-    }else{
-      $('div#header:first div.lang_select').after(`
-        <label id="navcontainer" class="lang_select" for="modal-1"
-          style="cursor: pointer; right: 39px; padding: 1px 2px 2px;
-          font-size: 9px; border-radius: 0 0 5px 5px; height: 17px; cursor: pointer;
-          background: transparent url('../images/mainmenu_active_bg1.png') repeat-x scroll 0 0;">
-          JRAS
-        </label>
-      `);
-      $('div#header:first div.lang_select + label').click(openProp);
+  function getPostID(strPostID){
+    const ret = /[0-9]+(\d?\.\d+)?/g.exec(strPostID);
+    return (ret == undefined) ? '' : ret[0];
+  }
+
+  function makePostControls(){
+    if (!userOptions.val('pcbShowPostControl')) {return}
+    const step = 25;
+    const itmHeight = (page.isNewDesign) ? 24 : 16;
+    const itmContentPos = itmHeight + 5;
+    let st = (page.isNewDesign) ? 'new' : 'old';
+    if (st == 'old' && !page.isSchemeLight()){
+      st = st + '-dark';
     }
-    $('body').append(`
-      <div id="jras-prop-gui-dialog">
-        <input class="modal-state" id="modal-1" type="checkbox" />
-        <div class="modal">
-          <label class="modal__bg" for="modal-1"></label>
-          <div class="modal__inner">
-            <div class="jras-prop-gui-contentTop">
-              <span style="color: #8B857B;font-weight: bold; line-height: 27px; padding-left: 8px;">
-                JRAS - JoyReactor Advanced Script v.${JRAS_CurrVersion}
-              </span>
-              <label class="modal__close" for="modal-1"></label>
-            </div>
-            <div class="jras-prop-gui-contentMain">
-              <div id="jras-prop-gui-tabs" style="border: 0 none;">
-                <ul class="jras-tabs-nav">
-                  <li id="jras-tabs-nav-0"><a href="#jras-prop-gui-tab-1"></a></li>
-                  <li id="jras-tabs-nav-1"><a href="#jras-prop-gui-tab-2"></a></li>
-                  <li id="jras-tabs-nav-2"><a href="#jras-prop-gui-tab-3"></a></li>
-                  <li id="jras-tabs-nav-3"><a href="#jras-prop-gui-tab-4"></a></li>
-                </ul>
-                <div id="jras-prop-gui-tab-1" class="jras-tabs-panel">
-                  <div class="jras-tabs-panel-content">
-                    <section class="jras-prop-gui-section">
-                      <span id="jras-gui-SelectLngCaption" style="vertical-align: middle;"></span>
-                      <select id="jras-gui-SelectLngcbb" name="jras-lngSelect" style="vertical-align: middle; width: 30%;height: 1.4em;;">
-                      </select>
-                    </section>
-                    <section class="jras-prop-gui-section">
-                      <input id="jras-gui-removeShareButtonsVal" type="checkbox" style="vertical-align: middle;"/>
-                      <label id="jras-gui-removeShareButtonsCaption" for="jras-gui-removeShareButtonsVal" style="cursor: pointer;vertical-align: middle;"> </label>
-                    </section>
-                    <section class="jras-prop-gui-section">
-                      <input id="jras-gui-fixedTopbarVal" type="checkbox" style="vertical-align: middle;"/>
-                      <label id="jras-gui-fixedTopbarCaption" for="jras-gui-fixedTopbarVal" style="cursor: pointer;vertical-align: middle;"> </label>
-                    </section>
-                    <section class="jras-prop-gui-section" style="margin-left: 20px; margin-top: -10px;">
-                      <input id="jras-gui-hideFixedTopbarVal" type="checkbox" style="vertical-align: middle;"/>
-                      <label id="jras-gui-hideFixedTopbarCaption" for="jras-gui-hideFixedTopbarVal" style="cursor: pointer;vertical-align: middle;"> </label>
-                    </section>
-                    <section class="jras-prop-gui-section">
-                      <input id="jras-gui-correctRedirectLinkVal" type="checkbox" style="vertical-align: middle;"/>
-                      <label id="jras-gui-correctRedirectLinkCaption" for="jras-gui-correctRedirectLinkVal" style="cursor: pointer;vertical-align: middle;"> </label>
-                    </section>
-                    <section class="jras-prop-gui-section">
-                      <input id="jras-gui-showHiddenCommentsVal" type="checkbox" style="vertical-align: middle;"/>
-                      <label id="jras-gui-showHiddenCommentsCaption" for="jras-gui-showHiddenCommentsVal" style="cursor: pointer;vertical-align: middle;"> </label>
-                    </section>
-                    <section class="jras-prop-gui-section" style="margin-left: 20px; margin-top: -10px;">
-                      <input id="jras-gui-showHiddenCommentsMarkVal" type="checkbox" style="vertical-align: middle;"/>
-                      <label id="jras-gui-showHiddenCommentsMarkCaption" for="jras-gui-showHiddenCommentsMarkVal" style="cursor: pointer;vertical-align: middle;"> </label>
-                    </section>
-                  </div>
-                </div>
-                <div id="jras-prop-gui-tab-2" class="jras-tabs-panel">
-                  <div class="jras-tabs-panel-content">
-                    <section class="jras-prop-gui-section">
-                      <input id="jras-gui-delUserCommentVal" type="checkbox" style="vertical-align: middle;"/>
-                      <label id="jras-gui-delUserCommentCaption" for="jras-gui-delUserCommentVal" style="cursor: pointer;vertical-align: middle;"> </label>
-                    </section>
-                    <section class="jras-prop-gui-section" style="margin-top: -10px;">
-                      <input id="jras-gui-showUserNameDelCommentVal" type="checkbox" style="vertical-align: middle;"/>
-                      <label id="jras-gui-showUserNameDelCommentCaption" for="jras-gui-showUserNameDelCommentVal" style="cursor: pointer;vertical-align: middle;"> </label>
-                    </section>
-                    <section class="jras-prop-gui-section" style="margin-top: -10px;">
-                      <input id="jras-gui-fullDelUserPostVal" type="checkbox" style="vertical-align: middle;"/>
-                      <label id="jras-gui-fullDelUserPostCaption" for="jras-gui-fullDelUserPostVal" style="cursor: pointer;vertical-align: middle;"> </label>
-                    </section>
-                    <section class="jras-prop-gui-section" style="margin-top: -10px;">
-                      <input id="jras-gui-delUserPostVal" type="checkbox" style="vertical-align: middle;"/>
-                      <label id="jras-gui-delUserPostCaption" for="jras-gui-delUserPostVal" style="cursor: pointer;vertical-align: middle;"> </label>
-                    </section>
-                    <section class="jras-prop-gui-section" style="margin-top: -10px;">
-                      <input id="jras-gui-showUserNameDelPostVal" type="checkbox" style="vertical-align: middle;"/>
-                      <label id="jras-gui-showUserNameDelPostCaption" for="jras-gui-showUserNameDelPostVal" style="cursor: pointer;vertical-align: middle;"> </label>
-                    </section>
-                    <span id="jras-guiBlockUserListCaption"></span>
-                    <textarea id="jras-guiBlockUserList" style="width: 98%; border: 1px solid rgb(216, 216, 216); height: 139px;">
-                    </textarea>
-                    <span id="jras-guiBlockTagListCaption"></span>
-                    <textarea id="jras-guiBlockTagList" style="width: 98%; border: 1px solid rgb(216, 216, 216); height: 139px;">
-                    </textarea>
-                  </div>
-                </div>
-                <div id="jras-prop-gui-tab-3" class="jras-tabs-panel">
-                  <div class="jras-tabs-panel-content">
-                    <section class="jras-prop-gui-section">
-                      <input id="jras-gui-isToBeLoadingUserDataVal" type="checkbox" style="vertical-align: middle;"/>
-                      <label id="jras-gui-isToBeLoadingUserDataCaption" for="jras-gui-isToBeLoadingUserDataVal" style="cursor: pointer;vertical-align: middle;"> </label>
-                    </section>
-                    <section class="jras-prop-gui-section" style="margin-left: 20px; margin-top: -10px;">
-                      <input id="jras-gui-showUTOnLineVal" type="checkbox" style="vertical-align: middle;"/>
-                      <label id="jras-gui-showUTOnLineCaption" for="jras-gui-showUTOnLineVal" style="cursor: pointer;vertical-align: middle;"> </label>
-                      <br>
-                      <input id="jras-gui-showUTOnCommentVal" type="checkbox" style="vertical-align: middle;"/>
-                      <label id="jras-gui-showUTOnCommentCaption" for="jras-gui-showUTOnCommentVal" style="cursor: pointer;vertical-align: middle;"> </label>
-                      <br>
-                      <input id="jras-gui-showUTOnPrivateMessVal" type="checkbox" style="vertical-align: middle;"/>
-                      <label id="jras-gui-showUTOnPrivateMessCaption" for="jras-gui-showUTOnPrivateMessVal" style="cursor: pointer;vertical-align: middle;"> </label>
-                      <br>
-                      <input id="jras-gui-showUTOnPeopleVal" type="checkbox" style="vertical-align: middle;"/>
-                      <label id="jras-gui-showUTOnPeopleCaption" for="jras-gui-showUTOnPeopleVal" style="cursor: pointer;vertical-align: middle;"> </label>
-                      <br>
-                      <input id="jras-gui-showUTOnSidebarTopUsersVal" type="checkbox" style="vertical-align: middle;"/>
-                      <label id="jras-gui-showUTOnSidebarTopUsersCaption" for="jras-gui-showUTOnSidebarTopUsersVal" style="cursor: pointer;vertical-align: middle;"> </label>
-                      <br>
-                      <input id="jras-gui-showUTOnSidebarOnlineVal" type="checkbox" style="vertical-align: middle;"/>
-                      <label id="jras-gui-showUTOnSidebarOnlineCaption" for="jras-gui-showUTOnSidebarOnlineVal" style="cursor: pointer;vertical-align: middle;"> </label>
-                      <br>
-                      <span id="jras-gui-hideUserAwardsWhenCaption" style="vertical-align: middle;"></span>
-                      <select id="jras-gui-hideUserAwardsWhencbb" name="jras-hideUserAwardsWhen" style="vertical-align: middle; width: 60px;height: 20px;">
-                      </select>
-                      <span id="jras-gui-minShowUserAwardsCaption" style="vertical-align: middle;margin-left: 3px;"></span>
-                      <select id="jras-gui-minShowUserAwardscbb" name="jras-minShowUserAwards" style="vertical-align: middle; width: 60px;height: 20px;">
-                      </select>
-                      <br>
-                      <input id="jras-gui-chatlaneToPacakiVal" type="checkbox" style="vertical-align: middle;"/>
-                      <label id="jras-gui-chatlaneToPacakiCaption" for="jras-gui-chatlaneToPacakiVal" style="cursor: pointer;vertical-align: middle;"> </label>
-                      <br>
-                      <input id="jras-gui-showUTOnTopCommentsVal" type="checkbox" style="vertical-align: middle;"/>
-                      <label id="jras-gui-showUTOnTopCommentsCaption" for="jras-gui-showUTOnTopCommentsVal" style="cursor: pointer;vertical-align: middle;"> </label>
-                    </section>
-                    <section class="jras-prop-gui-section" style="margin-top: -10px;">
-                      <input id="jras-gui-isToBeLoadingTagDataVal" type="checkbox" style="vertical-align: middle;"/>
-                      <label id="jras-gui-isToBeLoadingTagDataCaption" for="jras-gui-isToBeLoadingTagDataVal" style="cursor: pointer;vertical-align: middle;"> </label>
-                    </section>     
-                    <section class="jras-prop-gui-section" style="margin-left: 20px; margin-top: -10px;">
-                      <input id="jras-gui-showTTOnLineVal" type="checkbox" style="vertical-align: middle;"/>
-                      <label id="jras-gui-showTTOnLineCaption" for="jras-gui-showTTOnLineVal" style="cursor: pointer;vertical-align: middle;"> </label>
-                      <br>
-                      <input id="jras-gui-showTTFullPostVal" type="checkbox" style="vertical-align: middle;"/>
-                      <label id="jras-gui-showTTFullPostCaption" for="jras-gui-showTTFullPostVal" style="cursor: pointer;vertical-align: middle;"> </label>
-                      <br>
-                      <input id="jras-gui-showTTOnTrendsVal" type="checkbox" style="vertical-align: middle;"/>
-                      <label id="jras-gui-showTTOnTrendsCaption" for="jras-gui-showTTOnTrendsVal" style="cursor: pointer;vertical-align: middle;"> </label>
-                      <br>
-                      <input id="jras-gui-showTTOnLikeTagsVal" type="checkbox" style="vertical-align: middle;"/>
-                      <label id="jras-gui-showTTOnLikeTagsCaption" for="jras-gui-showTTOnLikeTagsVal" style="cursor: pointer;vertical-align: middle;"> </label>
-                      <br>
-                      <input id="jras-gui-showTTOnInterestingVal" type="checkbox" style="vertical-align: middle;"/>
-                      <label id="jras-gui-showTTOnInterestingCaption" for="jras-gui-showTTOnInterestingVal" style="cursor: pointer;vertical-align: middle;"> </label>
-                    </section>  
-                  </div>
-                </div>
-                <div id="jras-prop-gui-tab-4" class="jras-tabs-panel">
-                  <div class="jras-tabs-panel-content">
-                    <section class="jras-prop-gui-section">
-                      <input id="jras-gui-makeTreeCommentsVal" type="checkbox" style="vertical-align: middle;"/>
-                      <label id="jras-gui-makeTreeCommentsCaption" for="jras-gui-makeTreeCommentsVal" style="cursor: pointer;vertical-align: middle;"> </label>
-                    </section>
-                    <section class="jras-prop-gui-section" style="margin-left: 20px; margin-top: -10px;">
-                      <input id="jras-gui-treeCommentsOnlyFullPostVal" type="checkbox" style="vertical-align: middle;"/>
-                      <label id="jras-gui-treeCommentsOnlyFullPostCaption" for="jras-gui-treeCommentsOnlyFullPostVal" style="cursor: pointer;vertical-align: middle;"> </label>
-                    </section>
-                    <section class="jras-prop-gui-section">
-                      <input id="jras-gui-makeAvatarOnOldDesignVal" type="checkbox" style="vertical-align: middle;"/>
-                      <label id="jras-gui-makeAvatarOnOldDesignCaption" for="jras-gui-makeAvatarOnOldDesignVal" style="cursor: pointer;vertical-align: middle;"> </label>
-                    </section>
-                    <section class="jras-prop-gui-section" style="margin-left: 20px; margin-top: -10px;">
-                      <input id="jras-gui-makeAvatarOnlyFullPostVal" type="checkbox" style="vertical-align: middle;"/>
-                      <label id="jras-gui-makeAvatarOnlyFullPostCaption" for="jras-gui-makeAvatarOnlyFullPostVal" style="cursor: pointer;vertical-align: middle;"> </label>
-                      <br>
-                      <span id="jras-gui-avatarHeightCaption" style="vertical-align: middle;margin-left: 3px;line-height: 28px;"></span>
-                      <input id="jras-gui-avatarHeightVal" type="number" min="5" max="300" style="width: 50px; vertical-align: middle;"/>
-                    </section>
-                    <section class="jras-prop-gui-section">
-                      <input id="jras-gui-whenCollapseMakeReadVal" type="checkbox" style="vertical-align: middle;"/>
-                      <label id="jras-gui-whenCollapseMakeReadCaption" for="jras-gui-whenCollapseMakeReadsVal" style="cursor: pointer;vertical-align: middle;"> </label>
-                    </section>
-                    <section class="jras-prop-gui-section">
-                      <input id="jras-gui-collapseCommentsVal" type="checkbox" style="vertical-align: middle;"/>
-                      <label id="jras-gui-collapseCommentsCaption" for="jras-gui-collapseCommentsVal" style="cursor: pointer;vertical-align: middle;"> </label>
-                    </section>
-                    <section class="jras-prop-gui-section" style="margin-left: 20px; margin-top: -10px;">
-                      <input id="jras-gui-collapseCommentsOnlyFullPostVal" type="checkbox" style="vertical-align: middle;"/>
-                      <label id="jras-gui-collapseCommentsOnlyFullPostCaption" for="jras-gui-collapseCommentsOnlyFullPostVal" style="cursor: pointer;vertical-align: middle;line-height: 28px;"> </label>
-                      <br>
-                      <span id="jras-gui-collapseCommentWhenSizeCaption" style="vertical-align: middle;margin-left: 3px;"></span>
-                      <input id="jras-gui-collapseCommentWhenSizeVal" type="number" min="20" max="500" style="width: 50px; vertical-align: middle;"/>
-                      <br>
-                      <span id="jras-gui-collapseCommentToSizeCaption" style="vertical-align: middle;margin-left: 3px;line-height: 28px;"></span>
-                      <input id="jras-gui-collapseCommentToSizeVal" type="number" min="20" max="500" style="width: 50px; vertical-align: middle;"/>
-                    </section>
-                  </div>
-                </div>
-              </div>
-            </div>
-            <div  id="jras-prop-gui-bottomCcontent" class="jras-prop-gui-contentBottom">
-              <input id="jras-gui-SaveSettings" style="padding-left: 20px; padding-right: 20px; height: 22px;" class="jras-prop-gui-button-right" value="" type="button">
-            </div>
+    const makePostCtrl = function($th){
+      const $postContainer = $th;
+      const postID = getPostID($postContainer.attr('id'));
+      if (postID == ''){return}
+      $postContainer.find('div#jras-PostControlBlock').remove();
+      if (userOptions.val('pcbHideJRShareBlock')) {$postContainer.find('div.uhead_share').css('display', 'none')}
+      if (userOptions.val('pcbHideJRRatingBlock')) {$postContainer.find('div.ufoot span.post_rating').css('display', 'none')}
+      setTimeout(function(){
+        const postUrl = location.protocol + '//' + location.hostname + '/post/' + postID;
+        const postUrlShare = postUrl + '?social=1';
+        $postContainer.find('div.article').each(function(){
+          $(this).css({'overflow':'hidden'});
+          $(this).prepend(`
+          <div id="jras-PostControlBlock" postID="${postID}" class="jras-PostControlBlock-${st}" style="white-space: nowrap; height: ${step * 4}px;">
+            <sitm id="jras-PostControlInfo" class="jras-pcInfo-img" style="top:0; height: ${itmHeight}px; ${(page.isNewDesign)?'padding: 2px;':''}">
+              <a id="jras-pcInfoUser" href="#" style="margin-left: ${itmContentPos}px;"></a>
+            </sitm>
+            <sitm id="jras-PostControlShare" class="jras-pcShare-img" style="top:${step}px; height: ${itmHeight}px;">
+              <a href="#" title="Favorite" class="jras-pcShareFAV-img" style="margin-left: ${itmContentPos + 5}px;"></a>
+              <a href="https://t.me/share/url?url=${postUrlShare}" title="Telegram" class="jras-pcShareTEL-img" rel="nofollow" target="_blank"></a>
+              <a href="http://vkontakte.ru/share.php?url=${postUrlShare}" title="Vkontakte" class="jras-pcShareVK-img" rel="nofollow" target="_blank"></a>
+              <a href="http://connect.mail.ru/share?url=${postUrlShare}" title="Mail.ru" class="jras-pcShareMAIL-img" rel="nofollow" target="_blank"></a>
+              <a href="http://twitter.com/home?status=${postUrlShare}" title="Twitter" class="jras-pcShareTWIT-img" rel="nofollow" target="_blank"></a>
+              <a href="http://www.facebook.com/sharer.php?u=${postUrlShare}" title="Facebook" class="jras-pcShareFACE-img" rel="nofollow" target="_blank"></a>
+            </sitm>         
+            <sitm id="jras-PostControlRating" class="jras-pcRating-img" style="top:${step * 2}px; height: ${itmHeight}px; ${(page.isNewDesign)?'padding: 4px;':''}">
+              <span style="margin-left: ${itmContentPos}px;">
+            </sitm>
+            <sitm id="jras-PostControlLinks" class="jras-pcLinks-img" style="top:${step * 3}px; height: ${itmHeight}px; ${(page.isNewDesign)?'padding: 2px;':''}"></sitm>
           </div>
-        </div>
-      </div>
-   `);
+        `);
+        });
 
-    const $propDialog = $('#jras-prop-gui-dialog');
-    $propDialog.find('select#jras-gui-SelectLngcbb').append(lng.getHTMLListLangs());
-    $propDialog.find('select#jras-gui-hideUserAwardsWhencbb').append(getHideAwardsCountList());
-    $propDialog.find('select#jras-gui-minShowUserAwardscbb').append(getShowAwardsCountList());
+        const $infoUserA = $postContainer.find('div.uhead div.uhead_nick a');
+        const $infoUserDate = $postContainer.find('div.ufoot span.date > span');
+        const $pcInfoUser = $postContainer.find('sitm#jras-PostControlInfo');
+        $pcInfoUser.find('a#jras-pcInfoUser').attr('href', $infoUserA.attr('href')).text($infoUserA.text());
+        $pcInfoUser.append($infoUserDate.clone());
+        postControlSlider($pcInfoUser, itmHeight + $infoUserA.width() + $infoUserDate.width(), itmHeight);
 
-    $propDialog.find('[id*=jras-tabs-nav-]').click(function(){
-      $propDialog.find('#jras-prop-gui-tabs').tabs({active: $(this).attr('id').replace('jras-tabs-nav-', '')});
+        postControlSlider($postContainer.find('sitm#jras-PostControlShare'), 132, itmHeight)
+          .find('a.jras-pcShareFAV-img').click(function(){
+          $postContainer.find('span.favorite_link').trigger('click');
+        });
+
+        const $Rating = $postContainer.find('div.ufoot span.post_rating');
+        $Rating.find('div.vote-plus, div.vote-minus').removeClass('abyss');
+        const ratingStyle = function(){
+          const $pcRating = $postContainer.find('sitm#jras-PostControlRating');
+          $pcRating.children().remove();
+          $pcRating.append(`<span style="margin-left: ${itmContentPos}px;">`);
+          $pcRating.append($Rating.clone(true));
+          const $pcRatingPost = $pcRating.find('span.post_rating');
+          $pcRatingPost.css('display', '');
+          $pcRatingPost.css('right', 'unset');
+          const $pcRatingPostPlus = $pcRatingPost.find('div.vote-plus');
+          $pcRatingPostPlus.removeClass('vote-plus').addClass('jras-PostControlRatingVote').click(function(){
+            $Rating.find('div.vote-plus').get(0).click()});
+          const $pcRatingPostMinus =$pcRatingPost.find('div.vote-minus');
+          $pcRatingPostMinus.removeClass('vote-minus').addClass('jras-PostControlRatingVote').click(function(){
+            $Rating.find('div.vote-minus').get(0).click()});
+          if (page.isNewDesign){
+            $pcRatingPost.find('span:first').css({'font-size': '18px', 'top': '-9px', 'display': 'initial','position': 'relative'});
+            $pcRatingPostPlus.addClass('jras-PostControlRatingVote-new').css({'background-position-y': '1px'});
+            $pcRatingPostMinus.addClass('jras-PostControlRatingVote-new').css({'background-position': '-22px 1px', 'margin': '7px 0 0'});
+          }else{
+            $pcRatingPostPlus.addClass('jras-pcVotePlus-img').css({'top': '5px', 'position': 'relative'});
+            $pcRatingPostMinus.addClass('jras-pcVoteMinus-img').css({'top': '5px', 'position': 'relative'});
+          }
+          postControlSlider($pcRating, itmHeight + 130, itmHeight);
+        };
+        ratingStyle();
+        new MutationObserver(function(){ ratingStyle()})
+          .observe($Rating.get(0), {subtree: true, attributes: true, childList: true});
+
+        let $Links = $postContainer.find('div.ufoot span.manage');
+        const makeLinks = function(){
+          let itemW = 0;
+          const $pcLinks = $postContainer.find('sitm#jras-PostControlLinks');
+          $pcLinks.children().remove();
+          $pcLinks.append(`<span style="margin-left: ${itmContentPos}px;">`);
+          if (page.isNewDesign){
+            $pcLinks.append($postContainer.find('div.ufoot span.link_wr').clone());
+            $pcLinks.append($postContainer.find('div.ufoot span.hidden_link').clone());
+            $Links.children().each(function(){
+              $pcLinks.append($(this).clone().css('display', $(this).css('display')));
+            });
+            $pcLinks.find('>span:gt(1):not(:last)').addClass('jras-pcLinksSepAfter');
+            $pcLinks.find('>span.hidden_link').addClass('jras-pcLinksSepBefore');
+            itemW = ($pcLinks.children().find(':visible').length > 3) ? 85: 95;
+            itemW += itmHeight + $Links.outerWidth();
+          }else{
+            $pcLinks.append($Links.children().clone());
+            $pcLinks.find('>span:not(:first):not(:last)').addClass('jras-pcLinksSepAfter');
+            $pcLinks.find('>span.hidden_link').addClass('jras-pcLinksSepBefore');
+            itemW = itmHeight + $Links.width() + $Links.children().find(':visible').length * 7;
+          }
+          $pcLinks.find('span.setTag a.link.setTagLink').click(function(){
+            const $tagEdit = $postContainer.find('div.ufoot span.post_add_tag');
+            const hidden = $tagEdit.css('display') == 'none';
+            $postContainer.find('div.ufoot span.setTag a.link.setTagLink').get(0).click();
+            if (hidden){
+              $('html, body').animate({ scrollTop: $tagEdit.offset().top - 150}, 500);
+              blinkElement($tagEdit, 5);
+            }
+          });
+          $pcLinks.find('span.setTag a.setHeaderLink').click(function(){
+            const $captionEdit = $postContainer.find('div.ufoot span.post_set_header');
+            const hidden = $captionEdit.css('display') == 'none';
+            $postContainer.find('div.ufoot a.setHeaderLink').get(0).click();
+            if (hidden){
+              $('html, body').animate({ scrollTop: $captionEdit.offset().top - 150}, 500);
+              blinkElement($captionEdit, 5);
+            }
+          });
+          postControlSlider($pcLinks, itemW, itmHeight);
+        };
+        makeLinks();
+        new MutationObserver(function(){ makeLinks()})
+          .observe($Links.get(0), {subtree: true, attributes: true, childList: true});
+
+        checkPostControlPos($th);
+      },10);
+
+    };
+
+    let selector = 'div[id^=postContainer].postContainer';
+    if (userOptions.val('pcbShowInFullPost')) {selector = 'div#pageinner div#contentinner > ' + selector}
+    $(selector).each(function(){
+      const $post = $(this);
+      makePostCtrl($post);
+      new MutationObserver(function(){ makePostCtrl($post) })
+        .observe($(this).get(0), {childList: true});
     });
 
-    if(page.isSchemeLight()){
-      $propDialog.find('[id*=jras-prop-gui-tab]').css('color', '#686868');
-    }else{
-      $propDialog.find('[id*=jras-prop-gui-tab]').css('color', '#BBBBBB');
+    $(window).on('scroll', function(){
+      $('div[id^=postContainer].postContainer').each(function(){
+        checkPostControlPos($(this));
+      });
+    });
+  }
+
+  function postControlSlider($postContainerItem, itmWidth, itmHeight){
+    return $postContainerItem.css({'width': itmWidth + itmHeight + 'px', 'right': -itmWidth + 'px'})
+      .mouseenter(function(){$(this).css('right', '-4px')})
+      .mouseleave(function(){$(this).css('right', -itmWidth + 'px')});
+  }
+
+  function checkPostControlPos($PostContainer){
+    const pco = $PostContainer.offset();
+    const pch = $PostContainer.height();
+    const pcbp = pco.top + pch;
+    if (pco.top > win.pageYOffset + win.innerHeight){ return }
+    if (pcbp < win.pageYOffset){ return }
+    const $PostCrtlsBlock = $PostContainer.find('div#jras-PostControlBlock');
+    const pbh = $PostCrtlsBlock.height();
+    let newTop = win.pageYOffset - pco.top + +userOptions.val('pcbTopScreenPos');
+    const pcbTopStop = +userOptions.val('pcbTopBorder');
+    if (newTop + pbh + pcbTopStop > pch){
+      newTop = pch - pbh - +userOptions.val('pcbBottomBorder');
     }
-    if(!page.isNewDesign){
-      $propDialog.find('ul.jras-tabs-nav li a').css('padding-top', '11px');
-    }
-
-    makeServiceGUIButton();
-    updateGuiLocalize();
-
+    newTop = (newTop < pcbTopStop) ? pcbTopStop : newTop; 
+    $PostCrtlsBlock.css({'top': newTop});
   }
 
-  function openProp(){
-    const $propDialog = $('#jras-prop-gui-dialog');
-    $propDialog.find('#jras-gui-SelectLngcbb').val(userOptions.val('currentLng'));
-    $propDialog.find('#jras-gui-correctRedirectLinkVal').prop('checked', userOptions.val('correctRedirectLink'));
-    $propDialog.find('#jras-gui-removeShareButtonsVal').prop('checked', userOptions.val('removeShareButtons'));
-    $propDialog.find('#jras-gui-makeTreeCommentsVal').prop('checked', userOptions.val('makeTreeComments'));
-    $propDialog.find('#jras-gui-treeCommentsOnlyFullPostVal').prop('checked', userOptions.val('treeCommentsOnlyFullPost'));
-    $propDialog.find('#jras-gui-makeAvatarOnOldDesignVal').prop('checked', userOptions.val('makeAvatarOnOldDesign'));
-    $propDialog.find('#jras-gui-makeAvatarOnlyFullPostVal').prop('checked', userOptions.val('makeAvatarOnlyFullPost'));
-    $propDialog.find('#jras-gui-avatarHeightVal').val(userOptions.val('avatarHeight'));
-    $propDialog.find('#jras-gui-whenCollapseMakeReadVal').prop('checked', userOptions.val('whenCollapseMakeRead'));
-    $propDialog.find('#jras-gui-fixedTopbarVal').prop('checked', userOptions.val('fixedTopbar'));
-    $propDialog.find('#jras-gui-hideFixedTopbarVal').prop('checked', userOptions.val('hideFixedTopbar'));
-    $propDialog.find('#jras-gui-isToBeLoadingUserDataVal').prop('checked', userOptions.val('isToBeLoadingUserData'));
-    $propDialog.find('#jras-gui-showUTOnLineVal').prop('checked', userOptions.val('showUTOnLine'));
-    $propDialog.find('#jras-gui-showUTOnCommentVal').prop('checked', userOptions.val('showUTOnComment'));
-    $propDialog.find('#jras-gui-showUTOnPrivateMessVal').prop('checked', userOptions.val('showUTOnPrivateMess'));
-    $propDialog.find('#jras-gui-showUTOnPeopleVal').prop('checked', userOptions.val('showUTOnPeople'));
-    $propDialog.find('#jras-gui-showUTOnSidebarTopUsersVal').prop('checked', userOptions.val('showUTOnSidebarTopUsers'));
-    $propDialog.find('#jras-gui-showUTOnSidebarOnlineVal').prop('checked', userOptions.val('showUTOnSidebarOnline'));
-    $propDialog.find('#jras-gui-showHiddenCommentsVal').prop('checked', userOptions.val('showHiddenComments'));
-    $propDialog.find('#jras-gui-showHiddenCommentsMarkVal').prop('checked', userOptions.val('showHiddenCommentsMark'));
-    $propDialog.find('#jras-gui-showUTOnTopCommentsVal').prop('checked', userOptions.val('showUTOnTopComments'));
-    $propDialog.find('#jras-gui-isToBeLoadingTagDataVal').prop('checked', userOptions.val('isToBeLoadingTagData'));
-    $propDialog.find('#jras-gui-showTTOnLineVal').prop('checked', userOptions.val('showTTOnLine'));
-    $propDialog.find('#jras-gui-showTTFullPostVal').prop('checked', userOptions.val('showTTFullPost'));
-    $propDialog.find('#jras-gui-showTTOnTrendsVal').prop('checked', userOptions.val('showTTOnTrends'));
-    $propDialog.find('#jras-gui-showTTOnLikeTagsVal').prop('checked', userOptions.val('showTTOnLikeTags'));
-    $propDialog.find('#jras-gui-showTTOnInterestingVal').prop('checked', userOptions.val('showTTOnInteresting'));
-    $propDialog.find('#jras-gui-chatlaneToPacakiVal').prop('checked', userOptions.val('chatlaneToPacaki'));
-    $propDialog.find('#jras-gui-delUserCommentVal').prop('checked', userOptions.val('delUserComment'));
-    $propDialog.find('#jras-gui-showUserNameDelCommentVal').prop('checked', userOptions.val('showUserNameDelComment'));
-    $propDialog.find('#jras-gui-fullDelUserPostVal').prop('checked', userOptions.val('fullDelUserPost'));
-    $propDialog.find('#jras-gui-delUserPostVal').prop('checked', userOptions.val('delUserPost'));
-    $propDialog.find('#jras-gui-showUserNameDelPostVal').prop('checked', userOptions.val('showUserNameDelPost'));
-    $propDialog.find('#jras-gui-hideUserAwardsWhencbb').val(userOptions.val('hideUserAwardsWhen'));
-    $propDialog.find('#jras-gui-minShowUserAwardscbb').val(userOptions.val('minShowUserAwards'));
-    $propDialog.find('#jras-gui-collapseCommentsVal').prop('checked', userOptions.val('collapseComments'));
-    $propDialog.find('#jras-gui-collapseCommentsOnlyFullPostVal').prop('checked', userOptions.val('collapseCommentsOnlyFullPost'));
-    $propDialog.find('#jras-gui-collapseCommentWhenSizeVal').val(userOptions.val('collapseCommentWhenSize'));
-    $propDialog.find('#jras-gui-collapseCommentToSizeVal').val(userOptions.val('collapseCommentToSize'));
-    $propDialog.find('#jras-guiBlockUserList').val(userOptions.data.BlockUsers.join("\n"));
-    $propDialog.find('#jras-guiBlockTagList').val(userOptions.data.BlockTags.join("\n"));
-    $propDialog.find('#jras-prop-gui-tabs').tabs({active: 0});
-    $propDialog.find('#jras-prop-gui-tabs').tabs({selected: 0});
-    $propDialog.find('#jras-prop-gui-tabs').tabs({focused: 0});
-  }
-
-  function updateGuiLocalize(){
-    const $propDialog = $('#jras-prop-gui-dialog');
-    $propDialog.find('#jras-gui-SaveSettings').attr('value', lng.getVal('JRAS_GUI_BTNSAVE'));
-    $propDialog.find('#jras-gui-sendPMforMe').attr('title', lng.getVal('JRAS_GUI_BTNSENDPMME'));
-    $propDialog.find('#jras-gui-DeleteAllSavedSettings').attr('title', lng.getVal('JRAS_GUI_BTNDELETESETT'));
-    $propDialog.find('#jras-gui-ResetSettings').attr('title', lng.getVal('JRAS_GUI_BTNRESETSETT'));
-    $propDialog.find('#jras-tabs-nav-0 a').text(lng.getVal('JRAS_GUI_TABMAIN'));
-    $propDialog.find('#jras-tabs-nav-1 a').text(lng.getVal('JRAS_GUI_TABBLOCK'));
-    $propDialog.find('#jras-tabs-nav-2 a').text(lng.getVal('JRAS_GUI_TABTOOLTIP'));
-    $propDialog.find('#jras-tabs-nav-3 a').text(lng.getVal('JRAS_GUI_TABCOMMENTS'));
-    $propDialog.find('#jras-gui-SelectLngCaption').text(userOptions.getGuiDesc('currentLng'));
-    $propDialog.find('#jras-gui-correctRedirectLinkCaption').text(userOptions.getGuiDesc('correctRedirectLink'));
-    $propDialog.find('#jras-gui-removeShareButtonsCaption').text(userOptions.getGuiDesc('removeShareButtons'));
-    $propDialog.find('#jras-gui-makeTreeCommentsCaption').text(userOptions.getGuiDesc('makeTreeComments'));
-    $propDialog.find('#jras-gui-treeCommentsOnlyFullPostCaption').text(userOptions.getGuiDesc('treeCommentsOnlyFullPost'));
-    $propDialog.find('#jras-gui-makeAvatarOnOldDesignCaption').text(userOptions.getGuiDesc('makeAvatarOnOldDesign'));
-    $propDialog.find('#jras-gui-makeAvatarOnlyFullPostCaption').text(userOptions.getGuiDesc('makeAvatarOnlyFullPost'));
-    $propDialog.find('#jras-gui-avatarHeightCaption').text(userOptions.getGuiDesc('avatarHeight'));
-    $propDialog.find('#jras-gui-whenCollapseMakeReadCaption').text(userOptions.getGuiDesc('whenCollapseMakeRead'));
-    $propDialog.find('#jras-gui-fixedTopbarCaption').text(userOptions.getGuiDesc('fixedTopbar'));
-    $propDialog.find('#jras-gui-hideFixedTopbarCaption').text(userOptions.getGuiDesc('hideFixedTopbar'));
-    $propDialog.find('#jras-gui-isToBeLoadingUserDataCaption').text(userOptions.getGuiDesc('isToBeLoadingUserData'));
-    $propDialog.find('#jras-gui-showUTOnLineCaption').text(userOptions.getGuiDesc('showUTOnLine'));
-    $propDialog.find('#jras-gui-showUTOnCommentCaption').text(userOptions.getGuiDesc('showUTOnComment'));
-    $propDialog.find('#jras-gui-showUTOnPrivateMessCaption').text(userOptions.getGuiDesc('showUTOnPrivateMess'));
-    $propDialog.find('#jras-gui-showUTOnPeopleCaption').text(userOptions.getGuiDesc('showUTOnPeople'));
-    $propDialog.find('#jras-gui-showUTOnSidebarTopUsersCaption').text(userOptions.getGuiDesc('showUTOnSidebarTopUsers'));
-    $propDialog.find('#jras-gui-showUTOnSidebarOnlineCaption').text(userOptions.getGuiDesc('showUTOnSidebarOnline'));
-    $propDialog.find('#jras-gui-showHiddenCommentsCaption').text(userOptions.getGuiDesc('showHiddenComments'));
-    $propDialog.find('#jras-gui-showHiddenCommentsMarkCaption').text(userOptions.getGuiDesc('showHiddenCommentsMark'));
-    $propDialog.find('#jras-gui-showUTOnTopCommentsCaption').text(userOptions.getGuiDesc('showUTOnTopComments'));
-    $propDialog.find('#jras-gui-isToBeLoadingTagDataCaption').text(userOptions.getGuiDesc('isToBeLoadingTagData'));
-    $propDialog.find('#jras-gui-showTTOnLineCaption').text(userOptions.getGuiDesc('showTTOnLine'));
-    $propDialog.find('#jras-gui-showTTFullPostCaption').text(userOptions.getGuiDesc('showTTFullPost'));
-    $propDialog.find('#jras-gui-showTTOnTrendsCaption').text(userOptions.getGuiDesc('showTTOnTrends'));
-    $propDialog.find('#jras-gui-showTTOnLikeTagsCaption').text(userOptions.getGuiDesc('showTTOnLikeTags'));
-    $propDialog.find('#jras-gui-showTTOnInterestingCaption').text(userOptions.getGuiDesc('showTTOnInteresting'));
-    $propDialog.find('#jras-gui-chatlaneToPacakiCaption').text(userOptions.getGuiDesc('chatlaneToPacaki'));
-    $propDialog.find('#jras-gui-delUserCommentCaption').text(userOptions.getGuiDesc('delUserComment'));
-    $propDialog.find('#jras-gui-showUserNameDelCommentCaption').text(userOptions.getGuiDesc('showUserNameDelComment'));
-    $propDialog.find('#jras-gui-fullDelUserPostCaption').text(userOptions.getGuiDesc('fullDelUserPost'));
-    $propDialog.find('#jras-gui-delUserPostCaption').text(userOptions.getGuiDesc('delUserPost'));
-    $propDialog.find('#jras-gui-showUserNameDelPostCaption').text(userOptions.getGuiDesc('showUserNameDelPost'));
-    $propDialog.find('#jras-gui-hideUserAwardsWhenCaption').text(userOptions.getGuiDesc('hideUserAwardsWhen'));
-    $propDialog.find('#jras-gui-minShowUserAwardsCaption').text(userOptions.getGuiDesc('minShowUserAwards'));
-    $propDialog.find('#jras-gui-collapseCommentsCaption').text(userOptions.getGuiDesc('collapseComments'));
-    $propDialog.find('#jras-gui-collapseCommentsOnlyFullPostCaption').text(userOptions.getGuiDesc('collapseCommentsOnlyFullPost'));
-    $propDialog.find('#jras-gui-collapseCommentWhenSizeCaption').text(userOptions.getGuiDesc('collapseCommentWhenSize'));
-    $propDialog.find('#jras-gui-collapseCommentToSizeCaption').text(userOptions.getGuiDesc('collapseCommentToSize'));
-    $propDialog.find('#jras-guiBlockUserListCaption').text(lng.getVal('JRAS_GUI_BLOCKUSERLIST'));
-    $propDialog.find('#jras-guiBlockTagListCaption').text(lng.getVal('JRAS_GUI_BLOCKTAGLIST'));
-  }
-
-  function makeServiceGUIButton(){
-    const $propDialog = $('#jras-prop-gui-dialog');
-    if(page.isNewDesign){
-      $propDialog.find('#jras-gui-SaveSettings').css('border-radius', '3px');
-      $propDialog.find('#jras-prop-gui-bottomCcontent').prepend(`
-       <div id="jras-gui-sendPMforMe" class="big_button jras-gui-btn-newdesign jras-prop-gui-button-left jras-gui-btn-pmme" title=""> </div>
-       <div id="jras-gui-DeleteAllSavedSettings" class="big_button jras-gui-btn-newdesign jras-prop-gui-button-left jras-gui-btn-deleteall" title="" > </div>
-       <div id="jras-gui-ResetSettings" class="big_button jras-gui-btn-newdesign jras-prop-gui-button-left jras-gui-btn-resetdef" title="" > </div>
-      `);
-    }else{
-      $propDialog.find('#jras-prop-gui-bottomCcontent').prepend(`
-       <input id="jras-gui-sendPMforMe" style="padding-left: 3px;padding-right: 3px;width: 24px;height: 22px;" class="jras-prop-gui-button-left jras-gui-btn-pmme" title="" value="" type="button">
-       <input id="jras-gui-DeleteAllSavedSettings" style="padding-left: 3px; padding-right: 3px; width: 24px; height: 22px;" class="jras-prop-gui-button-left jras-gui-btn-deleteall" title="" value="" type="button">
-       <input id="jras-gui-ResetSettings" style="padding-left: 3px; padding-right: 3px; width: 24px; height: 22px;" class="jras-prop-gui-button-left jras-gui-btn-resetdef" title="" value="" type="button">
-      `);
-    }
-
-    $propDialog.find('#jras-gui-sendPMforMe').click(function(){
-      closeSettingDialog();
-      sendPM('AntiUser')
-    });
-    $propDialog.find('#jras-gui-DeleteAllSavedSettings').click(function(){
-      closeSettingDialog();
-      userOptions.removeAllSavedData();
-    });
-    $propDialog.find('#jras-gui-ResetSettings').click(function(){
-      closeSettingDialog();
-      userOptions.setDef();
-    });
-    $propDialog.find('#jras-gui-SaveSettings').click(function(){
-      const $propDialog = $('#jras-prop-gui-dialog');
-      userOptions.val('currentLng', $propDialog.find('#jras-gui-SelectLngcbb').val());
-      userOptions.val('correctRedirectLink', $propDialog.find('#jras-gui-correctRedirectLinkVal').prop('checked'));
-      userOptions.val('removeShareButtons', $propDialog.find('#jras-gui-removeShareButtonsVal').prop('checked'));
-      userOptions.val('makeTreeComments', $propDialog.find('#jras-gui-makeTreeCommentsVal').prop('checked'));
-      userOptions.val('treeCommentsOnlyFullPost', $propDialog.find('#jras-gui-treeCommentsOnlyFullPostVal').prop('checked'));
-      userOptions.val('makeAvatarOnOldDesign', $propDialog.find('#jras-gui-makeAvatarOnOldDesignVal').prop('checked'));
-      userOptions.val('makeAvatarOnlyFullPost', $propDialog.find('#jras-gui-makeAvatarOnlyFullPostVal').prop('checked'));
-      userOptions.val('avatarHeight', $propDialog.find('#jras-gui-avatarHeightVal').val());
-      userOptions.val('whenCollapseMakeRead', $propDialog.find('#jras-gui-whenCollapseMakeReadVal').prop('checked'));
-      userOptions.val('fixedTopbar', $propDialog.find('#jras-gui-fixedTopbarVal').prop('checked'));
-      userOptions.val('hideFixedTopbar', $propDialog.find('#jras-gui-hideFixedTopbarVal').prop('checked'));
-      userOptions.val('isToBeLoadingUserData', $propDialog.find('#jras-gui-isToBeLoadingUserDataVal').prop('checked'));
-      userOptions.val('showUTOnLine', $propDialog.find('#jras-gui-showUTOnLineVal').prop('checked'));
-      userOptions.val('showUTOnComment', $propDialog.find('#jras-gui-showUTOnCommentVal').prop('checked'));
-      userOptions.val('showUTOnPrivateMess', $propDialog.find('#jras-gui-showUTOnPrivateMessVal').prop('checked'));
-      userOptions.val('showUTOnPeople', $propDialog.find('#jras-gui-showUTOnPeopleVal').prop('checked'));
-      userOptions.val('showUTOnSidebarTopUsers', $propDialog.find('#jras-gui-showUTOnSidebarTopUsersVal').prop('checked'));
-      userOptions.val('showUTOnSidebarOnline', $propDialog.find('#jras-gui-showUTOnSidebarOnlineVal').prop('checked'));
-      userOptions.val('showHiddenComments', $propDialog.find('#jras-gui-showHiddenCommentsVal').prop('checked'));
-      userOptions.val('showHiddenCommentsMark', $propDialog.find('#jras-gui-showHiddenCommentsMarkVal').prop('checked'));
-      userOptions.val('showUTOnTopComments', $propDialog.find('#jras-gui-showUTOnTopCommentsVal').prop('checked'));
-      userOptions.val('isToBeLoadingTagData', $propDialog.find('#jras-gui-isToBeLoadingTagDataVal').prop('checked'));
-      userOptions.val('showTTOnLine', $propDialog.find('#jras-gui-showTTOnLineVal').prop('checked'));
-      userOptions.val('showTTFullPost', $propDialog.find('#jras-gui-showTTFullPostVal').prop('checked'));
-      userOptions.val('showTTOnTrends', $propDialog.find('#jras-gui-showTTOnTrendsVal').prop('checked'));
-      userOptions.val('showTTOnLikeTags', $propDialog.find('#jras-gui-showTTOnLikeTagsVal').prop('checked'));
-      userOptions.val('showTTOnInteresting', $propDialog.find('#jras-gui-showTTOnInterestingVal').prop('checked'));
-      userOptions.val('chatlaneToPacaki', $propDialog.find('#jras-gui-chatlaneToPacakiVal').prop('checked'));
-      userOptions.val('delUserComment', $propDialog.find('#jras-gui-delUserCommentVal').prop('checked'));
-      userOptions.val('showUserNameDelComment', $propDialog.find('#jras-gui-showUserNameDelCommentVal').prop('checked'));
-      userOptions.val('fullDelUserPost', $propDialog.find('#jras-gui-fullDelUserPostVal').prop('checked'));
-      userOptions.val('delUserPost', $propDialog.find('#jras-gui-delUserPostVal').prop('checked'));
-      userOptions.val('showUserNameDelPost', $propDialog.find('#jras-gui-showUserNameDelPostVal').prop('checked'));
-      userOptions.val('hideUserAwardsWhen', $propDialog.find('#jras-gui-hideUserAwardsWhencbb').val());
-      userOptions.val('minShowUserAwards', $propDialog.find('#jras-gui-minShowUserAwardscbb').val());
-      userOptions.val('collapseComments', $propDialog.find('#jras-gui-collapseCommentsVal').prop('checked'));
-      userOptions.val('collapseCommentsOnlyFullPost', $propDialog.find('#jras-gui-collapseCommentsOnlyFullPostVal').prop('checked'));
-      userOptions.val('collapseCommentWhenSize', $propDialog.find('#jras-gui-collapseCommentWhenSizeVal').val());
-      userOptions.val('collapseCommentToSize', $propDialog.find('#jras-gui-collapseCommentToSizeVal').val());
-      userOptions.data.BlockUsers = $propDialog.find('#jras-guiBlockUserList').val().split('\n');
-      userOptions.data.BlockTags = $propDialog.find('#jras-guiBlockTagList').val().split('\n');
-      updateGuiLocalize();
-      userOptions.saveUserData(page.currentUser);
-      closeSettingDialog()
-    });
-  }
-
-  function actionButton($button, link, buttonTxtID){
+  function actionTooltipButton($button, link, buttonTxtID){
     $button.click({clickLink: link, updateContainer: $button}, function(eventObject){
       const t = eventObject.data.updateContainer.find('#' + buttonTxtID);
       const ct = t.text();
@@ -1653,14 +1506,14 @@ const JRAS_CurrVersion = '1.6.7';
       onload: function(response){
         if(response.status != 200){
           $outContainer.text('Loading error: ' + response.status);
-          console.log("Loading tag data error:  - " + response.status);
+          // win.console.log("Loading tag data error:  - " + response.status);
         }else{
           const doc = document.implementation.createHTMLDocument("");
           doc.documentElement.innerHTML = response.responseText;
 
           clearContainer($outContainer);
 
-          let tmpW = unsafeWindow.innerWidth;
+          let tmpW = win.innerWidth;
           const w = defTagTooltipSize;//tmpW / 2 - 30;
           if ($tooltip.position().left + w > tmpW){
             tmpW = tmpW - w - 30;
@@ -1678,7 +1531,7 @@ const JRAS_CurrVersion = '1.6.7';
           $outContainer.append($tagHeaderPathBlock);
           const $tagDocHeaderSide = $(doc).find('div.sidebar_block div.sideheader.taginfo');
           const $tagSideBar = $tagDocHeaderSide.closest('div#sidebar');
-          const $tagHeaderInfo = $tagDocHeaderSide.find('a').each(function(idx, elm){
+          $tagDocHeaderSide.find('a').each(function(){
             $(this).appendTo($tagHeaderPathBlock);
             $tagHeaderPathBlock.append('<span>&nbsp&gt&nbsp;</span>');
           });
@@ -1713,7 +1566,7 @@ const JRAS_CurrVersion = '1.6.7';
                   <span id="jras-tooltip-favtag-txt" class="jras-tooltip-button-text">${txtToTagAction}</span>
                 </div>
               `).find('#jras-tooltip-favtag');
-              actionButton($favTagBtn, linkToTagAction, 'jras-tooltip-favtag-txt');
+              actionTooltipButton($favTagBtn, linkToTagAction, 'jras-tooltip-favtag-txt');
             }
 
             if($tagDocHeader.find('div#blogFavroiteLinks > p').is('.add_to_unpopular')){
@@ -1732,7 +1585,7 @@ const JRAS_CurrVersion = '1.6.7';
                   <span id="jras-tooltip-blocktag-txt" class="jras-tooltip-button-text">${txtToTagAction}</span>
                 </div>
               `).find('#jras-tooltip-blocktag');
-              actionButton($blockTagBtn, linkToTagAction, 'jras-tooltip-blocktag-txt');
+              actionTooltipButton($blockTagBtn, linkToTagAction, 'jras-tooltip-blocktag-txt');
             }
           }
           makeJRASTagTooltipElm($mainBtnContainer, tagName);
@@ -1742,7 +1595,7 @@ const JRAS_CurrVersion = '1.6.7';
   }
 
   function makeTagStatistics($tagDocStatsBlock, $container){
-    const $tagStatContainer = $('<div id="jras-tagStatContainer" class="jras-tooltip-section-topborder" style="line-height: 16px; font-size: 10px"></div>')
+    const $tagStatContainer = $('<div id="jras-tagStatContainer" class="jras-tooltip-section-topborder" style="line-height: 16px; font-size: 10px;"></div>')
       .css({'margin-top': '6px'});
     $container.append($tagStatContainer);
     $tagDocStatsBlock.find('div').find('br').remove();
@@ -1756,7 +1609,7 @@ const JRAS_CurrVersion = '1.6.7';
       return
     }
     const $tagDocModCont = getSideBarSection($tagSideBar, 'Модераторы');
-    if ($tagDocModCont.length == 0) {
+    if (!$tagDocModCont[0]) {
       return
     }
 
@@ -1773,7 +1626,7 @@ const JRAS_CurrVersion = '1.6.7';
     `).find('#jras-tooltip-tagmoderators-block');
     const $modTags = $modBlock.find('#jras-tooltip-tagmoderators-tags');
     $tagDocModCont.find('div').clone().appendTo($modTags);
-    $modTags.find('div').each(function(idx, elm){
+    $modTags.find('div').each(function(){
       $(this).css({'margin-bottom': '3px'});
       $('<span>    </span>`').prependTo($(this));
       $(this).find('img').css({'width': '22px', 'vertical-align': 'middle'}).prependTo($(this));
@@ -1840,11 +1693,11 @@ const JRAS_CurrVersion = '1.6.7';
         method: 'GET',
         url: userLink,
         onload: function(response){
-          //           console.log('Loading user data from "' + userLink + '" - ' + response.status);
+          //win.console.log('Loading user data from "' + userLink + '" - ' + response.status);
 
           if(response.status != 200){
             $outContainer.text('Loading error: ' + response.status);
-            console.log("Loading user data error:  - " + response.status);
+            // win.console.log("Loading user data error:  - " + response.status);
           }else{
             const doc = document.implementation.createHTMLDocument("");
             doc.documentElement.innerHTML = response.responseText;
@@ -1916,7 +1769,7 @@ const JRAS_CurrVersion = '1.6.7';
                   '<span id="jras-tooltip-frienduser-txt" class="jras-tooltip-button-text">' + txtToUserAction + '</span>' +
                   '</div>'
                 ).find('#jras-tooltip-frienduser');
-                actionButton($friendUser, linkToUserAction, 'jras-tooltip-frienduser-txt');
+                actionTooltipButton($friendUser, linkToUserAction, 'jras-tooltip-frienduser-txt');
               }
 
 
@@ -1937,7 +1790,7 @@ const JRAS_CurrVersion = '1.6.7';
                   '<span id="jras-tooltip-blockuser-jr-txt" class="jras-tooltip-button-text">' + txtToUserAction + '</span>' +
                   '</div>'
                 ).find('#jras-tooltip-blockuser-jr');
-                actionButton($blockUserJR, linkToUserAction, 'jras-tooltip-blockuser-jr-txt');
+                actionTooltipButton($blockUserJR, linkToUserAction, 'jras-tooltip-blockuser-jr-txt');
               }
             }
 
@@ -1966,7 +1819,7 @@ const JRAS_CurrVersion = '1.6.7';
       return false
     }
     const $userModCont = getSideBarSection($sideBarUser, 'Модерирует');
-    if ($userModCont.length == 0) {
+    if (!$userModCont[0]) {
       return false
     }
 
@@ -1994,7 +1847,7 @@ const JRAS_CurrVersion = '1.6.7';
       return
     }
     const $userPostsCont = getSideBarSection($sideBarUser, 'Профиль');
-    if ($userPostsCont.length == 0) {
+    if (!$userPostsCont[0]) {
       return
     }
 
@@ -2073,6 +1926,11 @@ const JRAS_CurrVersion = '1.6.7';
         .find('#jras-tooltip-user-awards-hide')
         .append($userAwards.children().clone());
 
+      const $jrasTooltipUserAwardsHideBtn = $jrasTooltipUserAwards.append('<div id="jras-tooltip-user-awards-hide-btn"></div>')
+        .find('#jras-tooltip-user-awards-hide-btn')
+        .addClass('jras-tooltip-user-awards-hide-btn')
+        .addClass('jras-tooltip-user-awards-hide-btn-close');
+
       const correctShadow = function(visible){
         if(!page.isNewDesign && !page.isSchemeLight()){
           return
@@ -2089,10 +1947,7 @@ const JRAS_CurrVersion = '1.6.7';
           $jrasTooltipUserAwardsHideBtn.css('box-shadow', '');
         }
       };
-      const $jrasTooltipUserAwardsHideBtn = $jrasTooltipUserAwards.append('<div id="jras-tooltip-user-awards-hide-btn"></div>')
-        .find('#jras-tooltip-user-awards-hide-btn')
-        .addClass('jras-tooltip-user-awards-hide-btn')
-        .addClass('jras-tooltip-user-awards-hide-btn-close');
+
       correctShadow(true);
       $jrasTooltipUserAwardsHideBtn.click(function(){
         const $toggleContainer = $('#jras-tooltip-user-awards-hide');
@@ -2115,7 +1970,7 @@ const JRAS_CurrVersion = '1.6.7';
 
   function sendPM(userName){
     let $pmDialog = $('body #jras-send-pm-dialog');
-    if($pmDialog.length == 0){
+    if(!$pmDialog[0]){
       $pmDialog = $('body').append(`
           <div id="jras-send-pm-dialog" title="" style="width: 100%;height: 100%;">
             <form action="/private/create" method="POST" id="private_form" style="width: 100%;height: 100%;">
@@ -2362,6 +2217,102 @@ const JRAS_CurrVersion = '1.6.7';
         border-top: 1px solid rgb(85, 85, 85);
         padding-top: 3px;
       }
+      .jras-PostControlBlock-new sitm{
+        right: -75px;
+        background-color: #fecc65;
+      }
+      .jras-PostControlBlock-old sitm{
+        right: -85px;
+        background-color: #fab728;
+      }
+      .jras-PostControlBlock-old-dark sitm{
+        right: -85px;
+        background-color: #7B7B7B;
+      }
+      .jras-pcInfo-img {
+        background: transparent url("data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAgAAAAQCAYAAAArij59AAAAlUlEQVQoU72Q3Q3CMAyEfdkBxCYgZmjtwg6IlTpGnMyABKOUHairVv0LIuobfrEsf76zDRqD+XIl+tRtSwa4e4ze9y0sAL+J3G6smxD8IQGKghvn3D4LlGVVAVQPU7CbqsZEYbL6zvMOWYC5sl/NEPwwjE2gp0TkaIbnWmlWWP6QWv0bEJGzGR7rJQE7qeore+YEbwId8bxC57bEHC0AAAAASUVORK5CYII=") no-repeat scroll 8px 4px;
+      }    
+      .jras-pcShare-img {
+        background: transparent url("data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAYAAAAf8/9hAAABUklEQVQ4T51TsUoDURCc3eMuWCgSFPELBD/DInCQt0mMacUmKf0EC1ttrEQrLdQixSV3nxBB/ALBWoLGQs4qBPJWTj1JTpFcXrszs292dgk5n0htG9AzwKqq06ScfIhUXwGsJDxr7SC3QLksfWZe/278kkvAmNqW6viGGSOAXSKd3UJKJnLqURTcptZn+kFKdhza6Xa7vcm5kTHmnpnHnuf57XY79n2/4LqFYwC7X0CNAC0RUT1LTqokUrkDaE3VFonQU2UlgsmkcxmGnb2/EvuxICKLqlwmwlUiPAlWtXEUhcv/CqRFkWoMYCkDfgvDTnEmAWMqJ0S0Pw22T47jlIIgeMiK/Eqh0Wh4w+HoSJU+h8iMCwCPAA4BHIRh53QqhVlXWUQ2AL5Wxbuq3WQG5b6FVqvl9vvPMTMvzH0LIjIAeHWuW0hIxtQqquNz5mRftPkB0mGAPwDQKeIAAAAASUVORK5CYII=") no-repeat scroll 4px 4px;
+      } 
+      .jras-pcRating-img {
+        background: transparent url("data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAYAAAAf8/9hAAABcklEQVQ4T52TTUoDQRCFX3WbjaLukiuIezGoG92a7pngHcQT6Bn0CjmCyGR+IBtxmyhxL57An4UIEQKhq6RJIpmJmYiz66pXX1W/riGUfNaGDyJO0jTdXSSjMkCjEfa0Fo7jeG9GN60RH/sB+G7M4Cxr15dM9SgCTtP2Tg6woNscy9qgy0y+0X4OMKsMgmCbGVdEdAhARHAH6PM0vXkqEuc88MUi1AWwMSsW4U+gUi9CPCBnijFBRkTHAEVa42w4XJFKZdQCEDBTkmVRMAsma8OcKdaGXwBWtaZaFEVvXtxsNqvOySszD7IsWfcxa8M+ACZvCgCXJPHBJDEAsDYaVaqdzvX7OGZrgHrJA8Z1cx4YEyZEMABirenUOUciquVjRGjHcbuZu0LRVWNOtoBRj0htFnIfWlM9iqLnUoBPeogIXwLuyJ+1VrdK0cWkeOEm9kWcK9v7iUe/b6Ix5l4p5Qp7/79NnFb5p1o2Venf+JepvgFKmMR2kcNRhAAAAABJRU5ErkJggg==") no-repeat scroll 4px 4px;
+      } 
+      .jras-pcLinks-img {
+        background: transparent url("data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAYAAAAf8/9hAAACEUlEQVQ4T52TvWtUQRTFz53Z1T8hH2h6BcHGUlFTiJt98zYLtlqJ2OqC2ugGK4topYilNoLI+xgWQcVEsBBWEoloqWlElIhW62bz3hyZ7Nu4LImgU87M/d0z95wR/MeqVE6Na73xlERH/lZvjJkE9AzAcRF+0Vq3sixzJBdE9D4Sb3YCiDG1OQBXAJQGTZxzPUB9VQp7AVkhs+ntAGKMuQ2o8865XGsVk/hA4rAIjhawT1rLoSiKvo8CtooBdABXTdN0of/m7gsvuwCsay1TURR9GwYMd/6lFGZ8cbPZVO3223daY39fNn6K8IgIzyRJcn8LEAThnIhcBdgVQZAkyXPfzQOWlpbfA9Ih8xNKlRokL5G8bG1yYxNQr9f39HrZRwBaRFWtjZ+MuOPv0e8FQa0lggqJ09bGDzYBYRieI+UuIFGaRvWdrA3DcJaUx865rginrLVrmwBjate8WgDXs6x8p1zuPXNO1qyNjw1gxhjjHB4ppXYBaKRpPO/PCsDsWYD3SCwC+VgRksUBYKR4Pk3jxgA8mMFEr5etFnQ4h2VyY7rVav3wsvOcD4uzm2kaXxx+YqHAjDmn2v2E+eVekvIKwEERqXilpNyyNrowOh8ZDkmeY1VrTADY/eciuySa3rLthitBUFsRwQEfEq1xfH29VC6VsgrASRF+Vkq1fOJ2ckaq1dprEWggP+lt+dff/Rtc5vxxeU5FtQAAAABJRU5ErkJggg==") no-repeat scroll 4px 4px;
+      }
+      .jras-pcShareFAV-img {
+        background: transparent url("data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAYAAAAf8/9hAAABlklEQVQ4T5WTzS4DURzFz51pp5EqWhWfbbAgDcumGxa2xIpIxDvwAN5AWFo0ttb1CFZigUQi9dGOfgkzdFqdpjTFzL3Soa3pVMMs7/zP739y7rmkvHOwBMbCAPrwn48ilyzK66S8Hcn+WwwgrkhIKY/FKoD9tpgb8QK6DioXTCNVcSInGWdtAY6VWTCd4v3guA74KW4L4IY8cKzNGcK3/UPQJ9WwXdtcI/7qQFieAT/Wb8zpCRnRvYhF3HBgt8EemgDxuEDcneDcTsBuq9uOxWIQr2/AXitgLxWwUhl6TAKo3siAD/ggLAQBQkyBGWJRbJwxBu1MBL3PWUPkJ4chLIbqkJbikziolK8DLRnwU34I80FYxAC00+pmxeTQChgfQGqq12z7W/JxdAWmqO0ByQEBqZ7W1dIu0qCJrwK1vMbqPWdGneB8faDyM/SrOyMPPuAHN+gGTWehnd+2BtRKwk+Pgj7kwQol86Cny4Dol5kmwFZEieclb3PD/vgwVRLd3F0VZTlMCe1uFhGYO/HzPwemujqcG5+iCN6a/m3mggAAAABJRU5ErkJggg==") no-repeat scroll 0px 0px;
+      }       
+      .jras-pcShareTEL-img {
+        background: transparent url("data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAYAAAAf8/9hAAAB30lEQVQ4T5WSzU8TURTFf69fg/3gU0IAQYluiEii0UQjMWHlwo1xo2vTrf4P/g8uiBAXbrTujAuNiZq4ESqJqUEiWmppsWk7bZlpQTrSmWdmDLVoJ9qzeu/ee849774roo/WryHlHB4G6QAWlHbU7C0RfZgsdkq2++i5FNV8RhfRWFJ20NgpNYppCpsp5/zfAorPw9mxEKNmnnopw/zbAoZp/Vvg+EAXFycinBsPk1j5hLqZYnfPYmGp4O4goni5cCziEEe6A/wwJfefL2NVMoz3KaQrBk9XKwcFPAKmhoPMTHQzPRzEaweAj/nvLDx7x1RXmaFIwIktbdSIZ7d/C/i9gjuXxxgM+5vzrBkmsfcl4olVLvXr9B7yNXNPVipkNOOgg1DAw/RIiNOjIQJewfxiAbOywUxvFTvXinuLBYyG5T6DK5N9vIx/YHagRsD36yn70OsNHiyrzXvbb5z0q5S/fXUGKSWIFo21Yp0Xn7fcBewNk1tZrp7qp1q3ePVFY/ZEjzN9G29SVRK5nfYCNlnPp53kyaEga+ouDUtiGzhzJMz5o2EeJ8qo23t/C7SS3VZb8Xqc7WuFuBlLqrVc6vB+ZzeyS1wT1+++vqFl1+ckVs+fRcIx3x4SNCUSvv0TRR7bgAgPo1AAAAAASUVORK5CYII=") no-repeat scroll 0px 0px;
+      }   
+      .jras-pcShareVK-img {
+        background: transparent url("data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAYAAAAf8/9hAAAB+ElEQVQ4T52SX0hTURzHP+futtwMV6a0ispigpmgREUQMSIzSiEcRUIRGJRP9pRGLz3VU+CDTyvoIY0gjOjPUwWBECQUtMKgsSgha/67bnN68+7PuXGvbTYrcP2ezjmc7/d7zvf7Fc3dfQEhRRBBJUWMRE4Zca1TtFzsnygWbOnMTkfRtbGEaOnqN4sQtq9a4LnYmL0umuB3cJ6gxKlSvWktQgg+jWoYqQwB/w7KPS5iyR8MvBjGNMFtziB1zdLl+9QM6Ux24QXlZS5uXW5FdSg8efmRm4/fEPDX0t68037mySv3iI1/42xjFatcTrLSpHfgFUndWPxC5/G9NO3xkUpn6bj+iJotlVw6td8maOroYbtX4dBun70fDI0w+PZLoQcVHjc3uo/hXOEgFIky/HmC04frCYfDXA0+oNVfi1N1MBKNcefZO6Rc8L7AxBMH6jhzpCEfigWORCIFId19/t72KTcFBIoiuHa+kbpt62zlHDiTkaiqYmOScwZ9T0NoCf3vMZa6nLTt24CaiudVeu8P4W+oot7ntc8Ss/MEH77GSGf+7EEu563r17DZuxrxyzQhYFfNRspKS5BSMvThK/p8upBgaUmW09C8B/8DtlM42nV7Up8er8h1ezmqixEocXHwXE9bcnI0aCp4loKtav97RFxd6b7wE1X14oHv+a1YAAAAAElFTkSuQmCC") no-repeat scroll 0px 0px;
+      }
+      .jras-pcShareMAIL-img {
+        background: transparent url("data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAYAAAAf8/9hAAACm0lEQVQ4T5WTS0hUYRTHf9+dZpwpdcZxnCmmWhQTlZA9iIqgrCR6Lgyh16JNlD2spdGiB0EU5iqIHhA9cRO9qKSoEMuoRRYGmmV6MaVxnHHGcXSe907cm5paLjzb7zu/c87//I9wXvi5TU0rlyVJymMCoaL6CXSWCUeF7BsvWQwC0/8BK74fJHxyr3BWto96t5kl9i3OYovHwuwcI0JAazBJdUuUq/URugcUtOSUX9axowDL3Blc35qLEIL7Tf00+pM6YKHLRPHcySgq7Lj6gfcNzcM9DQM8diMvdrt41xGn9GmAeQ4jK2dk0JdQedgcRVHTlM/xY+1v50RNiI4+ZXQHd4vz8NgnUXjLy6nVNnblT+GjN0GOWWJapoE39U1ce9lA0SwLwahK5fvwX4D2qemgm+Ovg/TGVS4U2dlY1cVXbQSgxOllg62LO1/6CcdVSpdksf+pn2hqUANt9sfbnay97eXYSivheJpD1QG9giaYGpC5tDGXh80DfPElOL8uRx+jNZT6I+JydwaPtjtZddPLmUIbbaEU5a+Cw2prXVzcYOfJ9yiN/gRn1+RwqjZES88gINci0XjAzdHnPWSaBGVLs1lRUUews1XvQitweGmWPkIspbJ3URalzwJEEum/a7xXkofdYmBzVRcn83swBGU+/UpgNUsUOI3EFKiRoyxwmfTNnKsbIaJWJT/PSPVOFzdeN3D6wWcKXCbmO4xEkipv2+Osnmlmk8fCQDLN6doQnWPXqEGWGDvYM92v77zuZxy5N4VBoDuyRo5hNgq8EYVgTP3XSEP2zM6QWD/LzKKpJqZOMehO7AgrXKnvG6468jSEo1LuTvvaHEPensBBogoREo7jdTviv75dliSsY5O1mxgvFCFCBlPmkd8vjjkNvmaLDAAAAABJRU5ErkJggg==") no-repeat scroll 0px 0px;
+      }
+      .jras-pcShareTWIT-img {
+        background: transparent url("data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAYAAAAf8/9hAAABlElEQVQ4T5WTsUsCURzHv+eZKRQ5WFDgEjQXLUJDW39ALfkHBC1lQzT2H0Q0OEjQXOBSCEFDuDVJmSB5nmZpXanReZF15nkv7vK8O89Teut738/7vt/3+yhE+RUAEcAxjn8t+Q3l4iaFKF8xiue8NIQmQaEu98dxLFC+FyhEBaKdXJ92ITLvRlMGFuJ1JPhWb4gifsmreybAccCDoH9I3dhOidjP/lgBBrEFcBLwYLUN2EmJ2OsGdIn7Ak45CZcVqeOAL2SRzGSR/jDPxvQEowOjd4ZhwLIsCAE2kiKKXzpkIEATK0Bl2qGkiAdDQraA81cJZ4k7vD/m/swQIF+XcVMzJ2ObwloshaOrzMBqmQAHs25szbig2I5dM9hNNyC2OjXpCTMBFn00Dief1IEpqyETfOpBqA1Voi3ZDREci9BICUsTTlvrF2UJ4ZxeMN1BuyQOCmobl6eccNOUBaS0M17VbSmfqQou79O6rSlcDsDvcWCY1hlCE3j+NhSJoEYhfBsEx0QgkzHLdZTVQeeMjBpGvaFfzBPUDFkcoBEAAAAASUVORK5CYII=") no-repeat scroll 0px 0px;
+      }
+      .jras-pcShareFACE-img {
+        background: transparent url("data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAYAAAAf8/9hAAABlElEQVQ4T2O0jpoR9O///xlMDIyiDCSA///+vfn1/X0uo2Xk9Ff4NIsKcTPISvAz/Pn7j+HWgzcMP37+AVvz/dNLhu+fX31ktI6c8R+XxQmBRgxJISYMTIyMYCVZjRsZLt18AdMMFsNpgJQYH8PK/kgGkN53H74xvPv4naF1xn6GS5evgWyG24nTAFtjBYb2Ynew0z1S5oOdDnU2ioNxGuBorsTQnO8K1uiSOBerZqxeUJIVYkgNM2UQEeBm0FQWZfj37z/D8g37GZ48esCwZsdlhq/ff+N3gaGWFMPkGl+4ops3bzLcvn2b4f///wxV/bsY/v5FDXMML0iL8zEEumgzyEryM4hw/2C4cfMWw9GzDxl+/v7NsPvoXYwIwxkGeopsDF6Wogy/fv9lqJmwG2cSw2oAKLRVpZgYYvwMSDcAFlV66hKkG4AczyQbgJ5IiDbAKnza6x9fXosgJ09QiPFwsTKIi/Ay/Pv/n+H+4/dYA/Hfv/8fGE38WiO+fng2g4GBgR9dFTQPYdX8/x/DB2YOjjwAwLbh+0NoDjUAAAAASUVORK5CYII=") no-repeat scroll 0px 0px;
+      }
+      .jras-pcVotePlus-img {
+        background: transparent url("data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABQAAAAUCAYAAACNiR0NAAAABGdBTUEAALGPC/xhBQAAACBjSFJNAAB6JgAAgIQAAPoAAACA6AAAdTAAAOpgAAA6mAAAF3CculE8AAAABmJLR0QAAAAAAAD5Q7t/AAAACXBIWXMAAAsSAAALEgHS3X78AAAD+klEQVQ4y32VTWwbRRTHfzO7Xu9ubCe2yUfrpFWaRC1CoajQD7USCKQGJBBRe+GABBVICKlSj6VUSMAFWgSXqkg5ABLiwoV+XEClqFBEoQ1wCFUbRL6aJlZpIOvEsb3eXe8OB7uWWgwzl9Gbef95b97//UfQYoxdG4j7YWlUqXBECm0niFx9Ry1EKhwXQjtvaImzrz4w493rK+41fHg194IfVo6krf77e5M7yLYNYcXSoKBSc3DK0yyujVNw5yYNzX734HD+s/8EPDHRdTymtx0e7nqOwcxe2mQXigiBrMfXWJejJaad81xd+pygVjl+aOvSkX8BnpjoOm4ZmcOPbnidPnsXHqsEVFokoYhhE6edhcpPfH/zGK7vNEFFI819Uhinnhh4m43mHtbIo4havUgTVCBJkmO++gMXZt4iUv7+g8P509rYtYGkFxRPbcsdSG9JPUOJW0TUiGFhkibEIyICQKJhk0UBIR4BJTr1LYRawMLK5e37DuU+kX5YejJj928aTO+lShFFhI5FMcgzuXIaL1pDI4ZEpxZVmVw5S8GfRcdEoahSZDA9Qtru3+SHpaekUuForn0HtuzEp4xAEifF4uoVvvzjDQruDQwSxLAp+bc5N3WUOecCBgkEEp8ybbKT3vbtKBWO6lLoD2WtoUYFBQqFxyp9Hbt5dsv7ZKx+fNZQQDLew9ObP6DD3NCw3fGJyFpDSKFv1YFeK5ZpUgOghkdC7yaTGqDKKiE1BKCJOIOpEQLKBLhNH4HEimUBevVW1ZPECPFxcRoOosnDuk2hYaCIUIR3IUhg0Q2cRvgagXKpKR+DBKBaUiZOiiAq40clBFr9omAZYFFGqjax7E4hGlNTBvMrl1j2pkiyHoMEOiY6FgYJkqxn2ZtirnARTRkIJALJsjtNpGoTuhDamfzqz89XOv/GkAl0aZI2N/JL/iPus4bozzyOpacBqNYKzDrfseReZ1vPi1haBxEhlegv8qvjCKGd1Q0tcc6pzMxNF873b8seYI0/6bEe5OF1L/HrrY+ZnfkWQ0sA4IclkvEeHln3Mt32MFWKJOnmeuE0TmVu1jIy5+603n4pjC/qrbebInniJAkJuF35jYJ7AyEk7fE+utuG0THxKJIix3z1Ry7MvNlsvXvEIXv4sQ1H6bV3UGWFiBAD+66SBFQQaJh0sFi5wsWb7+D6znuHti69BqDdOfjVWPmbva9I+2bx0p5IhHSYfVgi3aCN1uScjokXrXB9+RSX8yfxgmITrKXAnryaOxDUBXZzX2onWXsIM5YBFG7g4JSnWKgL7O+GZh87OJz/9H8VG2Ds2oDp10qjinBECn0XiPUNTuYjVbsihPa1oSXOtPoC/gE20blbeN5SvAAAAABJRU5ErkJggg==") no-repeat scroll 0px 0px;
+      }   
+      .jras-pcVoteMinus-img {
+        background: transparent url("data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABQAAAAUCAYAAACNiR0NAAAABGdBTUEAALGPC/xhBQAAACBjSFJNAAB6JgAAgIQAAPoAAACA6AAAdTAAAOpgAAA6mAAAF3CculE8AAAABmJLR0QAAAAAAAD5Q7t/AAAACXBIWXMAAAsSAAALEgHS3X78AAAD2klEQVQ4y32VS2hUZxiGn3OZxGacXCbeEiNpJJrEJFYtJelQqpZiC1kEJVIotHRjkS5LC3ZRuqzR7grGRRuwtmgVtFlqrBTTCnUhiEJUTGJ0wtiYmZPJxMzlXN4ujtZGox8c/sN3+J7/fJf//Q2WMCfRVK5crhff24Vld2EYawGQ7uN7V7DsYSMWG6q5PFF8NtZ41pHZVvex5ucO2M1tbZHEDuzWTswVq0AQzEzj3bqOe/kPvDujo8byym/jV1PHeZGlO+L9Tlej8kf6FUyOSYUFaWE+XP/3HkyOKX+kX05Xo9Id8YMvhu1olXvpvKRAmk1LybvS1OTiJ3k3/KZA7qVzcra3LIIaj9PcbZSVnYkd/gHrrXchlYTAB8NYOhUJLAvWNOCPDJP7ch9yS3viV1NnLSfRFNNs5kzF/i9qIns+ggdJ8FyoiEJ8JRQL4HshyLJhxWoQUMhDfh6zfQuG61K6NPzGVy1rB03Nz71nNbetL+/pg9kM+D68UkFwf4LSyUGUnYVIOdgRVFigdPoY/p3RcMMggFmH8p4+rOaW9Zqfe9/E83rLEjthVR0s5MA0oaoGd+R3svv244/fglglRKMEqSRzn31K6dwQLK8E0wpjVtdRlngHPK/Xxo5ssds6w7pghGvWIbJ9F9XH12I1t0EuCxJW/TqqBn/CatoQ+oLgvxi7tQPsyGs2htFg1q5a3IBCHrO+AbOlHZwMuG7oL19GpGcvPMrBwqMwGwDD4DGjwV6yi6YJxSIYOYjXhjVUEIKcmbDOT2DPmI2UDNLT1Zb0dCTsCNTE0fhtSmd/IZi6h1ERJbK1C6vr7XCk5rJPoRJBehqkpI3nXfNu3uiI9PSFsLIyWFZBcfB78scHwLQwTBMMg8KpY1ibNhP9+jvM1fWQdcJJNgy8WzfAc68Zmc21fea6ptNVA6egqhokiid+xB25QNnuD7E7X8esroFSCW9yjOLQCTSXpeLzbzBXrgn/Mpclu/8DguTEXpxEUyy9MTpeGDgkSfKvXVHx56PSgynJdyVnRppOSQ8fhGfZd1UaOqnSr4NS5qEkqTDQr/TG6JiTaIo9UZg9Tver8v68IHmeNPNPCFjqLKfuS86MgonbUuDL++uCnO5GZbbV7X5eHLa3yr18UZKkzMxLxCEjSXJHhp+IQ//SitMe73e6G5U/eljBvfEXyFdewb0x5QcOyeluVLp9Mex5gd265hM9yh2wN2xqiSR2Yrd1YtauDAU2/RDv5nXcvy7i3Rm9aSyvPBi/mjr2UiCA82bTMs3P9eL7u7DtbgyjHoBAU/je31jWeSNW+dtSV8C/Gxd0zlRsvhIAAAAASUVORK5CYII=") no-repeat scroll 0px 0px;
+      }        
+      .jras-pcLinksSepAfter:after{ 
+        color: #535353;
+        content: " | ";
+      }
+      .jras-pcLinksSepBefore:before{ 
+        color: #535353;
+        content: " | ";
+      }
+      .jras-PostControlRatingVote {
+        width: 20px;
+        height: 21px;
+        cursor: pointer;
+        display: inline-block;
+      }
+      .jras-PostControlRatingVote-new {
+        line-height: 33px;
+        margin: 7px 0 0 14px;
+        background-image: url(../images/icon_smiles.png);
+        width: 22px;
+        height: 22px;
+        background-size: 42px;
+        vertical-align: top;
+      }
+      #jras-PostControlShare a{
+        height: 16px;
+        width: 16px;
+        display: inline-block;
+      }
+      #jras-PostControlBlock{
+        position: absolute;
+        right: 0;
+        z-index: 1;
+        border-left: 1px solid rgba(0, 0, 0, 0.3);
+        transition: 0.8s cubic-bezier(0.76, -0.48, 0.27, 1.42);
+      }
+      #jras-PostControlBlock sitm {
+        position: absolute;
+        transition: 0.5s cubic-bezier(0.56, 1.35, 0.37, 0.97);
+        padding: 4px;
+        width: 100px;
+        border-radius: 4px 0px 0px 4px;
+        box-shadow: 1px 1px 4px 0px rgba(0,0,0, .5);
+        opacity: 0.6;
+        font-size: 12px;
+      }
+      #jras-PostControlBlock sitm:hover {
+        opacity: 1;
+      }
       .jras-gui-btn-newdesign {
         border-radius: 3px;
         padding-left: 3px;
@@ -2387,8 +2338,6 @@ const JRAS_CurrVersion = '1.6.7';
         background-position: center center;
         border: medium none;
       }
-
-
       .jras-tooltip-user-awards-hide-btn-close{
         position: relative;
         box-shadow: 0 -4px 8px 0 rgb(0, 0, 0);
@@ -2602,6 +2551,7 @@ const JRAS_CurrVersion = '1.6.7';
   }
 
   function makeBlockPostElements(forElm, parentID, blockMess, blockMessBold, blockMessDesc, fromTag){
+    // буээээ 
     if($('#togglebutton' + parentID)[0]){
       return
     }
@@ -2644,6 +2594,7 @@ const JRAS_CurrVersion = '1.6.7';
   }
 
   function makeBlockCommElements(forElm, parentID, blockMess, blockMessBold, blockMessDesc){
+    // древние копролиты
     if($('#newToggle_' + parentID)[0]){
       return
     }
@@ -2681,21 +2632,255 @@ const JRAS_CurrVersion = '1.6.7';
     newDIV.appendChild(newElement);
   }
 
-  function getHideAwardsCountList(){
-    let retVal = '';
-    for(let i = 0; i < 101; i += 5){
-      if (i != 0 && i < 20){continue}
-      retVal += '<option value="' + i + '">' + i + '</option>';
-    }
-    return retVal;
+
+  function getPropID(prop){
+    return 'jras-gui-' + prop;
   }
 
-  function getShowAwardsCountList(){
-    let retVal = '';
-    for(let i = 10; i < 101; i += 10){
-      retVal += '<option value="' + i + '">' + i + '</option>';
+  function makePropElements(){
+    const getHTMLProp = function(prop, styleFor, style){
+      let retVal = '';
+      if (prop === undefined){return}
+      const propObj = userOptions.data[prop];
+      if (propObj === undefined){return}
+      const propID = getPropID(prop);
+      switch(propObj.type) {
+        case 'checkbox':
+          retVal = `<input id="${propID}Val" type="${propObj.type}" style="vertical-align: middle;"/>
+                    <label id="${propID}Caption" style="cursor: pointer;vertical-align: middle;"/>`;
+          break;
+        case 'combobox':
+          retVal = `<span id="${propID}Caption" style="vertical-align: middle;"/>
+                    <select id="${propID}Val" name="jras-${prop}" style="vertical-align: middle;">`;
+          const values = propObj.values();
+          for (let a in values){ retVal += '<option value="' + a + '">' + values[a] + '</option>'}
+          retVal += '</select>';
+          break;
+        case 'number':
+          retVal = `<span id="${propID}Caption" style="vertical-align: middle;margin-left: 3px;line-height: 28px;"/>
+                    <input id="${propID}Val" type="${propObj.type}" min="${propObj.min}" max="${propObj.max}" style="width: 50px; vertical-align: middle;"/>`;
+          break;
+      }
+      if (styleFor !== undefined){ $(retVal).find('#' + propID + styleFor).css(style) }
+      return retVal;
+    };
+    if(page.isNewDesign){
+      $('div.topbar_right:first div.lang_select').after(
+        '<label id="jras_prop-button" style="cursor: pointer;" class="lang_select" for="modal-1">JRAS</label>'
+      );
+      $('label#jras_prop-button').click(openProp);
+    }else{
+      $('div#header:first div.lang_select').after(`
+        <label id="navcontainer" class="lang_select" for="modal-1"
+          style="cursor: pointer; right: 39px; padding: 1px 2px 2px;
+          font-size: 9px; border-radius: 0 0 5px 5px; height: 17px;
+          background: transparent url('../images/mainmenu_active_bg1.png') repeat-x scroll 0 0;">
+          JRAS
+        </label>
+      `);
+      $('div#header:first div.lang_select + label').click(openProp);
     }
-    return retVal;
+    $('body').append(`
+      <div id="jras-prop-gui-dialog">
+        <input class="modal-state" id="modal-1" type="checkbox" />
+        <div class="modal">
+          <label class="modal__bg" for="modal-1"></label>
+          <div class="modal__inner">
+            <div class="jras-prop-gui-contentTop">
+              <span style="color: #8B857B;font-weight: bold; line-height: 27px; padding-left: 8px;">
+                JRAS - JoyReactor Advanced Script v.${JRAS_CurrVersion}
+              </span>
+              <label class="modal__close" for="modal-1"></label>
+            </div>
+            <div class="jras-prop-gui-contentMain">
+              <div id="jras-prop-gui-tabs" style="border: 0 none;">
+                <ul class="jras-tabs-nav">
+                  <li id="jras-tabs-nav-0"><a href="#jras-prop-gui-tab-1"></a></li>
+                  <li id="jras-tabs-nav-1"><a href="#jras-prop-gui-tab-2"></a></li>
+                  <li id="jras-tabs-nav-2"><a href="#jras-prop-gui-tab-3"></a></li>
+                  <li id="jras-tabs-nav-3"><a href="#jras-prop-gui-tab-4"></a></li>
+                </ul>
+                <div id="jras-prop-gui-tab-1" class="jras-tabs-panel">
+                  <div class="jras-tabs-panel-content">
+                    <section class="jras-prop-gui-section"> ${getHTMLProp('currentLng', 'Val', {'width': '30%'})} </section>
+                    <section class="jras-prop-gui-section"> ${getHTMLProp('removeShareButtons')} </section>
+                    <section class="jras-prop-gui-section"> ${getHTMLProp('fixedTopbar')} </section>
+                    <section class="jras-prop-gui-section" style="margin-left: 20px; margin-top: -10px;"> ${getHTMLProp('hideFixedTopbar')} </section>
+                    <section class="jras-prop-gui-section"> ${getHTMLProp('correctRedirectLink')} </section>
+                    <section class="jras-prop-gui-section"> ${getHTMLProp('showHiddenComments')} </section>
+                    <section class="jras-prop-gui-section" style="margin-left: 20px; margin-top: -10px;"> ${getHTMLProp('showHiddenCommentsMark')} </section>
+                    <section class="jras-prop-gui-section""> ${getHTMLProp('pcbShowPostControl')} </section>     
+                    <section class="jras-prop-gui-section" style="margin-left: 20px; margin-top: -10px;">
+                      ${getHTMLProp('pcbShowInFullPost')} <br>
+                      ${getHTMLProp('pcbHideJRShareBlock')} <br>
+                      ${getHTMLProp('pcbHideJRRatingBlock')}<br>
+                      ${getHTMLProp('pcbTopScreenPos')} <br>
+                      ${getHTMLProp('pcbTopBorder')} <br>
+                      ${getHTMLProp('pcbBottomBorder')} </section>  
+                  </div>
+                </div>
+                <div id="jras-prop-gui-tab-2" class="jras-tabs-panel">
+                  <div class="jras-tabs-panel-content">
+                    <section class="jras-prop-gui-section"> ${getHTMLProp('delUserComment')} </section>
+                    <section class="jras-prop-gui-section" style="margin-top: -10px;"> ${getHTMLProp('showUserNameDelComment')} </section>
+                    <section class="jras-prop-gui-section" style="margin-top: -10px;"> ${getHTMLProp('fullDelUserPost')} </section>
+                    <section class="jras-prop-gui-section" style="margin-top: -10px;"> ${getHTMLProp('delUserPost')} </section>
+                    <section class="jras-prop-gui-section" style="margin-top: -10px;"> ${getHTMLProp('showUserNameDelPost')} </section>
+                    <span id="jras-guiBlockUserListCaption"></span>
+                    <textarea id="jras-guiBlockUserList" style="width: 98%; border: 1px solid rgb(216, 216, 216); height: 139px;">
+                    </textarea>
+                    <span id="jras-guiBlockTagListCaption"></span>
+                    <textarea id="jras-guiBlockTagList" style="width: 98%; border: 1px solid rgb(216, 216, 216); height: 139px;">
+                    </textarea>
+                  </div>
+                </div>
+                <div id="jras-prop-gui-tab-3" class="jras-tabs-panel">
+                  <div class="jras-tabs-panel-content">
+                    <section class="jras-prop-gui-section"> ${getHTMLProp('isToBeLoadingUserData')} </section>
+                    <section class="jras-prop-gui-section" style="margin-left: 20px; margin-top: -10px;">
+                      ${getHTMLProp('showUTOnLine')} <br>
+                      ${getHTMLProp('showUTOnComment')}<br>
+                      ${getHTMLProp('showUTOnPrivateMess')} <br>
+                      ${getHTMLProp('showUTOnPeople')} <br>
+                      ${getHTMLProp('showUTOnSidebarTopUsers')} <br>
+                      ${getHTMLProp('showUTOnSidebarOnline')} <br>
+                      ${getHTMLProp('hideUserAwardsWhen', 'Val', {'width': '60px'})}
+                      ${getHTMLProp('minShowUserAwards', 'Val', {'width': '60px'})} <br>
+                      ${getHTMLProp('chatlaneToPacaki')} <br>
+                      ${getHTMLProp('showUTOnTopComments')} </section>
+                    <section class="jras-prop-gui-section" style="margin-top: -10px;"> ${getHTMLProp('isToBeLoadingTagData')} </section>     
+                    <section class="jras-prop-gui-section" style="margin-left: 20px; margin-top: -10px;">
+                      ${getHTMLProp('showTTOnLine')} <br>
+                      ${getHTMLProp('showTTFullPost')} <br>
+                      ${getHTMLProp('showTTOnTrends')} <br>
+                      ${getHTMLProp('showTTOnLikeTags')} <br>
+                      ${getHTMLProp('showTTOnInteresting')} </section>  
+                  </div>
+                </div>
+                <div id="jras-prop-gui-tab-4" class="jras-tabs-panel">
+                  <div class="jras-tabs-panel-content">
+                    <section class="jras-prop-gui-section"> ${getHTMLProp('makeTreeComments')} </section>
+                    <section class="jras-prop-gui-section" style="margin-left: 20px; margin-top: -10px;"> ${getHTMLProp('treeCommentsOnlyFullPost')} </section>
+                    <section class="jras-prop-gui-section"> ${getHTMLProp('makeAvatarOnOldDesign')} </section>
+                    <section class="jras-prop-gui-section" style="margin-left: 20px; margin-top: -10px;">
+                      ${getHTMLProp('makeAvatarOnlyFullPost')} <br>${getHTMLProp('avatarHeight')}</section>
+                    <section class="jras-prop-gui-section"> ${getHTMLProp('whenCollapseMakeRead')} </section>
+                    <section class="jras-prop-gui-section"> ${getHTMLProp('collapseComments')} </section>
+                    <section class="jras-prop-gui-section" style="margin-left: 20px; margin-top: -10px;">
+                      ${getHTMLProp('collapseCommentsOnlyFullPost')} <br>
+                      ${getHTMLProp('collapseCommentWhenSize')} <br>
+                      ${getHTMLProp('collapseCommentToSize')} </section>
+                  </div>
+                </div>
+              </div>
+            </div>
+            <div  id="jras-prop-gui-bottomCcontent" class="jras-prop-gui-contentBottom">
+              <input id="jras-gui-SaveSettings" style="padding-left: 20px; padding-right: 20px; height: 22px;" class="jras-prop-gui-button-right" value="" type="button">
+            </div>
+          </div>
+        </div>
+      </div>
+   `);
+
+    const $propDialog = $('#jras-prop-gui-dialog');
+    $propDialog.find('[id*=jras-tabs-nav-]').click(function(){
+      $propDialog.find('#jras-prop-gui-tabs').tabs({active: $(this).attr('id').replace('jras-tabs-nav-', '')});
+    });
+    if(page.isSchemeLight()){$propDialog.find('[id*=jras-prop-gui-tab]').css('color', '#686868');
+    }else{$propDialog.find('[id*=jras-prop-gui-tab]').css('color', '#BBBBBB');}
+    if(!page.isNewDesign){$propDialog.find('ul.jras-tabs-nav li a').css('padding-top', '11px');}
+
+    makeServiceGUIButton();
+    updateGuiLocalize();
+  }
+
+  function openProp(){
+    const $propDialog = $('#jras-prop-gui-dialog');
+    userOptions.each(function(optName, opt){
+      switch(opt.type) {
+        case 'checkbox':
+          $propDialog.find('#' + getPropID(optName) + 'Val').prop('checked', userOptions.val(optName));
+          break;
+        case 'combobox':
+        case 'number':
+          $propDialog.find('#' + getPropID(optName) + 'Val').val(userOptions.val(optName));
+          break;
+      }
+    });
+    $propDialog.find('#jras-guiBlockUserList').val(userOptions.data.BlockUsers.join("\n"));
+    $propDialog.find('#jras-guiBlockTagList').val(userOptions.data.BlockTags.join("\n"));
+    $propDialog.find('#jras-prop-gui-tabs').tabs({active: 0});
+    $propDialog.find('#jras-prop-gui-tabs').tabs({selected: 0});
+    $propDialog.find('#jras-prop-gui-tabs').tabs({focused: 0});
+  }
+
+  function updateGuiLocalize(){
+    const $propDialog = $('#jras-prop-gui-dialog');
+    $propDialog.find('#jras-gui-SaveSettings').attr('value', lng.getVal('JRAS_GUI_BTNSAVE'));
+    $propDialog.find('#jras-gui-sendPMforMe').attr('title', lng.getVal('JRAS_GUI_BTNSENDPMME'));
+    $propDialog.find('#jras-gui-DeleteAllSavedSettings').attr('title', lng.getVal('JRAS_GUI_BTNDELETESETT'));
+    $propDialog.find('#jras-gui-ResetSettings').attr('title', lng.getVal('JRAS_GUI_BTNRESETSETT'));
+    $propDialog.find('#jras-tabs-nav-0 a').text(lng.getVal('JRAS_GUI_TABMAIN'));
+    $propDialog.find('#jras-tabs-nav-1 a').text(lng.getVal('JRAS_GUI_TABBLOCK'));
+    $propDialog.find('#jras-tabs-nav-2 a').text(lng.getVal('JRAS_GUI_TABTOOLTIP'));
+    $propDialog.find('#jras-tabs-nav-3 a').text(lng.getVal('JRAS_GUI_TABCOMMENTS'));
+    $propDialog.find('#jras-guiBlockUserListCaption').text(lng.getVal('JRAS_GUI_BLOCKUSERLIST'));
+    $propDialog.find('#jras-guiBlockTagListCaption').text(lng.getVal('JRAS_GUI_BLOCKTAGLIST'));
+
+    userOptions.each(function(optName){
+      $propDialog.find('#' + getPropID(optName) + 'Caption').text(userOptions.getGuiDesc(optName));
+    });
+  }
+
+  function makeServiceGUIButton(){
+    const $propDialog = $('#jras-prop-gui-dialog');
+    if(page.isNewDesign){
+      $propDialog.find('#jras-gui-SaveSettings').css('border-radius', '3px');
+      $propDialog.find('#jras-prop-gui-bottomCcontent').prepend(`
+       <div id="jras-gui-sendPMforMe" class="big_button jras-gui-btn-newdesign jras-prop-gui-button-left jras-gui-btn-pmme" title=""> </div>
+       <div id="jras-gui-DeleteAllSavedSettings" class="big_button jras-gui-btn-newdesign jras-prop-gui-button-left jras-gui-btn-deleteall" title="" > </div>
+       <div id="jras-gui-ResetSettings" class="big_button jras-gui-btn-newdesign jras-prop-gui-button-left jras-gui-btn-resetdef" title="" > </div>
+      `);
+    }else{
+      $propDialog.find('#jras-prop-gui-bottomCcontent').prepend(`
+       <input id="jras-gui-sendPMforMe" style="padding-left: 3px;padding-right: 3px;width: 24px;height: 22px;" class="jras-prop-gui-button-left jras-gui-btn-pmme" title="" value="" type="button">
+       <input id="jras-gui-DeleteAllSavedSettings" style="padding-left: 3px; padding-right: 3px; width: 24px; height: 22px;" class="jras-prop-gui-button-left jras-gui-btn-deleteall" title="" value="" type="button">
+       <input id="jras-gui-ResetSettings" style="padding-left: 3px; padding-right: 3px; width: 24px; height: 22px;" class="jras-prop-gui-button-left jras-gui-btn-resetdef" title="" value="" type="button">
+      `);
+    }
+
+    $propDialog.find('#jras-gui-sendPMforMe').click(function(){
+      closeSettingDialog();
+      sendPM('AntiUser')
+    });
+    $propDialog.find('#jras-gui-DeleteAllSavedSettings').click(function(){
+      closeSettingDialog();
+      userOptions.removeAllSavedData();
+    });
+    $propDialog.find('#jras-gui-ResetSettings').click(function(){
+      closeSettingDialog();
+      userOptions.setDef();
+    });
+    $propDialog.find('#jras-gui-SaveSettings').click(function(){
+      const $propDialog = $('#jras-prop-gui-dialog');
+      userOptions.each(function(optName, opt){
+        switch(opt.type) {
+          case 'checkbox':
+            userOptions.val(optName, $propDialog.find('#' + getPropID(optName) + 'Val').prop('checked'));
+            break;
+          case 'combobox':
+          case 'number':
+            userOptions.val(optName, $propDialog.find('#' + getPropID(optName) + 'Val').val());
+            break;
+        }
+      });
+
+      userOptions.data.BlockUsers = $propDialog.find('#jras-guiBlockUserList').val().split('\n');
+      userOptions.data.BlockTags = $propDialog.find('#jras-guiBlockTagList').val().split('\n');
+      updateGuiLocalize();
+      userOptions.saveUserData(page.currentUser);
+      closeSettingDialog()
+    });
   }
 
   function PageData(){
@@ -2726,7 +2911,7 @@ const JRAS_CurrVersion = '1.6.7';
 
     let regEx;
     let matches;
-    this.currentPage = unsafeWindow.location.href;
+    this.currentPage = win.location.href;
     this.isUserLogon = $('li.login.lastitem a').is('#logout');
 
     this.currentUser = this.isUserLogon ? $('li.login a#settings').attr('href') : 'Anonymous';
@@ -2767,6 +2952,7 @@ const JRAS_CurrVersion = '1.6.7';
   function LanguageData(){
 
     this.getVal = function(val){
+      if (this[val] === undefined){return val}
       const cl = userOptions.val('currentLng');
       if(!this[val][cl]){
         return this[val]['ru'];
@@ -2774,10 +2960,10 @@ const JRAS_CurrVersion = '1.6.7';
       return this[val][cl];
     };
 
-    this.getHTMLListLangs = function(){
-      let retVal = '';
+    this.getLangs = function(){
+      let retVal = {};
       for(let a in this.JRAS_LANGLIST){
-        retVal += '<option value="' + a + '">' + this.JRAS_LANGLIST[a] + '</option>';
+        retVal[a] = this.JRAS_LANGLIST[a];
       }
       return retVal;
     };
@@ -2787,321 +2973,263 @@ const JRAS_CurrVersion = '1.6.7';
       en: 'English'
     };
     this.JRAS_POSTBLOCKBYUSER = {
-      ru: 'Пост заблокированного пользователя: ',
-      en: 'Post is blocked by Username: '
+      ru: 'Пост заблокированного пользователя: '
     };
     this.JRAS_TOGGLEBUTTONCAPTIONHIDE = {
-      ru: 'Скрыть',
-      en: 'Hide'
+      ru: 'Скрыть'
     };
     this.JRAS_TOGGLEBUTTONCAPTIONSHOW = {
-      ru: 'Показать',
-      en: 'Show'
+      ru: 'Показать'
     };
     this.JRAS_POSTBLOCKBYTAG = {
-      ru: 'Пост заблокированый по тегам: ',
-      en: 'Post is blocked by Tag: '
+      ru: 'Пост заблокированый по тегам: '
     };
     this.JRAS_COMMBLOCKBYUSER = {
-      ru: 'Комментарий заблокированного пользователя: ',
-      en: 'Comment is blocked by Username: '
+      ru: 'Комментарий заблокированного пользователя: '
     };
     this.JRAS_GUI_SELECTLANGUAGE = {
-      ru: 'Язык интерфейса: ',
-      en: 'Language: '
+      ru: 'Язык интерфейса: '
     };
     this.JRAS_GUI_MAKEAVATARONOLDDESIGN = {
-      ru: ' Создавать аватары для старого дизайна',
-      en: ' MAKEAVATARONOLDDESIGN'
+      ru: ' Создавать аватары для старого дизайна'
     };
     this.JRAS_GUI_MAKEAVATARONLYFULLPOST = {
-      ru: ' Создавать аватары только для полного поста',
-      en: ' MAKEAVATARONLYFULLPOST'
+      ru: ' Создавать аватары только для полного поста'
     };
     this.JRAS_GUI_AVATARHEIGHT = {
-      ru: ' Размер аватара (px)',
-      en: ' AVATARHEIGHT'
+      ru: ' Размер аватара (px)'
     };
     this.JRAS_GUI_MAKETREECOMMENTS = {
-      ru: ' Создавать дерево комментариев',
-      en: ' Makr tree comments'
+      ru: ' Создавать дерево комментариев'
     };
     this.JRAS_GUI_CORRECTREDIRECTLINK = {
-      ru: ' Раскрывать ссылки из редиректа',
-      en: ' correctRedirectLink'
+      ru: ' Раскрывать ссылки из редиректа'
     };
     this.JRAS_GUI_REMOVESHAREBUTTONS = {
-      ru: ' Удалить кнопки "Поделиться..." (vk, fb, twitter и т.п.)',
-      en: ' removeShareButtons'
+      ru: ' Удалить кнопки "Поделиться..." (vk, fb, twitter и т.п.)'
     };
     this.JRAS_GUI_TREECOMMENTSONLYFULLPOST = {
-      ru: ' Дерево комментариев только для полного поста',
-      en: ' treeCommentsOnlyFullPost'
+      ru: ' Дерево комментариев только для полного поста'
     };
     this.JRAS_GUI_WHENCOLLAPSEMAKEREAD = {
-      ru: ' При сворачивании ветки комментариев все дочерние помечаются прочитанными',
-      en: ' whenCollapseMakeRead'
+      ru: ' При сворачивании ветки комментариев все дочерние помечаются прочитанными'
     };
     this.JRAS_GUI_FIXEDTOPBAR = {
-      ru: ' Зафиксировать верхнюю панель наверху окна',
-      en: ' fixedTopbar'
+      ru: ' Зафиксировать верхнюю панель наверху окна'
     };
     this.JRAS_GUI_HIDEFIXEDTOPBAR = {
-      ru: ' Скрывать зафиксированную верхнюю панель',
-      en: ' hideFixedTopbar'
+      ru: ' Скрывать зафиксированную верхнюю панель'
     };
     this.JRAS_GUI_ISTOBELOADINGUSERDATA = {
-      ru: ' Загружать данные пользователя для Tooltip\u0027а',
-      en: ' isToBeLoadingUserData'
+      ru: ' Загружать данные пользователя для Tooltip\u0027а'
     };
     this.JRAS_GUI_HIDEUSERAWARDSWHEN = {
-      ru: ' Если медалек больше чем: ',
-      en: ' hideUserAwardsWhen: '
+      ru: ' Если медалек больше чем: '
     };
     this.JRAS_GUI_MINSHOWUSERAWARDS = {
-      ru: ' то показывать первые: ',
-      en: ' minShowUserAwards: '
+      ru: ' то показывать первые: '
     };
     this.JRAS_GUI_SHOWUTONLINE = {
-      ru: ' Показывать в ленте',
-      en: ' showUTOnLine'
+      ru: ' Показывать в ленте'
     };
     this.JRAS_GUI_SHOWUTONCOMMENT = {
-      ru: ' Показывать в комментариях',
-      en: ' showUTOnComment'
+      ru: ' Показывать в комментариях'
     };
     this.JRAS_GUI_SHOWUTONPRIVATEMESS = {
-      ru: ' Показывать на странице ПМ',
-      en: ' showUTOnPrivateMess'
+      ru: ' Показывать на странице ПМ'
     };
     this.JRAS_GUI_SHOWUTONPEOPLE = {
-      ru: ' Показывать на странице Люди',
-      en: ' showUTOnPeople'
+      ru: ' Показывать на странице Люди'
     };
     this.JRAS_GUI_SHOWUTONSIDEBARTOPUSERS = {
-      ru: ' Показывать в правом баре для юзеров топа',
-      en: ' showUTOnSidebarTopUsers'
+      ru: ' Показывать в правом баре для юзеров топа'
     };
     this.JRAS_GUI_SHOWUTONSIDEBARONLINE = {
-      ru: ' Показывать в правом баре для аватарок',
-      en: ' showUTOnSidebarOnline'
+      ru: ' Показывать в правом баре для аватарок'
     };
     this.JRAS_GUI_SHOWHIDDENCOMMENTS = {
-      ru: 'Загружать скрытые заминусованные коменты сразу',
-      en: 'showHiddenComments'
+      ru: 'Загружать скрытые заминусованные коменты сразу'
     };
     this.JRAS_GUI_SHOWHIDDENCOMMENTSMARK = {
-      ru: 'Отмечать загруженные коменты',
-      en: 'showHiddenCommentsMark'
+      ru: 'Отмечать загруженные коменты'
     };
     this.JRAS_GUI_SHOWUTONTOPCOMMENTS = {
-      ru: ' Показывать в правом баре для лучших коментов',
-      en: 'showUTOnTopComments'
+      ru: ' Показывать в правом баре для лучших коментов'
     };
     this.JRAS_GUI_ISTOBELOADINGTAGDATA = {
-      ru: 'Загружать данные тега для Tooltip\u0027а',
-      en: 'isToBeLoadingTagData'
+      ru: 'Загружать данные тега для Tooltip\u0027а'
     };
     this.JRAS_GUI_SHOWTTONLINE = {
-      ru: 'Показывать в ленте',
-      en: 'showTTOnLine'
+      ru: 'Показывать в ленте'
     };
     this.JRAS_GUI_SHOWTTFULLPOST = {
-      ru: 'Показывать в полном посте',
-      en: 'showTTFullPost'
+      ru: 'Показывать в полном посте'
     };
     this.JRAS_GUI_SHOWTTONTRENDS = {
-      ru: ' Показывать в правом баре для трендов',
-      en: 'showTTOnTrends'
+      ru: ' Показывать в правом баре для трендов'
     };
     this.JRAS_GUI_SHOWTTONLIKETAGS = {
-      ru: ' Показывать в правом баре для любимых тегов',
-      en: 'showTTOnLikeTags'
+      ru: ' Показывать в правом баре для любимых тегов'
     };
     this.JRAS_GUI_SHOWTTONINTERESTING = {
-      ru: ' Показывать в правом баре для интересного',
-      en: 'showTTOnInteresting'
+      ru: ' Показывать в правом баре для интересного'
     };
     this.JRAS_GUI_CHATLANETOPACAKI = {
-      ru: ' Убирать цветовую отметку донатера',
-      en: ' chatlaneToPacaki'
+      ru: ' Убирать цветовую отметку донатера'
     };
     this.JRAS_GUI_DELUSERCOMMENT = {
-      ru: 'Скрывать комментарий без возможности просмотра',
-      en: 'delUserComment'
+      ru: 'Скрывать комментарий без возможности просмотра'
     };
     this.JRAS_GUI_SHOWUSERNAMEDELCOMMENT = {
-      ru: 'Показывать в заблокированном комментарии ник юзера',
-      en: 'showUserNameDelComment'
+      ru: 'Показывать в заблокированном комментарии ник юзера'
     };
     this.JRAS_GUI_FULLDELUSERPOST = {
-      ru: 'Удалять пост из ленты полностью',
-      en: 'fullDelUserPost'
+      ru: 'Удалять пост из ленты полностью'
     };
     this.JRAS_GUI_DELUSERPOST = {
-      ru: 'Скрывать пост без возможности просмотра',
-      en: 'delUserPost'
+      ru: 'Скрывать пост без возможности просмотра'
     };
     this.JRAS_GUI_SHOWUSERNAMEDELPOST = {
-      ru: 'Показывать в заблокированном посте ник юзера',
-      en: 'showUserNameDelPost'
+      ru: 'Показывать в заблокированном посте ник юзера'
     };
     this.JRAS_GUI_BLOCKUSERLIST = {
-      ru: 'Заблокированные пользователи',
-      en: 'Blocked users'
+      ru: 'Заблокированные пользователи'
     };
     this.JRAS_GUI_BLOCKTAGLIST = {
-      ru: 'Заблокированные теги',
-      en: 'Blocked tags'
+      ru: 'Заблокированные теги'
     };
     this.JRAS_GUI_COLLAPSECOMMENTS = {
-      ru: 'Уменьшать большие комментарии',
-      en: 'Collapse big comments'
+      ru: 'Уменьшать большие комментарии'
     };
     this.JRAS_GUI_COLLAPSECOMMENTSONLYFULLPOST = {
-      ru: 'Уменьшать большие комментарии только в полном посте',
-      en: 'Collapse big comments full post only'
+      ru: 'Уменьшать большие комментарии только в полном посте'
     };
     this.JRAS_GUI_COLLAPSECOMMENTWHENSIZE = {
-      ru: 'Уменьшать если размер больше (px)',
-      en: 'Collapse when size'
+      ru: 'Уменьшать если размер больше (px)'
     };
     this.JRAS_GUI_COLLAPSECOMMENTTOSIZE = {
-      ru: 'Уменьшать до (px)',
-      en: 'Collapse to size'
+      ru: 'Уменьшать до (px)'
     };
     this.JRAS_GUI_BTNSAVE = {
-      ru: 'Сохранить',
-      en: 'Save'
+      ru: 'Сохранить'
     };
     this.JRAS_GUI_BTNSENDPMME = {
-      ru: 'Отправить мне персональное сообщение',
-      en: 'Send PM for me'
+      ru: 'Отправить мне персональное сообщение'
     };
     this.JRAS_GUI_BTNDELETESETT = {
-      ru: 'Удалить все сохраненные данные',
-      en: 'Delete all saved data'
+      ru: 'Удалить все сохраненные данные'
     };
     this.JRAS_GUI_BTNRESETSETT = {
-      ru: 'Настройки по умолчанию',
-      en: 'Reset settings to default'
+      ru: 'Настройки по умолчанию'
     };
     this.JRAS_GUI_TABMAIN = {
-      ru: 'Общие',
-      en: 'General'
+      ru: 'Общие'
     };
     this.JRAS_GUI_TABBLOCK = {
-      ru: 'Блокировки',
-      en: 'Blocks'
+      ru: 'Блокировки'
     };
     this.JRAS_GUI_TABTOOLTIP = {
-      ru: 'Tooltip\u0027ы',
-      en: 'Tooltips'
+      ru: 'Tooltip\u0027ы'
     };
     this.JRAS_GUI_TABCOMMENTS = {
-      ru: 'Комментарии',
-      en: 'Comments'
+      ru: 'Комментарии'
     };
     this.JRAS_LOADINGUSERDATA = {
-      ru: 'Загрузка данных...',
-      en: 'Load data...'
+      ru: 'Загрузка данных...'
     };
     this.JRAS_SENDPRIVMESS = {
-      ru: 'Отправить сообщение',
-      en: 'Send message'
+      ru: 'Отправить сообщение'
     };
     this.JRAS_ADDFRIEND = {
-      ru: 'Добавить в друзья',
-      en: 'Add as friend'
+      ru: 'Добавить в друзья'
     };
     this.JRAS_REMOVEFRIEND = {
-      ru: 'Удалить из друзей',
-      en: 'Remove from friends'
+      ru: 'Удалить из друзей'
     };
     this.JRAS_ADDTAGFAV = {
-      ru: 'Подписаться на тег',
-      en: 'Add as favorite'
+      ru: 'Подписаться на тег'
     };
     this.JRAS_REMOVETAGFAV = {
-      ru: 'Отписаться от тега',
-      en: 'Remove from favorite'
+      ru: 'Отписаться от тега'
     };
     this.JRAS_TOOLTIP_MODERATOR = {
-      ru: 'Модератор...',
-      en: 'Moderator...'
+      ru: 'Модератор...'
     };
     this.JRAS_TOOLTIP_TAGMODERATORS = {
-      ru: 'Модераторы...',
-      en: 'Moderators...'
+      ru: 'Модераторы...'
     };
     this.JRAS_TOOLTIP_STATISTICS = {
-      ru: 'Статистика: ',
-      en: 'Statistics: '
+      ru: 'Статистика: '
     };
     this.JRAS_TOOLTIP_POSTS = {
-      ru: 'Постов (хор / луч): ',
-      en: 'Posts (good / better):'
+      ru: 'Постов (х/л): '
     };
     this.JRAS_TOOLTIP_COMMENTS = {
-      ru: 'Комментариев:',
-      en: 'Comments:'
+      ru: 'Комментариев:'
     };
     this.JRAS_TOOLTIP_REG = {
-      ru: 'Регистрация:',
-      en: 'Registered:'
+      ru: 'Регистрация:'
     };
     this.JRAS_BLOCKUSER_JR = {
-      ru: 'Блокировать юзера (JR)',
-      en: 'Block user (JR)'
+      ru: 'Блокировать юзера (JR)'
     };
     this.JRAS_UNBLOCKUSER_JR = {
-      ru: 'Разблокировать юзера (JR)',
-      en: 'Unblock user (JR)'
+      ru: 'Разблокировать юзера (JR)'
     };
     this.JRAS_BLOCKUSER_JRAS = {
-      ru: 'Блокировать юзера (JRAS)',
-      en: 'Block user (JRAS)'
+      ru: 'Блокировать юзера (JRAS)'
     };
     this.JRAS_UNBLOCKUSER_JRAS = {
-      ru: 'Разблокировать юзера (JRAS)',
-      en: 'Unblock user (JRAS)'
+      ru: 'Разблокировать юзера (JRAS)'
     };
     this.JRAS_BLOCKTAG_JR = {
-      ru: 'Блокировать тег (JR)',
-      en: 'Block tag (JR)'
+      ru: 'Блокировать тег (JR)'
     };
     this.JRAS_UNBLOCKTAG_JR = {
-      ru: 'Разблокировать тег (JR)',
-      en: 'Unblock tag (JR)'
+      ru: 'Разблокировать тег (JR)'
     };
     this.JRAS_BLOCKTAG_JRAS = {
-      ru: 'Блокировать тег (JRAS)',
-      en: 'Block tag (JRAS)'
+      ru: 'Блокировать тег (JRAS)'
     };
     this.JRAS_UNBLOCKTAG_JRAS = {
-      ru: 'Разблокировать тег (JRAS)',
-      en: 'Unblock tag (JRAS)'
+      ru: 'Разблокировать тег (JRAS)'
     };
     this.JRAS_COMMENTS_EXPANDCOLL_ALL = {
-      ru: 'Свернуть/развернуть всё',
-      en: 'Expand/Collapse All'
+      ru: 'Свернуть/развернуть всё'
     };
     this.JRAS_SENDPMDIALOG_SENDBUTTON = {
-      ru: 'Отправить',
-      en: 'Send'
+      ru: 'Отправить'
     };
     this.JRAS_SENDPMDIALOG_CLOSEBUTTON = {
-      ru: 'Закрыть',
-      en: 'Close'
+      ru: 'Закрыть'
     };
     this.JRAS_SENDPMDIALOG_HEADERCAPTION = {
-      ru: 'Отправка сообщения для ',
-      en: 'Send message for '
+      ru: 'Отправка сообщения для '
     };
     this.JRAS_SENDPMDIALOG_SENDMESS = {
-      ru: 'Отправка данных...',
-      en: 'Sending...'
-    }
+      ru: 'Отправка данных...'
+    };
+    this.JRAS_GUI_PCBSHOWPOSTCONTROL = {
+      ru: 'Блок управления постом'
+    };
+    this.JRAS_GUI_PCBSHOWINFULLPOST = {
+      ru: 'Только в полном посте'
+    };
+    this.JRAS_GUI_PCBHIDEJRSHAREBLOCK = {
+      ru: 'Скрывать блок шарных кнопок поста'
+    };
+    this.JRAS_GUI_PCBHIDEJRRATINGBLOCK = {
+      ru: 'Скрывать блок рейтинга поста'
+    };
+    this.JRAS_GUI_PCBTOPBORDER = {
+      ru: 'Верхний стопор для блока внутри поста (px)'
+    };
+    this.JRAS_GUI_PCBBOTTOMBORDER = {
+      ru: 'Нижний стопор для блока внутри поста (px)'
+    };
+    this.JRAS_GUI_PCBTOPSCREENPOS = {
+      ru: 'Верхняя позиция на экране (px)'
+    };
   }
 
-}());
+}(typeof unsafeWindow != undefined ? unsafeWindow : window));
