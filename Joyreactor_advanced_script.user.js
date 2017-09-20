@@ -8,7 +8,7 @@
 // @include     *jr-proxy.com*
 // @require     http://ajax.googleapis.com/ajax/libs/jquery/2.2.0/jquery.min.js
 // @require     https://code.jquery.com/ui/1.11.4/jquery-ui.min.js
-// @version     1.7.0
+// @version     1.7.1
 // @author      AntiUser (http://joyreactor.cc/user/AntiUser)
 // @grant       GM_getValue
 // @grant       GM_setValue
@@ -17,9 +17,12 @@
 // @grant       GM_xmlhttpRequest
 // ==/UserScript==
 
-const JRAS_CurrVersion = '1.7.0';
+const JRAS_CurrVersion = '1.7.1';
 
 /* RELEASE NOTES
+ 1.7.1
+   + Тултип на юзере в блоке управления постом
+   + Опция показывать тултип на юзере в блоке управления [true]
  1.7.0
    + Блок управления постом доступный в любом месте самого поста
      + Информация (автор, дата)
@@ -389,6 +392,13 @@ const JRAS_CurrVersion = '1.7.0';
           type: 'checkbox',
           init: function(){this.dt = this.def},
           guiDesc: function(){return lng.getVal('JRAS_GUI_SHOWUTONSIDEBARONLINE')}
+        },
+        showUTOnPostControl: {
+          dt: null,
+          def: true,
+          type: 'checkbox',
+          init: function(){this.dt = this.def},
+          guiDesc: function(){return lng.getVal('JRAS_GUI_SHOWUTONPOSTCONTROL')}
         },
         showHiddenComments: {
           dt: null,
@@ -1286,7 +1296,7 @@ const JRAS_CurrVersion = '1.7.0';
         const $pcInfoUser = $postContainer.find('sitm#jras-PostControlInfo');
         $pcInfoUser.find('a#jras-pcInfoUser').attr('href', $infoUserA.attr('href')).text($infoUserA.text());
         $pcInfoUser.append($infoUserDate.clone());
-        makeUserTooltips($pcInfoUser.find('a#jras-pcInfoUser'));
+        if (userOptions.val('showUTOnPostControl')){makeUserTooltips($pcInfoUser.find('a#jras-pcInfoUser'))}
         postControlSlider($pcInfoUser, itmHeight + $infoUserA.width() + $infoUserDate.width(), itmHeight);
 
         postControlSlider($postContainer.find('sitm#jras-PostControlShare'), 132, itmHeight)
@@ -1665,6 +1675,7 @@ const JRAS_CurrVersion = '1.7.0';
   }
 
   function makeUserTooltips(selector){
+    if(!userOptions.val('isToBeLoadingUserData')){ return }
     makeTooltips(selector, function(event, ui){
       const $item = $(event.target);
       const UserName = $.trim($item.text());
@@ -2745,6 +2756,7 @@ const JRAS_CurrVersion = '1.7.0';
                       ${getHTMLProp('showUTOnPeople')} <br>
                       ${getHTMLProp('showUTOnSidebarTopUsers')} <br>
                       ${getHTMLProp('showUTOnSidebarOnline')} <br>
+                      ${getHTMLProp('showUTOnPostControl')} <br>
                       ${getHTMLProp('hideUserAwardsWhen', 'Val', {'width': '60px'})}
                       ${getHTMLProp('minShowUserAwards', 'Val', {'width': '60px'})} <br>
                       ${getHTMLProp('chatlaneToPacaki')} <br>
@@ -3047,6 +3059,9 @@ const JRAS_CurrVersion = '1.7.0';
     };
     this.JRAS_GUI_SHOWUTONSIDEBARONLINE = {
       ru: ' Показывать в правом баре для аватарок'
+    };
+    this.JRAS_GUI_SHOWUTONPOSTCONTROL = {
+      ru: ' Показывать на авторе в блоке управления постом'
     };
     this.JRAS_GUI_SHOWHIDDENCOMMENTS = {
       ru: 'Загружать скрытые заминусованные коменты сразу'
