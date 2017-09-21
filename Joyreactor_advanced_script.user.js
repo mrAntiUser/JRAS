@@ -1,21 +1,27 @@
 // ==UserScript==
 // @name        Joyreactor advanced script
-// @namespace   joyreactor.cc
-// @description comment tree collapse, remove/hide posts/comments by username/tag, remove share buttons and more
-// @description http://joyreactor.cc/tag/jras
+// @namespace   http://joyreactor.cc/tag/jras
+// @description comment tree collapse, remove/hide posts/comments by username/tag, remove share buttons and more on http://joyreactor.cc/tag/jras
+// @author      AntiUser
+// @copyright   2016+, AntiUser (http://joyreactor.cc/user/AntiUser)
+// @homepage    http://joyreactor.cc/tag/jras
+// @homepageURL http://joyreactor.cc/tag/jras
+// @supportURL  https://github.com/mrAntiUser/JRAS/issues
 // @include     *reactor.cc*
 // @include     *joyreactor.cc*
 // @include     *jr-proxy.com*
 // @require     http://ajax.googleapis.com/ajax/libs/jquery/2.2.0/jquery.min.js
 // @require     https://code.jquery.com/ui/1.11.4/jquery-ui.min.js
 // @version     1.7.1
-// @author      AntiUser (http://joyreactor.cc/user/AntiUser)
 // @grant       GM_getValue
 // @grant       GM_setValue
 // @grant       GM_listValues
 // @grant       GM_deleteValue
 // @grant       GM_xmlhttpRequest
+// @grant       unsafeWindow
+// @run-at      document-end
 // ==/UserScript==
+
 
 const JRAS_CurrVersion = '1.7.1';
 
