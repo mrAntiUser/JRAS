@@ -22,7 +22,6 @@
 // @run-at      document-end
 // ==/UserScript==
 
-
 const JRAS_CurrVersion = '1.7.2';
 
 /* RELEASE NOTES
