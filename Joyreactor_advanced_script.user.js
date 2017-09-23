@@ -12,7 +12,7 @@
 // @include     *jr-proxy.com*
 // @require     http://ajax.googleapis.com/ajax/libs/jquery/2.2.0/jquery.min.js
 // @require     https://code.jquery.com/ui/1.11.4/jquery-ui.min.js
-// @version     1.7.4
+// @version     1.7.5
 // @grant       GM_getValue
 // @grant       GM_setValue
 // @grant       GM_listValues
@@ -22,14 +22,15 @@
 // @run-at      document-end
 // ==/UserScript==
 
-const JRAS_CurrVersion = '1.7.4';
+const JRAS_CurrVersion = '1.7.5';
 
 /* RELEASE NOTES
- 1.7.4
+ 1.7.5
    + Разная иконка для постов, которые уже в избранном и которые еще можно добавить
    + Вывод даты коментария. Только в старом дизайне и только при включенной
      опции аватаров для старого дизайна
    + Опция - "Показывать в коменте его дату" в "Коментарии" > "Создавать аватары для старого дизайна"
+   + Опции теперь чекаются при клике по label'у
  1.7.2
    * Переделал иконки кнопок шары в блоке управления постом
  1.7.1
@@ -2707,7 +2708,7 @@ const JRAS_CurrVersion = '1.7.4';
       switch(propObj.type) {
         case 'checkbox':
           retVal = `<input id="${propID}Val" type="${propObj.type}" style="vertical-align: middle;"/>
-                    <label id="${propID}Caption" style="cursor: pointer;vertical-align: middle;"/>`;
+                    <label id="${propID}Caption" for="${prop}" style="cursor: pointer;vertical-align: middle;"/>`;
           break;
         case 'combobox':
           retVal = `<span id="${propID}Caption" style="vertical-align: middle;"/>
@@ -2845,6 +2846,10 @@ const JRAS_CurrVersion = '1.7.4';
         </div>
       </div>
    `);
+
+    $(`body label[id*=${getPropID('')}]`).click(function(){
+      $(this).parent().find('input#' + getPropID($(this).attr('for')) + 'Val').get(0).click();
+    });
 
     const $propDialog = $('#jras-prop-gui-dialog');
     $propDialog.find('[id*=jras-tabs-nav-]').click(function(){
