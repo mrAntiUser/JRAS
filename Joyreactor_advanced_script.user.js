@@ -12,7 +12,7 @@
 // @include     *jr-proxy.com*
 // @require     http://ajax.googleapis.com/ajax/libs/jquery/2.2.0/jquery.min.js
 // @require     https://code.jquery.com/ui/1.11.4/jquery-ui.min.js
-// @version     1.7.2
+// @version     1.7.3
 // @grant       GM_getValue
 // @grant       GM_setValue
 // @grant       GM_listValues
@@ -22,9 +22,11 @@
 // @run-at      document-end
 // ==/UserScript==
 
-const JRAS_CurrVersion = '1.7.2';
+const JRAS_CurrVersion = '1.7.3';
 
 /* RELEASE NOTES
+ 1.7.3
+   + Разная иконка для постов, которые уже в избранном и которые еще можно добавить
  1.7.2
    * Переделал иконки кнопок шары в блоке управления постом
  1.7.1
@@ -836,7 +838,7 @@ const JRAS_CurrVersion = '1.7.2';
         };
         checkPos();
         $(window).on('scroll', function(){
-        // $(win).scroll(function(){
+          // $(win).scroll(function(){
           checkPos();
         });
       }
@@ -1272,6 +1274,15 @@ const JRAS_CurrVersion = '1.7.2';
       $postContainer.find('div#jras-PostControlBlock').remove();
       if (userOptions.val('pcbHideJRShareBlock')) {$postContainer.find('div.uhead_share').css('display', 'none')}
       if (userOptions.val('pcbHideJRRatingBlock')) {$postContainer.find('div.ufoot span.post_rating').css('display', 'none')}
+      let favImg;
+      let favTitle;
+      if ($postContainer.find('div.uhead_share span.favorite_link.favorite')[0]){
+        favImg = 'jras-pcShareFAV-exists-img';
+        favTitle = lng.getVal('JRAS_REMOVEFAVORITE');
+      }else{
+        favImg = 'jras-pcShareFAV-img' ;
+        favTitle = lng.getVal('JRAS_ADDFAVORITE');
+      }
       setTimeout(function(){
         const postUrl = location.protocol + '//' + location.hostname + '/post/' + postID;
         const postUrlShare = postUrl + '?social=1';
@@ -1283,13 +1294,13 @@ const JRAS_CurrVersion = '1.7.2';
               <a id="jras-pcInfoUser" href="#" style="margin-left: ${itmContentPos}px;"></a>
             </sitm>
             <sitm id="jras-PostControlShare" class="jras-pcShare-img" style="top:${step}px; height: ${itmHeight}px;">
-              <a href="#" title="Favorite" class="jras-pcShareFAV-img" style="margin-left: ${itmContentPos + 5}px;"></a>
+              <a href="#" title="${favTitle}" class="${favImg}" style="margin-left: ${itmContentPos + 5}px;"></a>
               <a href="https://t.me/share/url?url=${postUrlShare}" title="Telegram" class="jras-pcShareTEL-img" rel="nofollow" target="_blank"></a>
               <a href="http://vkontakte.ru/share.php?url=${postUrlShare}" title="Vkontakte" class="jras-pcShareVK-img" rel="nofollow" target="_blank"></a>
               <a href="http://connect.mail.ru/share?url=${postUrlShare}" title="Mail.ru" class="jras-pcShareMAIL-img" rel="nofollow" target="_blank"></a>
               <a href="http://twitter.com/home?status=${postUrlShare}" title="Twitter" class="jras-pcShareTWIT-img" rel="nofollow" target="_blank"></a>
               <a href="http://www.facebook.com/sharer.php?u=${postUrlShare}" title="Facebook" class="jras-pcShareFACE-img" rel="nofollow" target="_blank"></a>
-            </sitm>         
+            </sitm>
             <sitm id="jras-PostControlRating" class="jras-pcRating-img" style="top:${step * 2}px; height: ${itmHeight}px; ${(page.isNewDesign)?'padding: 4px;':''}">
               <span style="margin-left: ${itmContentPos}px;">
             </sitm>
@@ -1427,7 +1438,7 @@ const JRAS_CurrVersion = '1.7.2';
     if (newTop + pbh + pcbTopStop > pch){
       newTop = pch - pbh - +userOptions.val('pcbBottomBorder');
     }
-    newTop = (newTop < pcbTopStop) ? pcbTopStop : newTop; 
+    newTop = (newTop < pcbTopStop) ? pcbTopStop : newTop;
     $PostCrtlsBlock.css({'top': newTop});
   }
 
@@ -2262,7 +2273,10 @@ const JRAS_CurrVersion = '1.7.2';
       }
       .jras-pcShareFAV-img {
         background: transparent url("data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAACAAAAAgCAYAAABzenr0AAADGUlEQVRYR8WXW08TQRTH/zPb7hYoUC5CEIgxXqDBN4PcxAfUJwEjKvHF2yfwTb6CiC++m2jig1HACNWYKCFRICIYXxQBI4lRBI0CFWhpt7szZreB0LR0usvFSZpuds7ld87MObNDACDc/tirE/0GJ7SBAG7j3XYNBhakhPRLOr2utLWME8O5xtkwkUjWdjlNZJfrfNFBaDUJ3uzsAaHNO+l8zReHjwQ6upe2O+0bBccYAiTY0c3tRk+LcgCNgf3+a9cENgUgt9QCmg619+3OA9BCD5SLDabj8L0+sD+LtiBsZ0A+UwNpX5HpVJ/8AdVnLwu2AGiBB8qlaPSrw24WbAHIp6shHdgdA6BPTEN9OmJ5GSwD0PwsKFdOJHQUuvsSfG7JEoQ1AEIgNx2BdLA4oRMzC89GAZ56ZccDEALidoHkuEE9bvPffM7JAPG4AYkmj1DTwfwBcP8y+EL0xxYC0efllTjdGACSmwnlwjGQdMVSGlMV5oEQwg9em3CrIy4DtDgPytk6QHakajclOR6OQO0aApudj5FPuAdoUS7kc3UgijMl4yIhHopA7RwA++VPvgTrZ41OJ58/CuKSRfaTzvMVFeqjgQ3Pi6RVQHdlQ26tB0mzB8GD4ajzJG1aWIZG3ZsQFjemueEeDoDPJ+8LQgAjv5K3FPKpSktLofpGoE9OC3VSAnBUlcFZXyE0tl4g8uojtNHPQp2UAOTGSkjlpUJj6wX0sW9Qn78T6qQEoFw+DmNDWhlGyYXv9wtVxACUIu1ac+IWrOkAIRvOrdzuFZ4LQgCSlwnX1ZOxkTAO7cNXaG8mAErgrCmHdGhPFGbdCN15EdN2E6VDCCCVFUNuqlrT1ce/IzI0HmfYOEecdV5IZSVrsuqTYehfZpIugxDAWeuFo9YLfeontMEx4Rew8bXkqK+AtLcQkcFP0IYnNgfgOLwfbHYBbGZOuKFiWnlJPmhBNrT3U8kBljs6AxQ03ZL1LRKOXkxudfnASeMW2bRohvf8t8spGPNT8GqzbqLXc97OOBooRYbFMCyJG2mnlPdRxtpcba2T/wCSWmgLitIWxgAAAABJRU5ErkJggg==") no-repeat scroll 0px 0px;
-      }       
+      } 
+      .jras-pcShareFAV-exists-img {
+        background: transparent url("data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAACAAAAAgCAYAAABzenr0AAAAGXRFWHRTb2Z0d2FyZQBBZG9iZSBJbWFnZVJlYWR5ccllPAAAAyZpVFh0WE1MOmNvbS5hZG9iZS54bXAAAAAAADw/eHBhY2tldCBiZWdpbj0i77u/IiBpZD0iVzVNME1wQ2VoaUh6cmVTek5UY3prYzlkIj8+IDx4OnhtcG1ldGEgeG1sbnM6eD0iYWRvYmU6bnM6bWV0YS8iIHg6eG1wdGs9IkFkb2JlIFhNUCBDb3JlIDUuNi1jMDE0IDc5LjE1Njc5NywgMjAxNC8wOC8yMC0wOTo1MzowMiAgICAgICAgIj4gPHJkZjpSREYgeG1sbnM6cmRmPSJodHRwOi8vd3d3LnczLm9yZy8xOTk5LzAyLzIyLXJkZi1zeW50YXgtbnMjIj4gPHJkZjpEZXNjcmlwdGlvbiByZGY6YWJvdXQ9IiIgeG1sbnM6eG1wPSJodHRwOi8vbnMuYWRvYmUuY29tL3hhcC8xLjAvIiB4bWxuczp4bXBNTT0iaHR0cDovL25zLmFkb2JlLmNvbS94YXAvMS4wL21tLyIgeG1sbnM6c3RSZWY9Imh0dHA6Ly9ucy5hZG9iZS5jb20veGFwLzEuMC9zVHlwZS9SZXNvdXJjZVJlZiMiIHhtcDpDcmVhdG9yVG9vbD0iQWRvYmUgUGhvdG9zaG9wIENDIDIwMTQgKFdpbmRvd3MpIiB4bXBNTTpJbnN0YW5jZUlEPSJ4bXAuaWlkOjM0OUVGMUYyQTAzNjExRTc4QUMyODg0QUZGQUI2RTc0IiB4bXBNTTpEb2N1bWVudElEPSJ4bXAuZGlkOjM0OUVGMUYzQTAzNjExRTc4QUMyODg0QUZGQUI2RTc0Ij4gPHhtcE1NOkRlcml2ZWRGcm9tIHN0UmVmOmluc3RhbmNlSUQ9InhtcC5paWQ6MzQ5RUYxRjBBMDM2MTFFNzhBQzI4ODRBRkZBQjZFNzQiIHN0UmVmOmRvY3VtZW50SUQ9InhtcC5kaWQ6MzQ5RUYxRjFBMDM2MTFFNzhBQzI4ODRBRkZBQjZFNzQiLz4gPC9yZGY6RGVzY3JpcHRpb24+IDwvcmRmOlJERj4gPC94OnhtcG1ldGE+IDw/eHBhY2tldCBlbmQ9InIiPz5H7LYwAAAD6klEQVR42sRX70+TVxR+7mlLu3aUX90maBSMOBmy8WFLzDZjJEHjB4dxGuZm1OAX/wJhkizLkm0sfF7CkiVjZmEfiJjFaDAQ4o8lLmaZZhkDGW7CHALjRwFbLPa9d+e+L5Ph20J5m8FN2t63vT3Pc55z7jn3CvB41NBWIslokKAKEngW/+OQkFGC6CKDTvvqDvYIDW4I+YMgEcQqDiXVtEvRDtKerza4HhpTCvUZadmxRkMCFZROzCk/B/RclmMCRAi4HUu48TbE7m85mBkQV96GGix3RsIxgQ2T/BZmC6MQ+VPOVXDsfXHHwvOLXeZ3q0dgvfZ+/D9Whh2rQM6877J/71CFlRPQnnLc7ZZYhRdmVkzAnarX1kSwp53J15V0QoxyTVPKqnYp7AwRbTynFgFpkOxZiFzO8CDH2j8GZDxYHPOUam0eMJcPREPAVB7URBAq7OPq44K6X5ZYAS2hKP1mxeVMjMWhnn9KTE3Yq188z+HHQn5pXj8fYwJJQqBGMiGeOQxsbl0e+JGCuyMC6o1ZPArciL+3dFVU/dVQY4HkSahjJu+FzIVLxm3SgKc5bIGTCygoBw3FOf7x5OB977D9XFte2HaBXmAu5D8kBB8z4P56CmKGtX/pLaDuHhDaMk9MJgbvfZdlz0mYlAl3gfjNA/fd70HtEmpzFLLMC7nJw2Flz89ychq86NUTwMEmoOUI8Mt5KD9BbbCbUz0M/iAr6Y6w/YNi3Zw7n84/GBDd/NEzDWOXH/RrzAJ/rQY49CXQWmOBBwjx41nm5yLw7qNmXi21HW0hoLk+a7L3DFB/F9jzAVtyw3U1CvE3oxe+wZ5/AXR9DPzYDOURiB8J2sAxsm9Z8IQKyIyt1uTyJ8AsV70DjcD6l1lqzokMPjoc5R3y+1Wg40NzmVHFIDkuu2V/OKVCZCfgLUUs730rDNc+BwLZQGU9cPIyEJ9lw7lA2yleaMB4xQdZ5Els2T9kFrblSCTsBRaJunklPrI8LnoTKK4EbrcA4/1mUhp7AsktuwbSa0bSux2PM6ush0u1Cz/caLJ+L/Gm0EREes0onnkYLs910J83gd6LQG4RwHMVckFuK4X6aSe7ICG2X2NLf9jxQw+hBtLshmrLOuDWEPDV/n/NQvrKIK9XPomvmPBbfYS7oW7LCwTG01PAlPp17mqZDHCf7zMjfgbfhLnYaWBQPFU9GVD3Ej4tia3t1nkxOJI+ARUphsGlVka4pc4sndFPiPzFx/UiPrTkDS+fJg8bWyME8q/JxUQiQvqiuFY3IyLVSfqWqi+Ka+B+mKRRS/qKrG+pfLK5oCVZDdk5W74jyB2+2uo7/wgwAKrre9ew1tbOAAAAAElFTkSuQmCC") no-repeat scroll 0px 0px;
+      }          
       .jras-pcShareTEL-img {
         background: transparent url("data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAACAAAAAgCAYAAABzenr0AAAD5klEQVRYR8VXW0yTZxh+vq8HeuZYTqWyAroz06ATQp1KjDHZYpYtWeaF0TASLjaywwWYJSbOKzfjsiW7WbLsYsui7igBzXBGjBrnBcuC2SZgPQCjMCpSCm2hlP9b3p8UWlp6EApf0ov+//u+z/O87/u93/czAGg40/e0YPyEkFDHOQz0LF1LkiQfFOwyl0TzV29uus0InDF+UwCmdIHGissAjxBSNXvrrKOVAfvXEnwRi7Wx+tOOyXSnfXlxzMsazjrE+qifR10zAllaJTRKhpHJ2Qi9aSWg5AwvFOthLzPi2QIdBASOtA9g3B9cIJEWApZMNew2E6pLDTBkKCIUf3hhAK6pxSysGgGtimOb1QB7mQm2nIyYbeULSHjv3H2EN92KCWw0a2S1W60GqBVsAXhqZg5d/3qxq3xxvPw94sNnV4dX3gOZGgVqnjDKwAVGVZTaGw8m8VufGw3bC0DlCK3z/4zj3F+PHo8AZwyVxTrYbUY8X6QD/V+6Rqdm8W2XC25/EO/vLEaOThlh8sX1EXQ7vakRIIWklBST8lhrThL4tceN87fHsSErA007iqBX8yjTD1ofYHJmLjGBDCVHVYkeO8pMqMjTxJ1TjofTsmqnJyBnqLGmMKIXQs5jviCOtPdHxYpoQkrra5U52FlugkYZrSDc2z8r4adbY7h61yN3NZXm4FZzzNKQX9fgFL78/b/4BLK1ShzdWwLjkr271IuCnfnzISam59P58jPZePW5nLiZ+qF7DBd73fEJ0FuaXk/la7HZopd/4XV/5Aviuz9cuDXsm5/jDDiwJQ+7KzLjgtPLTzqHcMc1nZhAuAX1uS1Xgy0WPXZXmNDc1g/frCSbENGG6nxUlSS+v0gCaPr5HgJz0ede0oPoHXshOh0e0DChqfd2bSGezNcmVE4Gg+4Ajl8cjGmbNAHahhvzNPimyyUPmO2liZWHEK/d88h+sVbSBHQqjo/2WdHS3o/mOgvKc+Nvz3AwAicSKyJAzu++VISOHjcObTMjTz8/gqmu4WdALJBjHYMYmgisnAANJmuWGrU2kwxK2/DTK05YstQ4WGWWe2PpmglKaPrlPsQy966kS0CB6Ww/vs8qzwma96euOBduOGaDCo01BSjNjjyK+1x+nOx0LtusKREIlcGsV+Hza8MRF4vQ1ny9Mhd7Ni3OhY5eN37sHls9AsnsO7qGHX7RDINaIWepZ9S/tgQIjfqBjuPlmi/EKOUSJJOBVGxY/ek+L+dcl4rT6tkyL6v//k4bF+yV1QuafCTB0LpuH6cQklviymr5YkdfyGCKjwHUAUKfvIbHsWRewcQlAd7y9Rtlvf8DpDx2AbcgTJgAAAAASUVORK5CYII=") no-repeat scroll 0px 0px;
       }   
@@ -2873,16 +2887,16 @@ const JRAS_CurrVersion = '1.7.2';
     if(page.isNewDesign){
       $propDialog.find('#jras-gui-SaveSettings').css('border-radius', '3px');
       $propDialog.find('#jras-prop-gui-bottomCcontent').prepend(`
-       <div id="jras-gui-sendPMforMe" class="big_button jras-gui-btn-newdesign jras-prop-gui-button-left jras-gui-btn-pmme" title=""> </div>
-       <div id="jras-gui-DeleteAllSavedSettings" class="big_button jras-gui-btn-newdesign jras-prop-gui-button-left jras-gui-btn-deleteall" title="" > </div>
-       <div id="jras-gui-ResetSettings" class="big_button jras-gui-btn-newdesign jras-prop-gui-button-left jras-gui-btn-resetdef" title="" > </div>
-      `);
+      <div id="jras-gui-sendPMforMe" class="big_button jras-gui-btn-newdesign jras-prop-gui-button-left jras-gui-btn-pmme" title=""> </div>
+      <div id="jras-gui-DeleteAllSavedSettings" class="big_button jras-gui-btn-newdesign jras-prop-gui-button-left jras-gui-btn-deleteall" title="" > </div>
+      <div id="jras-gui-ResetSettings" class="big_button jras-gui-btn-newdesign jras-prop-gui-button-left jras-gui-btn-resetdef" title="" > </div>
+     `);
     }else{
       $propDialog.find('#jras-prop-gui-bottomCcontent').prepend(`
-       <input id="jras-gui-sendPMforMe" style="padding-left: 3px;padding-right: 3px;width: 24px;height: 22px;" class="jras-prop-gui-button-left jras-gui-btn-pmme" title="" value="" type="button">
-       <input id="jras-gui-DeleteAllSavedSettings" style="padding-left: 3px; padding-right: 3px; width: 24px; height: 22px;" class="jras-prop-gui-button-left jras-gui-btn-deleteall" title="" value="" type="button">
-       <input id="jras-gui-ResetSettings" style="padding-left: 3px; padding-right: 3px; width: 24px; height: 22px;" class="jras-prop-gui-button-left jras-gui-btn-resetdef" title="" value="" type="button">
-      `);
+      <input id="jras-gui-sendPMforMe" style="padding-left: 3px;padding-right: 3px;width: 24px;height: 22px;" class="jras-prop-gui-button-left jras-gui-btn-pmme" title="" value="" type="button">
+      <input id="jras-gui-DeleteAllSavedSettings" style="padding-left: 3px; padding-right: 3px; width: 24px; height: 22px;" class="jras-prop-gui-button-left jras-gui-btn-deleteall" title="" value="" type="button">
+      <input id="jras-gui-ResetSettings" style="padding-left: 3px; padding-right: 3px; width: 24px; height: 22px;" class="jras-prop-gui-button-left jras-gui-btn-resetdef" title="" value="" type="button">
+     `);
     }
 
     $propDialog.find('#jras-gui-sendPMforMe').click(function(){
@@ -3268,6 +3282,12 @@ const JRAS_CurrVersion = '1.7.2';
     };
     this.JRAS_GUI_PCBTOPSCREENPOS = {
       ru: 'Верхняя позиция на экране (px)'
+    };
+    this.JRAS_ADDFAVORITE = {
+      ru: 'Добавить в избранное'
+    };
+    this.JRAS_REMOVEFAVORITE = {
+      ru: 'Удалить из избранного'
     };
   }
 
