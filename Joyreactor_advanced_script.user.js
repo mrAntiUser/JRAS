@@ -12,7 +12,7 @@
 // @include     *jr-proxy.com*
 // @require     http://ajax.googleapis.com/ajax/libs/jquery/2.2.0/jquery.min.js
 // @require     https://code.jquery.com/ui/1.11.4/jquery-ui.min.js
-// @version     1.7.3
+// @version     1.7.4
 // @grant       GM_getValue
 // @grant       GM_setValue
 // @grant       GM_listValues
@@ -22,11 +22,14 @@
 // @run-at      document-end
 // ==/UserScript==
 
-const JRAS_CurrVersion = '1.7.3';
+const JRAS_CurrVersion = '1.7.4';
 
 /* RELEASE NOTES
- 1.7.3
+ 1.7.4
    + Разная иконка для постов, которые уже в избранном и которые еще можно добавить
+   + Вывод даты коментария. Только в старом дизайне и только при включенной
+     опции аватаров для старого дизайна
+   + Опция - "Показывать в коменте его дату" в "Коментарии" > "Создавать аватары для старого дизайна"
  1.7.2
    * Переделал иконки кнопок шары в блоке управления постом
  1.7.1
@@ -189,7 +192,6 @@ const JRAS_CurrVersion = '1.7.3';
  */
 
 (function(win){
-
   'use strict';
 
   win.console.log(' ================ start JRAS - ');
@@ -598,6 +600,13 @@ const JRAS_CurrVersion = '1.7.3';
           init: function(){this.dt = this.def},
           validator: function(val){return $.isNumeric(val) && val >= this.min && val <= this.max},
           guiDesc: function(){return lng.getVal('JRAS_GUI_PCBTOPSCREENPOS')}
+        },
+        showCommentDate: {
+          dt: null,
+          def: true,
+          type: 'checkbox',
+          init: function(){this.dt = this.def},
+          guiDesc: function(){return lng.getVal('JRAS_GUI_SHOWCOMMENTDATE')}
         },
         BlockUsers: [],
         BlockTags: []
@@ -1241,14 +1250,16 @@ const JRAS_CurrVersion = '1.7.3';
     }else{
       const $elm = $(elm);
       const $avaOldElm = $elm.find('>div.avatar');
-      $avaOldElm.before(`<img class="avatarForOldDesign" src="/pics/avatar/user/${$elm.attr('userid')}" title="${$avaOldElm.attr('title')}">`);
+      let commDate = $avaOldElm.attr('title');
+      $avaOldElm.before(`<img class="avatarForOldDesign" src="/pics/avatar/user/${$elm.attr('userid')}" title="${commDate}">`);
       const $avaNewElm =  $elm.find('>img.avatarForOldDesign');
 
       $avaNewElm.css({'height': userOptions.val('avatarHeight') + 'px'});
       //if(!userOptions.val('makeTreeComments')){
       //  $avaNewElm.css({'margin-left': '-16px'});
       //}
-      $elm.find('>div[id^=comment_txt_].txt>span:not([class]):first').after('<br>');
+      commDate = (userOptions.val('showCommentDate')) ? `<span style="font-size: 75%;opacity: 0.5;">${commDate} - </span>` : '';
+      $elm.find('>div[id^=comment_txt_].txt>span:not([class]):first').after('<br>' + commDate);
       $avaOldElm.remove();
     }
   }
@@ -2810,10 +2821,13 @@ const JRAS_CurrVersion = '1.7.3';
                 <div id="jras-prop-gui-tab-4" class="jras-tabs-panel">
                   <div class="jras-tabs-panel-content">
                     <section class="jras-prop-gui-section"> ${getHTMLProp('makeTreeComments')} </section>
-                    <section class="jras-prop-gui-section" style="margin-left: 20px; margin-top: -10px;"> ${getHTMLProp('treeCommentsOnlyFullPost')} </section>
+                    <section class="jras-prop-gui-section" style="margin-left: 20px; margin-top: -10px;">
+                      ${getHTMLProp('treeCommentsOnlyFullPost')} </section>
                     <section class="jras-prop-gui-section"> ${getHTMLProp('makeAvatarOnOldDesign')} </section>
                     <section class="jras-prop-gui-section" style="margin-left: 20px; margin-top: -10px;">
-                      ${getHTMLProp('makeAvatarOnlyFullPost')} <br>${getHTMLProp('avatarHeight')}</section>
+                      ${getHTMLProp('makeAvatarOnlyFullPost')} <br>
+                      ${getHTMLProp('showCommentDate')} <br>
+                      ${getHTMLProp('avatarHeight')}</section>
                     <section class="jras-prop-gui-section"> ${getHTMLProp('whenCollapseMakeRead')} </section>
                     <section class="jras-prop-gui-section"> ${getHTMLProp('collapseComments')} </section>
                     <section class="jras-prop-gui-section" style="margin-left: 20px; margin-top: -10px;">
@@ -3288,6 +3302,9 @@ const JRAS_CurrVersion = '1.7.3';
     };
     this.JRAS_REMOVEFAVORITE = {
       ru: 'Удалить из избранного'
+    };
+    this.JRAS_GUI_SHOWCOMMENTDATE = {
+      ru: 'Показывать в коменте его дату'
     };
   }
 
