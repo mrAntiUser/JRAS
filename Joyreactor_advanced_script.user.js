@@ -12,7 +12,7 @@
 // @include     *jr-proxy.com*
 // @require     http://ajax.googleapis.com/ajax/libs/jquery/2.2.0/jquery.min.js
 // @require     https://code.jquery.com/ui/1.11.4/jquery-ui.min.js
-// @version     1.7.5
+// @version     1.7.7
 // @grant       GM_getValue
 // @grant       GM_setValue
 // @grant       GM_listValues
@@ -22,15 +22,16 @@
 // @run-at      document-end
 // ==/UserScript==
 
-const JRAS_CurrVersion = '1.7.5';
+const JRAS_CurrVersion = '1.7.7';
 
 /* RELEASE NOTES
- 1.7.5
+ 1.7.7
    + Разная иконка для постов, которые уже в избранном и которые еще можно добавить
-   + Вывод даты коментария. Только в старом дизайне и только при включенной
-     опции аватаров для старого дизайна
-   + Опция - "Показывать в коменте его дату" в "Коментарии" > "Создавать аватары для старого дизайна"
+   + Вывод даты коментария. Только в старом дизайне и только при включенной опции аватаров для старого дизайна
+   + Опция - "Показывать в коменте его дату" [true] в "Коментарии" > "Создавать аватары для старого дизайна"
    + Опции теперь чекаются при клике по label'у
+   + Опция - Анимировать перемещения блока' [true]
+   + Опция - Скорость перемещения при анимации (1-9) [8]
  1.7.2
    * Переделал иконки кнопок шары в блоке управления постом
  1.7.1
@@ -608,6 +609,23 @@ const JRAS_CurrVersion = '1.7.5';
           type: 'checkbox',
           init: function(){this.dt = this.def},
           guiDesc: function(){return lng.getVal('JRAS_GUI_SHOWCOMMENTDATE')}
+        },
+        pcbAnimateMove: {
+          dt: null,
+          def: true,
+          type: 'checkbox',
+          init: function(){this.dt = this.def},
+          guiDesc: function(){return lng.getVal('JRAS_GUI_PCBANIMATEMOVE')}
+        },
+        pcbAnimateMoveSpeed: {
+          dt: null,
+          def: 8,
+          type: 'number',
+          min: 1,
+          max: 9,
+          init: function(){this.dt = this.def},
+          validator: function(val){return $.isNumeric(val) && val >= this.min && val <= this.max},
+          guiDesc: function(){return lng.getVal('JRAS_GUI_PCBANIMATEMOVESPEED')}
         },
         BlockUsers: [],
         BlockTags: []
@@ -1320,6 +1338,10 @@ const JRAS_CurrVersion = '1.7.5';
           </div>
         `);
         });
+
+        if (userOptions.val('pcbAnimateMove')){
+          $postContainer.find('div#jras-PostControlBlock').css('transition', `0.${userOptions.val('pcbAnimateMoveSpeed')}s cubic-bezier(0.76, -0.48, 0.27, 1.42)`);
+        }
 
         const $infoUserA = $postContainer.find('div.uhead div.uhead_nick a');
         const $infoUserDate = $postContainer.find('div.ufoot span.date > span');
@@ -2359,7 +2381,6 @@ const JRAS_CurrVersion = '1.7.5';
         right: 0;
         z-index: 1;
         border-left: 1px solid rgba(0, 0, 0, 0.3);
-        transition: 0.8s cubic-bezier(0.76, -0.48, 0.27, 1.42);
       }
       #jras-PostControlBlock sitm {
         position: absolute;
@@ -2775,6 +2796,8 @@ const JRAS_CurrVersion = '1.7.5';
                       ${getHTMLProp('pcbShowInFullPost')} <br>
                       ${getHTMLProp('pcbHideJRShareBlock')} <br>
                       ${getHTMLProp('pcbHideJRRatingBlock')}<br>
+                      ${getHTMLProp('pcbAnimateMove')} <br>
+                      ${getHTMLProp('pcbAnimateMoveSpeed')}<br>
                       ${getHTMLProp('pcbTopScreenPos')} <br>
                       ${getHTMLProp('pcbTopBorder')} <br>
                       ${getHTMLProp('pcbBottomBorder')} </section>  
@@ -3310,6 +3333,12 @@ const JRAS_CurrVersion = '1.7.5';
     };
     this.JRAS_GUI_SHOWCOMMENTDATE = {
       ru: 'Показывать в коменте его дату'
+    };
+    this.JRAS_GUI_PCBANIMATEMOVE = {
+      ru: 'Анимировать перемещения блока'
+    };
+    this.JRAS_GUI_PCBANIMATEMOVESPEED = {
+      ru: 'Скорость перемещения при анимации (1-9)'
     };
   }
 
