@@ -12,7 +12,7 @@
 // @include     *jr-proxy.com*
 // @require     http://ajax.googleapis.com/ajax/libs/jquery/2.2.0/jquery.min.js
 // @require     https://code.jquery.com/ui/1.11.4/jquery-ui.min.js
-// @version     1.7.7
+// @version     1.7.10
 // @grant       GM_getValue
 // @grant       GM_setValue
 // @grant       GM_listValues
@@ -22,10 +22,11 @@
 // @run-at      document-end
 // ==/UserScript==
 
-const JRAS_CurrVersion = '1.7.7';
+const JRAS_CurrVersion = '1.7.10';
 
 /* RELEASE NOTES
- 1.7.7
+ 1.7.10
+   * Исправлен баг сохранения настроек (спасибо Silent John за тесты и терпение)
    + Разная иконка для постов, которые уже в избранном и которые еще можно добавить
    + Вывод даты коментария. Только в старом дизайне и только при включенной опции аватаров для старого дизайна
    + Опция - "Показывать в коменте его дату" [true] в "Коментарии" > "Создавать аватары для старого дизайна"
@@ -196,7 +197,13 @@ const JRAS_CurrVersion = '1.7.7';
 (function(win){
   'use strict';
 
-  win.console.log(' ================ start JRAS - ');
+  win.console.log(' ================ start JRAS');
+
+  if (location.host == 'json.joyreactor.cc'){
+    win.console.log(' ================ end JRAS - page is sexy runetki');
+    return;
+  }
+
   const MutationObserver = window.MutationObserver || window.WebKitMutationObserver || window.MozMutationObserver;
 
   const defLoadTooltipSize = 212;
@@ -671,7 +678,12 @@ const JRAS_CurrVersion = '1.7.7';
         this.removeSavedUserData();
       },
 
+      correctForRegexp: function(str){
+        return str.replace(/[.*+?^${}()|[\]\\]/g, '_');
+      },
+
       removeSavedUserData: function(user){
+        user = this.correctForRegexp(user);
         let pref = (user === undefined) ? '' : user + '_';
         let keys = GM_listValues();
         for(let i = 0; i < keys.length; i++){
@@ -683,6 +695,7 @@ const JRAS_CurrVersion = '1.7.7';
       },
 
       saveUserData: function(forUser){
+        forUser = this.correctForRegexp(forUser);
         this.removeSavedUserData(forUser);
         const pref = forUser + '_';
         this.each(function(optName, opt){
@@ -697,6 +710,7 @@ const JRAS_CurrVersion = '1.7.7';
       },
 
       loadUserDataFrom: function(prefix){
+        prefix = this.correctForRegexp(prefix);
         let retVal = false;
         const posf = '.*';
         let keys = GM_listValues();
