@@ -12,7 +12,7 @@
 // @include     *jr-proxy.com*
 // @require     http://ajax.googleapis.com/ajax/libs/jquery/2.2.0/jquery.min.js
 // @require     https://code.jquery.com/ui/1.11.4/jquery-ui.min.js
-// @version     1.7.15
+// @version     1.7.16
 // @grant       GM_getValue
 // @grant       GM_setValue
 // @grant       GM_listValues
@@ -22,15 +22,17 @@
 // @run-at      document-end
 // ==/UserScript==
 
-const JRAS_CurrVersion = '1.7.15';
+const JRAS_CurrVersion = '1.7.16';
 
 /* RELEASE NOTES
+ 1.7.16
+   * Исправлен баг даты комментария, которая пропадала или вообще не появлялась
  1.7.15
    * Исправлен баг сохранения настроек (спасибо Silent John за тесты и терпение) (Issue-25)
    * Исправлен баг добавления в избранное на новом дизайне (Issue-27)
    + Разная иконка для постов, которые уже в избранном и которые еще можно добавить (Issue-20)
-   + Вывод даты коментария. Только в старом дизайне и только при включенной опции аватаров для старого дизайна (Issue-17)
-   + Опция - "Показывать в коменте его дату" [true] в "Коментарии" > "Создавать аватары для старого дизайна"
+   + Вывод даты комментария. Только в старом дизайне и только при включенной опции аватаров для старого дизайна (Issue-17)
+   + Опция - "Показывать в коменте его дату" [true] в "Комментарии" > "Создавать аватары для старого дизайна"
    + Опции теперь чекаются при клике по label'у (Issue-11)
    + Опция - Анимировать перемещения блока' [true] (Issue-19)
    + Опция - Скорость перемещения при анимации (1-9) [2]
@@ -1292,9 +1294,11 @@ const JRAS_CurrVersion = '1.7.15';
       //if(!userOptions.val('makeTreeComments')){
       //  $avaNewElm.css({'margin-left': '-16px'});
       //}
-      commDate = (userOptions.val('showCommentDate')) ? `<span style="font-size: 75%;opacity: 0.5;">${commDate} - </span>` : '';
-      $elm.find('>div[id^=comment_txt_].txt>span:not([class]):first').after('<br>' + commDate);
+      $elm.find('>div[id^=comment_txt_].txt>span:not([class]):first').after('<br>');
       $avaOldElm.remove();
+      if (userOptions.val('showCommentDate')){
+        $(`<span style="font-size: 75%;opacity: 0.5;">${commDate} — </span>`).insertBefore($elm.find('span.reply-link'));
+      }
     }
   }
 
