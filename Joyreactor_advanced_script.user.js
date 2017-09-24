@@ -12,7 +12,7 @@
 // @include     *jr-proxy.com*
 // @require     http://ajax.googleapis.com/ajax/libs/jquery/2.2.0/jquery.min.js
 // @require     https://code.jquery.com/ui/1.11.4/jquery-ui.min.js
-// @version     1.7.10
+// @version     1.7.15
 // @grant       GM_getValue
 // @grant       GM_setValue
 // @grant       GM_listValues
@@ -22,30 +22,31 @@
 // @run-at      document-end
 // ==/UserScript==
 
-const JRAS_CurrVersion = '1.7.10';
+const JRAS_CurrVersion = '1.7.15';
 
 /* RELEASE NOTES
- 1.7.10
-   * Исправлен баг сохранения настроек (спасибо Silent John за тесты и терпение)
-   + Разная иконка для постов, которые уже в избранном и которые еще можно добавить
-   + Вывод даты коментария. Только в старом дизайне и только при включенной опции аватаров для старого дизайна
+ 1.7.15
+   * Исправлен баг сохранения настроек (спасибо Silent John за тесты и терпение) (Issue-25)
+   * Исправлен баг добавления в избранное на новом дизайне (Issue-27)
+   + Разная иконка для постов, которые уже в избранном и которые еще можно добавить (Issue-20)
+   + Вывод даты коментария. Только в старом дизайне и только при включенной опции аватаров для старого дизайна (Issue-17)
    + Опция - "Показывать в коменте его дату" [true] в "Коментарии" > "Создавать аватары для старого дизайна"
-   + Опции теперь чекаются при клике по label'у
-   + Опция - Анимировать перемещения блока' [true]
-   + Опция - Скорость перемещения при анимации (1-9) [8]
+   + Опции теперь чекаются при клике по label'у (Issue-11)
+   + Опция - Анимировать перемещения блока' [true] (Issue-19)
+   + Опция - Скорость перемещения при анимации (1-9) [2]
  1.7.2
-   * Переделал иконки кнопок шары в блоке управления постом
+   * Переделал иконки кнопок шары в блоке управления постом (Issue-12)
  1.7.1
-   + Тултип на юзере в блоке управления постом
+   + Тултип на юзере в блоке управления постом (Issue-7)
    + Опция показывать тултип на юзере в блоке управления [true]
- 1.7.0
+ 1.7.0 - http://old.reactor.cc/post/3243856
    + Блок управления постом доступный в любом месте самого поста
      + Информация (автор, дата)
      + шары (все что было плюс добавил телеграм)
      + рейтинг
      + ссылки
    Опции
-     + Блок управления постом [true]
+     + Блок управления постом [true] (Issue-1)
      + Только в полном посте [false]
      + Скрывать блок шарных кнопок поста [false]
      + Скрывать блок рейтинга поста [false]
@@ -626,7 +627,7 @@ const JRAS_CurrVersion = '1.7.10';
         },
         pcbAnimateMoveSpeed: {
           dt: null,
-          def: 8,
+          def: 2,
           type: 'number',
           min: 1,
           max: 9,
@@ -1311,6 +1312,17 @@ const JRAS_CurrVersion = '1.7.10';
     if (st == 'old' && !page.isSchemeLight()){
       st = st + '-dark';
     }
+    const getFavData = function($container){
+      let ret = {};
+      if ($container.find('div.uhead_share span.favorite_link.favorite')[0]){
+        ret.Img = 'jras-pcShareFAV-exists-img';
+        ret.Title = lng.getVal('JRAS_REMOVEFAVORITE');
+      }else{
+        ret.Img = 'jras-pcShareFAV-img' ;
+        ret.Title = lng.getVal('JRAS_ADDFAVORITE');
+      }
+      return ret;
+    };
     const makePostCtrl = function($th){
       const $postContainer = $th;
       const postID = getPostID($postContainer.attr('id'));
@@ -1318,15 +1330,7 @@ const JRAS_CurrVersion = '1.7.10';
       $postContainer.find('div#jras-PostControlBlock').remove();
       if (userOptions.val('pcbHideJRShareBlock')) {$postContainer.find('div.uhead_share').css('display', 'none')}
       if (userOptions.val('pcbHideJRRatingBlock')) {$postContainer.find('div.ufoot span.post_rating').css('display', 'none')}
-      let favImg;
-      let favTitle;
-      if ($postContainer.find('div.uhead_share span.favorite_link.favorite')[0]){
-        favImg = 'jras-pcShareFAV-exists-img';
-        favTitle = lng.getVal('JRAS_REMOVEFAVORITE');
-      }else{
-        favImg = 'jras-pcShareFAV-img' ;
-        favTitle = lng.getVal('JRAS_ADDFAVORITE');
-      }
+      const favData = getFavData($postContainer);
       setTimeout(function(){
         const postUrl = location.protocol + '//' + location.hostname + '/post/' + postID;
         const postUrlShare = postUrl + '?social=1';
@@ -1338,7 +1342,7 @@ const JRAS_CurrVersion = '1.7.10';
               <a id="jras-pcInfoUser" href="#" style="margin-left: ${itmContentPos}px;"></a>
             </sitm>
             <sitm id="jras-PostControlShare" class="jras-pcShare-img" style="top:${step}px; height: ${itmHeight}px;">
-              <a href="#" title="${favTitle}" class="${favImg}" style="margin-left: ${itmContentPos + 5}px;"></a>
+              <a id="jras-pcbShareFAV" href="#" title="${favData.Title}" class="${favData.Img}" style="margin-left: ${itmContentPos + 5}px;"></a>
               <a href="https://t.me/share/url?url=${postUrlShare}" title="Telegram" class="jras-pcShareTEL-img" rel="nofollow" target="_blank"></a>
               <a href="http://vkontakte.ru/share.php?url=${postUrlShare}" title="Vkontakte" class="jras-pcShareVK-img" rel="nofollow" target="_blank"></a>
               <a href="http://connect.mail.ru/share?url=${postUrlShare}" title="Mail.ru" class="jras-pcShareMAIL-img" rel="nofollow" target="_blank"></a>
@@ -1353,8 +1357,9 @@ const JRAS_CurrVersion = '1.7.10';
         `);
         });
 
+        const $postBlock = $postContainer.find('div#jras-PostControlBlock');
         if (userOptions.val('pcbAnimateMove')){
-          $postContainer.find('div#jras-PostControlBlock').css('transition', `0.${userOptions.val('pcbAnimateMoveSpeed')}s cubic-bezier(0.76, -0.48, 0.27, 1.42)`);
+          $postBlock.css('transition', `0.${10 - +userOptions.val('pcbAnimateMoveSpeed')}s cubic-bezier(0.76, -0.48, 0.27, 1.42)`);
         }
 
         const $infoUserA = $postContainer.find('div.uhead div.uhead_nick a');
@@ -1365,10 +1370,16 @@ const JRAS_CurrVersion = '1.7.10';
         if (userOptions.val('showUTOnPostControl')){makeUserTooltips($pcInfoUser.find('a#jras-pcInfoUser'))}
         postControlSlider($pcInfoUser, itmHeight + $infoUserA.width() + $infoUserDate.width(), itmHeight);
 
-        postControlSlider($postContainer.find('sitm#jras-PostControlShare'), 132, itmHeight)
-          .find('a.jras-pcShareFAV-img').click(function(){
-          $postContainer.find('span.favorite_link').trigger('click');
-        });
+        const $favA = $postBlock.find('a#jras-pcbShareFAV');
+        new MutationObserver(function(){
+          const favData = getFavData($postContainer);
+          $favA.removeClass();
+          $favA.addClass(favData.Img);
+          $favA.attr('title', favData.Title);
+        }).observe($postContainer.find('div.uhead_share span.favorite_link').get(0), {attributes: true});
+
+        postControlSlider($postContainer.find('sitm#jras-PostControlShare'), 132, itmHeight);
+        $favA.click(function(){ $postContainer.find('span.favorite_link').get(0).click(); return false; });
 
         const $Rating = $postContainer.find('div.ufoot span.post_rating');
         $Rating.find('div.vote-plus, div.vote-minus').removeClass('abyss');
