@@ -12,7 +12,7 @@
 // @include     *jr-proxy.com*
 // @require     http://ajax.googleapis.com/ajax/libs/jquery/2.2.0/jquery.min.js
 // @require     https://code.jquery.com/ui/1.11.4/jquery-ui.min.js
-// @version     1.7.18
+// @version     1.7.19
 // @grant       GM_getValue
 // @grant       GM_setValue
 // @grant       GM_listValues
@@ -22,12 +22,13 @@
 // @run-at      document-end
 // ==/UserScript==
 
-const JRAS_CurrVersion = '1.7.18';
+const JRAS_CurrVersion = '1.7.19';
 
 /* RELEASE NOTES
- 1.7.18
+ 1.7.19
    * Фикс определения цвета темы
    + Опция скрывать шарные кнопки в БУП [false] (Issue-18.1)
+   * Корректировка даты поста
  1.7.16
    * Исправлен баг даты комментария, которая пропадала или вообще не появлялась (Issue-29)
  1.7.15 - http://old.reactor.cc/post/3247143
@@ -222,6 +223,7 @@ const JRAS_CurrVersion = '1.7.18';
   const userOptions = initOptions();
   userOptions.loadUserData(page.currentUser);
   try{
+    correctPostDate();
     addNewCSSClasses();
     themeDependentCSS();
     makePropElements();
@@ -1312,6 +1314,26 @@ const JRAS_CurrVersion = '1.7.18';
     }
   }
 
+  function correctPostDate(){
+    const $spanDate = $('body').find('div#contentinner div.article.post-normal div.ufoot span.date');
+    const reconnect = function($th, observe){
+      observe.observe($th.get(0), {subtree: true, attributes: true, childList: true});
+    };
+    let obs = [];
+    $spanDate.each(function(idx){
+      const corrDate = function($th, observe){
+        if (observe != null){observe.disconnect()}
+        const $spanDateCurr = $($th).find('>span:first');
+        $spanDateCurr.children().remove();
+        $spanDateCurr.append(`<span style="margin-right: 20px;">${new Date(+$spanDateCurr.attr('data-time') * 1000).toLocaleString('ru', { weekday: 'short', year: 'numeric', month: 'long', day: 'numeric', hour: 'numeric',  minute: 'numeric', second: 'numeric'})}</span>`);
+      };
+      const $th = $(this);
+      corrDate($th, obs[idx]);
+      obs[idx] = new MutationObserver(function(){corrDate($th, obs[idx])});
+      reconnect($th, obs[idx]);
+    });
+  }
+
   function getPostID(strPostID){
     const ret = /[0-9]+(\d?\.\d+)?/g.exec(strPostID);
     return (ret == undefined) ? '' : ret[0];
@@ -1383,6 +1405,7 @@ const JRAS_CurrVersion = '1.7.18';
         const $infoUserDate = $postContainer.find('div.ufoot span.date > span');
         const $pcInfoUser = $postContainer.find('sitm#jras-PostControlInfo');
         $pcInfoUser.find('a#jras-pcInfoUser').attr('href', $infoUserA.attr('href')).text($infoUserA.text());
+        $pcInfoUser.append('<span> — </span>');
         $pcInfoUser.append($infoUserDate.clone());
         if (userOptions.val('showUTOnPostControl')){makeUserTooltips($pcInfoUser.find('a#jras-pcInfoUser'))}
         postControlSlider($pcInfoUser, itmHeight + $infoUserA.width() + $infoUserDate.width(), itmHeight);
