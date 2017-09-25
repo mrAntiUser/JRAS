@@ -12,7 +12,7 @@
 // @include     *jr-proxy.com*
 // @require     http://ajax.googleapis.com/ajax/libs/jquery/2.2.0/jquery.min.js
 // @require     https://code.jquery.com/ui/1.11.4/jquery-ui.min.js
-// @version     1.7.16
+// @version     1.7.17
 // @grant       GM_getValue
 // @grant       GM_setValue
 // @grant       GM_listValues
@@ -22,11 +22,13 @@
 // @run-at      document-end
 // ==/UserScript==
 
-const JRAS_CurrVersion = '1.7.16';
+const JRAS_CurrVersion = '1.7.17';
 
 /* RELEASE NOTES
+ 1.7.17
+   * Фикс определения цвета темы
  1.7.16
-   * Исправлен баг даты комментария, которая пропадала или вообще не появлялась
+   * Исправлен баг даты комментария, которая пропадала или вообще не появлялась (Issue-29)
  1.7.15
    * Исправлен баг сохранения настроек (спасибо Silent John за тесты и терпение) (Issue-25)
    * Исправлен баг добавления в избранное на новом дизайне (Issue-27)
@@ -3006,8 +3008,8 @@ const JRAS_CurrVersion = '1.7.16';
 
   function PageData(){
     const getColorSchema = function(){ // light or dark
-      let c = $('body').css('background-color');
-      if (!c){c = $('#background').css('background-color')}
+      let c = $('#background').css('background-color');
+      if (!c){c = $('body').css('background-color')}
       const rgb = (/^#[0-9A-F]{6}$/i.test(c)) ? c : c.match(/^rgba?\((\d+),\s*(\d+),\s*(\d+)/);
       const mono = (rgb !== null)
         ? parseInt((0.2125 * rgb[1]) + (0.7154 * rgb[2]) + (0.0721 * rgb[3]), 10)
