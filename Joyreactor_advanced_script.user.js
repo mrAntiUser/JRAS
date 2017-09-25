@@ -12,7 +12,7 @@
 // @include     *jr-proxy.com*
 // @require     http://ajax.googleapis.com/ajax/libs/jquery/2.2.0/jquery.min.js
 // @require     https://code.jquery.com/ui/1.11.4/jquery-ui.min.js
-// @version     1.7.17
+// @version     1.7.18
 // @grant       GM_getValue
 // @grant       GM_setValue
 // @grant       GM_listValues
@@ -22,14 +22,15 @@
 // @run-at      document-end
 // ==/UserScript==
 
-const JRAS_CurrVersion = '1.7.17';
+const JRAS_CurrVersion = '1.7.18';
 
 /* RELEASE NOTES
- 1.7.17
+ 1.7.18
    * Фикс определения цвета темы
+   + Опция скрывать шарные кнопки в БУП [false] (Issue-18.1)
  1.7.16
    * Исправлен баг даты комментария, которая пропадала или вообще не появлялась (Issue-29)
- 1.7.15
+ 1.7.15 - http://old.reactor.cc/post/3247143
    * Исправлен баг сохранения настроек (спасибо Silent John за тесты и терпение) (Issue-25)
    * Исправлен баг добавления в избранное на новом дизайне (Issue-27)
    + Разная иконка для постов, которые уже в избранном и которые еще можно добавить (Issue-20)
@@ -638,6 +639,13 @@ const JRAS_CurrVersion = '1.7.17';
           init: function(){this.dt = this.def},
           validator: function(val){return $.isNumeric(val) && val >= this.min && val <= this.max},
           guiDesc: function(){return lng.getVal('JRAS_GUI_PCBANIMATEMOVESPEED')}
+        },
+        pcbHideShareButoons: {
+          dt: null,
+          def: false,
+          type: 'checkbox',
+          init: function(){this.dt = this.def},
+          guiDesc: function(){return lng.getVal('JRAS_GUI_PCBHIDESHAREBUTOONS')}
         },
         BlockUsers: [],
         BlockTags: []
@@ -1340,6 +1348,13 @@ const JRAS_CurrVersion = '1.7.17';
       setTimeout(function(){
         const postUrl = location.protocol + '//' + location.hostname + '/post/' + postID;
         const postUrlShare = postUrl + '?social=1';
+        const pcbShareButtons = (!userOptions.val('pcbHideShareButoons'))
+          ? `<a href="https://t.me/share/url?url=${postUrlShare}" title="Telegram" class="jras-pcShareTEL-img" rel="nofollow" target="_blank"></a>
+            <a href="http://vkontakte.ru/share.php?url=${postUrlShare}" title="Vkontakte" class="jras-pcShareVK-img" rel="nofollow" target="_blank"></a>
+            <a href="http://connect.mail.ru/share?url=${postUrlShare}" title="Mail.ru" class="jras-pcShareMAIL-img" rel="nofollow" target="_blank"></a>
+            <a href="http://twitter.com/home?status=${postUrlShare}" title="Twitter" class="jras-pcShareTWIT-img" rel="nofollow" target="_blank"></a>
+            <a href="http://www.facebook.com/sharer.php?u=${postUrlShare}" title="Facebook" class="jras-pcShareFACE-img" rel="nofollow" target="_blank"></a>`
+          : '';
         $postContainer.find('div.article').each(function(){
           $(this).css({'overflow':'hidden'});
           $(this).prepend(`
@@ -1349,11 +1364,7 @@ const JRAS_CurrVersion = '1.7.17';
             </sitm>
             <sitm id="jras-PostControlShare" class="jras-pcShare-img" style="top:${step}px; height: ${itmHeight}px;">
               <a id="jras-pcbShareFAV" href="#" title="${favData.Title}" class="${favData.Img}" style="margin-left: ${itmContentPos + 5}px;"></a>
-              <a href="https://t.me/share/url?url=${postUrlShare}" title="Telegram" class="jras-pcShareTEL-img" rel="nofollow" target="_blank"></a>
-              <a href="http://vkontakte.ru/share.php?url=${postUrlShare}" title="Vkontakte" class="jras-pcShareVK-img" rel="nofollow" target="_blank"></a>
-              <a href="http://connect.mail.ru/share?url=${postUrlShare}" title="Mail.ru" class="jras-pcShareMAIL-img" rel="nofollow" target="_blank"></a>
-              <a href="http://twitter.com/home?status=${postUrlShare}" title="Twitter" class="jras-pcShareTWIT-img" rel="nofollow" target="_blank"></a>
-              <a href="http://www.facebook.com/sharer.php?u=${postUrlShare}" title="Facebook" class="jras-pcShareFACE-img" rel="nofollow" target="_blank"></a>
+              ${pcbShareButtons}
             </sitm>
             <sitm id="jras-PostControlRating" class="jras-pcRating-img" style="top:${step * 2}px; height: ${itmHeight}px; ${(page.isNewDesign)?'padding: 4px;':''}">
               <span style="margin-left: ${itmContentPos}px;">
@@ -1384,7 +1395,7 @@ const JRAS_CurrVersion = '1.7.17';
           $favA.attr('title', favData.Title);
         }).observe($postContainer.find('div.uhead_share span.favorite_link').get(0), {attributes: true});
 
-        postControlSlider($postContainer.find('sitm#jras-PostControlShare'), 132, itmHeight);
+        postControlSlider($postContainer.find('sitm#jras-PostControlShare'), (pcbShareButtons == '') ? 40 : 132, itmHeight);
         $favA.click(function(){ $postContainer.find('span.favorite_link').get(0).click(); return false; });
 
         const $Rating = $postContainer.find('div.ufoot span.post_rating');
@@ -2825,6 +2836,7 @@ const JRAS_CurrVersion = '1.7.17';
                     <section class="jras-prop-gui-section""> ${getHTMLProp('pcbShowPostControl')} </section>     
                     <section class="jras-prop-gui-section" style="margin-left: 20px; margin-top: -10px;">
                       ${getHTMLProp('pcbShowInFullPost')} <br>
+                      ${getHTMLProp('pcbHideShareButoons')} <br>
                       ${getHTMLProp('pcbHideJRShareBlock')} <br>
                       ${getHTMLProp('pcbHideJRRatingBlock')}<br>
                       ${getHTMLProp('pcbAnimateMove')} <br>
@@ -3370,6 +3382,9 @@ const JRAS_CurrVersion = '1.7.17';
     };
     this.JRAS_GUI_PCBANIMATEMOVESPEED = {
       ru: 'Скорость перемещения при анимации (1-9)'
+    };
+    this.JRAS_GUI_PCBHIDESHAREBUTOONS = {
+      ru: 'Скрыть кнопки шары оставить только избранное'
     };
   }
 
