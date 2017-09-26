@@ -12,7 +12,7 @@
 // @include     *jr-proxy.com*
 // @require     http://ajax.googleapis.com/ajax/libs/jquery/2.2.0/jquery.min.js
 // @require     https://code.jquery.com/ui/1.11.4/jquery-ui.min.js
-// @version     1.7.19
+// @version     1.8.0
 // @grant       GM_getValue
 // @grant       GM_setValue
 // @grant       GM_listValues
@@ -22,13 +22,19 @@
 // @run-at      document-end
 // ==/UserScript==
 
-const JRAS_CurrVersion = '1.7.19';
+const JRAS_CurrVersion = '1.8.0';
 
 /* RELEASE NOTES
- 1.7.19
-   * Фикс определения цвета темы
+ 1.8.0
+   * Фикс определения цвета темы (Issue-13)
    + Опция скрывать шарные кнопки в БУП [false] (Issue-18.1)
-   * Корректировка даты поста
+   * Корректировка даты поста (Issue-33)
+   + Возможность скрыть правое меню и/или настроить ширину контентта (Issue-36)
+   Опции
+     + Корректировать дизайн и стиль сайта [false]
+     + Скрывать правое меню [true]
+     + Растягивать контент по границам экрана [true]
+     + Растягивать контент на (%) [90]
  1.7.16
    * Исправлен баг даты комментария, которая пропадала или вообще не появлялась (Issue-29)
  1.7.15 - http://old.reactor.cc/post/3247143
@@ -223,6 +229,7 @@ const JRAS_CurrVersion = '1.7.19';
   const userOptions = initOptions();
   userOptions.loadUserData(page.currentUser);
   try{
+    correctStyle();
     correctPostDate();
     addNewCSSClasses();
     themeDependentCSS();
@@ -649,6 +656,38 @@ const JRAS_CurrVersion = '1.7.19';
           init: function(){this.dt = this.def},
           guiDesc: function(){return lng.getVal('JRAS_GUI_PCBHIDESHAREBUTOONS')}
         },
+        stCorrectStyle: {
+          dt: null,
+          def: false,
+          type: 'checkbox',
+          init: function(){this.dt = this.def},
+          guiDesc: function(){return lng.getVal('JRAS_GUI_STCORRECTSTYLE')}
+        },
+        stHideSideBar: {
+          dt: null,
+          def: true,
+          type: 'checkbox',
+          init: function(){this.dt = this.def},
+          guiDesc: function(){return lng.getVal('JRAS_GUI_STHIDESIDEBAR')}
+        },
+        stStretchContent: {
+          dt: null,
+          def: true,
+          type: 'checkbox',
+          init: function(){this.dt = this.def},
+          guiDesc: function(){return lng.getVal('JRAS_GUI_STSTRETCHCONTENT')}
+        },
+        stStretchSize: {
+          dt: null,
+          def: 90,
+          type: 'number',
+          min: 60,
+          max: 100,
+          init: function(){this.dt = this.def},
+          validator: function(val){return $.isNumeric(val) && val >= this.min && val <= this.max},
+          guiDesc: function(){return lng.getVal('JRAS_GUI_STSTRETCHSIZE')}
+        },
+
         BlockUsers: [],
         BlockTags: []
       },
@@ -2697,6 +2736,51 @@ const JRAS_CurrVersion = '1.7.19';
     `);
   }
 
+  function correctStyle(){
+    if (!userOptions.val('stCorrectStyle')){
+      return;
+    }
+    const stretchContent = (userOptions.val('stStretchContent'))
+      ? `div#header{width: ${userOptions.val('stStretchSize')}%;} div#page{width: ${userOptions.val('stStretchSize')}%;}`
+      : '';
+    let sideBarHover = '';
+    let divContainer = '';
+    let sideBar = '';
+    let divContent = '';
+    if (userOptions.val('stHideSideBar')){
+      divContent = 'div#content{width: 100%;}';
+      if (page.isNewDesign){
+        sideBar = 'right: -310px; width: 320px; border-left: 2px solid lightgray; border-bottom: 2px solid lightgray; background-color: white;';
+        sideBarHover = 'right: 0;';
+        divContainer = 'width: 100%;';
+      }else{
+        sideBar = 'right: -285px; width: 259px; padding-right: 26px; margin-top: 1px; padding-top: 10px; background-color: ';
+        sideBar += (page.isSchemeLight()) ? 'white;' : 'black;';
+        sideBarHover = 'right: -15px;';
+        divContainer = 'width: 98%;';
+      }
+      sideBar = `div#sidebar{${sideBar} transition: 0.2s; position: absolute;padding-left: 10px; z-index: 10;}`;
+    }
+
+    let style = `
+      ${stretchContent}
+      ${divContent}
+      div#tagArticle{width: 100%;}
+      ${sideBar}
+      div#sidebar:hover { ${sideBarHover} box-shadow: -6px 0px 20px -5px rgba(0, 0, 0, 0.47);}
+      div#contentinner { ${divContainer} }
+      div#showCreatePost { width: 100%; }
+      div#add_post_holder { width: 100%; }
+      div[id^=postContainer]{ box-shadow: 10px 0px 20px -10px rgba(0, 0, 0, 0.4); }
+      div#navcontainer { background-size: 100%; }   
+      div#searchBar { background-size: 100%; } 
+    `;
+    newCssClass(style);
+    if (!userOptions.val('stHideSideBar')){
+      newCssClass(`div#content{width: ${$('div#page').width() - $('div#sidebar').width()}px;}`);
+    }
+  }
+
   function makeBlockPostElements(forElm, parentID, blockMess, blockMessBold, blockMessDesc, fromTag){
     // буээээ 
     if($('#togglebutton' + parentID)[0]){
@@ -2846,6 +2930,7 @@ const JRAS_CurrVersion = '1.7.19';
                   <li id="jras-tabs-nav-1"><a href="#jras-prop-gui-tab-2"></a></li>
                   <li id="jras-tabs-nav-2"><a href="#jras-prop-gui-tab-3"></a></li>
                   <li id="jras-tabs-nav-3"><a href="#jras-prop-gui-tab-4"></a></li>
+                  <li id="jras-tabs-nav-4"><a href="#jras-prop-gui-tab-5"></a></li>
                 </ul>
                 <div id="jras-prop-gui-tab-1" class="jras-tabs-panel">
                   <div class="jras-tabs-panel-content">
@@ -2926,6 +3011,22 @@ const JRAS_CurrVersion = '1.7.19';
                       ${getHTMLProp('collapseCommentToSize')} </section>
                   </div>
                 </div>
+                <div id="jras-prop-gui-tab-5" class="jras-tabs-panel">
+                  <div class="jras-tabs-panel-content">
+                    <section class="jras-prop-gui-section"> ${getHTMLProp('stCorrectStyle')} </section>
+                    <section class="jras-prop-gui-section" style="margin-left: 20px; margin-top: -10px;">
+                      ${getHTMLProp('stHideSideBar')} <br>
+                      ${getHTMLProp('stStretchContent')} <br>
+                      ${getHTMLProp('stStretchSize')}  </section>  
+                      <div style="bottom: 0; position: absolute; opacity: .7; font-size: 80%; padding: 15px; border-top: 1px dashed; width: 90%;">
+                        * Так же стили можно найти в виде стилей для Stylish и подобных. Мне кажется что использовать их отдельно от скрипта удобнее, хотя и настроить сложно.<br>
+                        Они доступны по ссылка<br>
+                          - Для нового дизайна - <a href="https://userstyles.org/styles/148705/jras-style-for-new-reactor-cc" target="_blank" rel="nofollow">ссылка</a><br>
+                          - Для старого дизайна - <a href="https://userstyles.org/styles/148704/jras-style-for-old-reactor-cc" target="_blank" rel="nofollow">ссылка</a><br>
+                          - Для старого со стилем Steam - <a href="https://userstyles.org/styles/148702/jras-style-for-old-black-reactor-cc-steam" target="_blank" rel="nofollow">ссылка</a> (Сам стиль Steam доступен <a href="https://userstyles.org/styles/102457/joyreactor-old-steam" target="_blank" rel="nofollow">здесь</a>)
+                      </div>
+                  </div>
+                </div>
               </div>
             </div>
             <div  id="jras-prop-gui-bottomCcontent" class="jras-prop-gui-contentBottom">
@@ -2982,6 +3083,7 @@ const JRAS_CurrVersion = '1.7.19';
     $propDialog.find('#jras-tabs-nav-1 a').text(lng.getVal('JRAS_GUI_TABBLOCK'));
     $propDialog.find('#jras-tabs-nav-2 a').text(lng.getVal('JRAS_GUI_TABTOOLTIP'));
     $propDialog.find('#jras-tabs-nav-3 a').text(lng.getVal('JRAS_GUI_TABCOMMENTS'));
+    $propDialog.find('#jras-tabs-nav-4 a').text(lng.getVal('JRAS_GUI_TABSTYLE'));
     $propDialog.find('#jras-guiBlockUserListCaption').text(lng.getVal('JRAS_GUI_BLOCKUSERLIST'));
     $propDialog.find('#jras-guiBlockTagListCaption').text(lng.getVal('JRAS_GUI_BLOCKTAGLIST'));
 
@@ -3295,6 +3397,9 @@ const JRAS_CurrVersion = '1.7.19';
     this.JRAS_GUI_TABCOMMENTS = {
       ru: 'Комментарии'
     };
+    this.JRAS_GUI_TABSTYLE = {
+      ru: 'Стиль'
+    };
     this.JRAS_LOADINGUSERDATA = {
       ru: 'Загрузка данных...'
     };
@@ -3408,6 +3513,18 @@ const JRAS_CurrVersion = '1.7.19';
     };
     this.JRAS_GUI_PCBHIDESHAREBUTOONS = {
       ru: 'Скрыть кнопки шары оставить только избранное'
+    };
+    this.JRAS_GUI_STCORRECTSTYLE = {
+      ru: 'Корректировать дизайн и стиль сайта'
+    };
+    this.JRAS_GUI_STHIDESIDEBAR = {
+      ru: 'Скрывать правое меню'
+    };
+    this.JRAS_GUI_STSTRETCHCONTENT = {
+      ru: 'Растягивать контент по границам экрана'
+    };
+    this.JRAS_GUI_STSTRETCHSIZE = {
+      ru: 'Растягивать контент на (%)'
     };
   }
 
