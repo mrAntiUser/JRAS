@@ -30,7 +30,7 @@ const JRAS_CurrVersion = '1.8.4';
    + Опции по поведению правого меню (Issue-39)
      + Устанавливать высоту страницы по высоте правого меню [true]
      + Показывать правое меню когда контент вышел за границы [true]
- 1.8.0
+ 1.8.0 - http://reactor.cc/post/3249308
    * Фикс определения цвета темы (Issue-13)
    + Опция скрывать шарные кнопки в БУП [false] (Issue-18.1)
    * Корректировка даты поста (Issue-33)
@@ -1061,7 +1061,7 @@ const JRAS_CurrVersion = '1.8.4';
         return
       }
       $newCommBoy.attr('origheight', origHeight)
-        .after('<div id="jras-commSizer-sizer-all" title="' + lng.getVal('JRAS_COMMENTS_EXPANDCOLL_ALL') + '" class="jras-comment-expand-all jras-comment-expand-all-img"></div><div id="jras-commSizer-sizer" class="jras-comment-sizer"></div>')
+        .after('<div id="jras-commSizer-sizer-all" title="' + lng.getVal('JRAS_COMMENTS_EXPANDCOLL_ALL') + '" class="jras-comment-expand-all jras-comment-expand-all-img"></div><div id="jras-commSizer-sizer" class="jras-comment-sizer"></div><br>')
         .css({
           'height': userOptions.val('collapseCommentToSize') + 'px',
           'overflow': 'hidden'
@@ -1174,7 +1174,7 @@ const JRAS_CurrVersion = '1.8.4';
                   }
                 })
               }
-
+            correctPageHeight();
             }, 10
           );
 
@@ -2842,11 +2842,16 @@ const JRAS_CurrVersion = '1.8.4';
   }
 
   function correctPageHeight(){
-    const sbh = $('div#sidebar').height();
-    const $divPageInner = $('div#pageinner');
-    $divPageInner.css('height', 'auto');
-    if ($divPageInner.height() < sbh){
-      $divPageInner.height(sbh);
+    if (!(userOptions.val('stCorrectStyle') || (!userOptions.val('stCorrectStyle') && userOptions.val('stUseDynStyleChanges')))){
+      return;
+    }
+    if (userOptions.val('stSideBarSizeToPage')){
+      const sbh = $('div#sidebar').height();
+      const $divPageInner = $('div#pageinner');
+      $divPageInner.css('height', 'auto');
+      if ($divPageInner.height() < sbh){
+        $divPageInner.height(sbh);
+      }
     }
   }
 
