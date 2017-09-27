@@ -12,7 +12,7 @@
 // @include     *jr-proxy.com*
 // @require     http://ajax.googleapis.com/ajax/libs/jquery/2.2.0/jquery.min.js
 // @require     https://code.jquery.com/ui/1.11.4/jquery-ui.min.js
-// @version     1.8.0
+// @version     1.8.2
 // @grant       GM_getValue
 // @grant       GM_setValue
 // @grant       GM_listValues
@@ -22,9 +22,13 @@
 // @run-at      document-end
 // ==/UserScript==
 
-const JRAS_CurrVersion = '1.8.0';
+const JRAS_CurrVersion = '1.8.2';
 
 /* RELEASE NOTES
+ 1.8.2
+   + Опции по поведению правого меню (Issue-39)
+     + Устанавливать высоту страницы по высоте правого меню [true]
+     + Показывать правое меню когда контент вышел за границы [true]
  1.8.0
    * Фикс определения цвета темы (Issue-13)
    + Опция скрывать шарные кнопки в БУП [false] (Issue-18.1)
@@ -686,6 +690,20 @@ const JRAS_CurrVersion = '1.8.0';
           init: function(){this.dt = this.def},
           validator: function(val){return $.isNumeric(val) && val >= this.min && val <= this.max},
           guiDesc: function(){return lng.getVal('JRAS_GUI_STSTRETCHSIZE')}
+        },
+        stSideBarSizeToPage: {
+          dt: null,
+          def: true,
+          type: 'checkbox',
+          init: function(){this.dt = this.def},
+          guiDesc: function(){return lng.getVal('JRAS_GUI_STSIDEBARSIZETOPAGE')}
+        },
+        stShowSideBarOnHideContent: {
+          dt: null,
+          def: true,
+          type: 'checkbox',
+          init: function(){this.dt = this.def},
+          guiDesc: function(){return lng.getVal('JRAS_GUI_STSHOWSIDEBARONHIDECONTENT')}
         },
 
         BlockUsers: [],
@@ -2767,7 +2785,7 @@ const JRAS_CurrVersion = '1.8.0';
       ${divContent}
       div#tagArticle{width: 100%;}
       ${sideBar}
-      div#sidebar:hover { ${sideBarHover} box-shadow: -6px 0px 20px -5px rgba(0, 0, 0, 0.47);}
+      div#sidebar:hover, div#sidebar.hovered { ${sideBarHover} box-shadow: -6px 0px 20px -5px rgba(0, 0, 0, 0.47);}
       div#contentinner { ${divContainer} }
       div#showCreatePost { width: 100%; }
       div#add_post_holder { width: 100%; }
@@ -2776,8 +2794,23 @@ const JRAS_CurrVersion = '1.8.0';
       div#searchBar { background-size: 100%; } 
     `;
     newCssClass(style);
+    const divSideBar = $('div#sidebar');
     if (!userOptions.val('stHideSideBar')){
-      newCssClass(`div#content{width: ${$('div#page').width() - $('div#sidebar').width()}px;}`);
+      newCssClass(`div#content{width: ${$('div#page').width() - divSideBar.width()}px;}`);
+    }else{
+      if (userOptions.val('stSideBarSizeToPage')){
+        $('div#pageinner').height(divSideBar.height());
+        if (userOptions.val('stShowSideBarOnHideContent')){
+          $(window).on('scroll', function(){
+            const $contentBlock = $('div#content');
+            if ($contentBlock.offset().top + $contentBlock.height() < win.pageYOffset){
+              divSideBar.addClass('hovered');
+            }else{
+              divSideBar.removeClass('hovered');
+            }
+          })
+        }
+      }
     }
   }
 
@@ -3016,8 +3049,12 @@ const JRAS_CurrVersion = '1.8.0';
                     <section class="jras-prop-gui-section"> ${getHTMLProp('stCorrectStyle')} </section>
                     <section class="jras-prop-gui-section" style="margin-left: 20px; margin-top: -10px;">
                       ${getHTMLProp('stHideSideBar')} <br>
+                      <section class="jras-prop-gui-section" style="margin-left: 20px;">${getHTMLProp('stSideBarSizeToPage')}
+                        <section class="jras-prop-gui-section" style="margin-left: 20px;">${getHTMLProp('stShowSideBarOnHideContent')} </section> 
+                      </section>
                       ${getHTMLProp('stStretchContent')} <br>
-                      ${getHTMLProp('stStretchSize')}  </section>  
+                      ${getHTMLProp('stStretchSize')}
+                      </section>  
                       <div style="bottom: 0; position: absolute; opacity: .7; font-size: 80%; padding: 15px; border-top: 1px dashed; width: 90%;">
                         * Так же стили можно найти в виде стилей для Stylish и подобных. Мне кажется что использовать их отдельно от скрипта удобнее, хотя и настроить сложно.<br>
                         Они доступны по ссылка<br>
@@ -3525,6 +3562,12 @@ const JRAS_CurrVersion = '1.8.0';
     };
     this.JRAS_GUI_STSTRETCHSIZE = {
       ru: 'Растягивать контент на (%)'
+    };
+    this.JRAS_GUI_STSIDEBARSIZETOPAGE = {
+      ru: 'Устанавливать высоту страницы по высоте правого меню'
+    };
+    this.JRAS_GUI_STSHOWSIDEBARONHIDECONTENT = {
+      ru: 'Показывать правое меню когда контент вышел за границы'
     };
   }
 
