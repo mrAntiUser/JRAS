@@ -2799,16 +2799,20 @@ const JRAS_CurrVersion = '1.8.2';
       newCssClass(`div#content{width: ${$('div#page').width() - divSideBar.width()}px;}`);
     }else{
       if (userOptions.val('stSideBarSizeToPage')){
-        $('div#pageinner').height(divSideBar.height());
-        if (userOptions.val('stShowSideBarOnHideContent')){
-          $(window).on('scroll', function(){
-            const $contentBlock = $('div#content');
-            if ($contentBlock.offset().top + $contentBlock.height() < win.pageYOffset){
-              divSideBar.addClass('hovered');
-            }else{
-              divSideBar.removeClass('hovered');
-            }
-          })
+        const divPageInner = $('div#pageinner');
+        const sbh = divSideBar.height();
+        if (divPageInner.height < sbh){
+          divPageInner.height(sbh);
+          if (userOptions.val('stShowSideBarOnHideContent')){
+            $(window).on('scroll', function(){
+              const $contentBlock = $('div#content');
+              if ($contentBlock.offset().top + $contentBlock.height() < win.pageYOffset){
+                divSideBar.addClass('hovered');
+              }else{
+                divSideBar.removeClass('hovered');
+              }
+            })
+          }
         }
       }
     }
