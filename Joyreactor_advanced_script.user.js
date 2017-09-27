@@ -12,7 +12,7 @@
 // @include     *jr-proxy.com*
 // @require     http://ajax.googleapis.com/ajax/libs/jquery/2.2.0/jquery.min.js
 // @require     https://code.jquery.com/ui/1.11.4/jquery-ui.min.js
-// @version     1.8.2
+// @version     1.8.4
 // @grant       GM_getValue
 // @grant       GM_setValue
 // @grant       GM_listValues
@@ -22,10 +22,11 @@
 // @run-at      document-end
 // ==/UserScript==
 
-const JRAS_CurrVersion = '1.8.2';
+const JRAS_CurrVersion = '1.8.4';
 
 /* RELEASE NOTES
- 1.8.2
+ 1.8.4
+   + Опция: мне нужны только динамические эффекты нового стиля [false]
    + Опции по поведению правого меню (Issue-39)
      + Устанавливать высоту страницы по высоте правого меню [true]
      + Показывать правое меню когда контент вышел за границы [true]
@@ -256,6 +257,8 @@ const JRAS_CurrVersion = '1.8.2';
     tagRemove(userOptions.data.BlockTags, true);
 
     subscribeShowComment();
+
+    dynamicStyle();
 
   }catch(err){
     win.console.log("~~JRAS_ERROR: " + err + ' (line ' + (err.lineNumber || '') + ')')
@@ -704,6 +707,13 @@ const JRAS_CurrVersion = '1.8.2';
           type: 'checkbox',
           init: function(){this.dt = this.def},
           guiDesc: function(){return lng.getVal('JRAS_GUI_STSHOWSIDEBARONHIDECONTENT')}
+        },
+        stUseDynStyleChanges: {
+          dt: null,
+          def: false,
+          type: 'checkbox',
+          init: function(){this.dt = this.def},
+          guiDesc: function(){return lng.getVal('JRAS_GUI_STUSEDYNSTYLECHANGES')}
         },
 
         BlockUsers: [],
@@ -2773,7 +2783,7 @@ const JRAS_CurrVersion = '1.8.2';
         divContainer = 'width: 100%;';
       }else{
         sideBar = 'right: -285px; width: 259px; padding-right: 26px; margin-top: 1px; padding-top: 10px; background-color: ';
-        sideBar += (page.isSchemeLight()) ? 'white;' : 'black;';
+        sideBar += (page.isSchemeLight()) ? 'white;' : '#3B3B3B;';
         sideBarHover = 'right: -15px;';
         divContainer = 'width: 98%;';
       }
@@ -2792,29 +2802,51 @@ const JRAS_CurrVersion = '1.8.2';
       div[id^=postContainer]{ box-shadow: 10px 0px 20px -10px rgba(0, 0, 0, 0.4); }
       div#navcontainer { background-size: 100%; }   
       div#searchBar { background-size: 100%; } 
+      div.blogs a img { width: 100%; }
     `;
     newCssClass(style);
-    const divSideBar = $('div#sidebar');
     if (!userOptions.val('stHideSideBar')){
-      newCssClass(`div#content{width: ${$('div#page').width() - divSideBar.width()}px;}`);
-    }else{
-      if (userOptions.val('stSideBarSizeToPage')){
-        const divPageInner = $('div#pageinner');
-        const sbh = divSideBar.height();
-        if (divPageInner.height < sbh){
-          divPageInner.height(sbh);
-          if (userOptions.val('stShowSideBarOnHideContent')){
-            $(window).on('scroll', function(){
-              const $contentBlock = $('div#content');
-              if ($contentBlock.offset().top + $contentBlock.height() < win.pageYOffset){
-                divSideBar.addClass('hovered');
-              }else{
-                divSideBar.removeClass('hovered');
-              }
-            })
-          }
+      newCssClass(`div#content{width: ${$('div#page').width() - $('div#sidebar').width()}px;}`);
+    }
+  }
+
+  function dynamicStyle(){
+    if (!(userOptions.val('stCorrectStyle') || (!userOptions.val('stCorrectStyle') && userOptions.val('stUseDynStyleChanges')))){
+      return;
+    }
+    if (userOptions.val('stSideBarSizeToPage')){
+      win.console.log('ddfsdf');
+      if (!userOptions.val('stCorrectStyle')){
+        newCssClass(`div#sidebar.hovered { ${(page.isNewDesign)?'right: 0;':'right: -15px;'} box-shadow: -6px 0px 20px -5px rgba(0, 0, 0, 0.47);}`);
+      }
+      const $divSideBar = $('div#sidebar');
+      const $divPageInner = $('div#pageinner');
+      const sbh = $divSideBar.height();
+      if ($divPageInner.height() < sbh){
+        $divPageInner.height(sbh);
+        const $contentBlock = $('div#content');
+        if (userOptions.val('stShowSideBarOnHideContent')){
+          $(window).on('scroll', function(){
+            if ($contentBlock.offset().top + $contentBlock.height() < win.pageYOffset){
+              $divSideBar.addClass('hovered');
+            }else{
+              $divSideBar.removeClass('hovered');
+            }
+          })
         }
       }
+      $('div.post_content_expand').each(function(){
+        new MutationObserver(function(){ correctPageHeight() }).observe(this, {attributes: true});
+      });
+    }
+  }
+
+  function correctPageHeight(){
+    const sbh = $('div#sidebar').height();
+    const $divPageInner = $('div#pageinner');
+    $divPageInner.css('height', 'auto');
+    if ($divPageInner.height() < sbh){
+      $divPageInner.height(sbh);
     }
   }
 
@@ -2839,6 +2871,7 @@ const JRAS_CurrVersion = '1.8.2';
           : lng.getVal('JRAS_TOGGLEBUTTONCAPTIONSHOW');
         toggleContainer.slideToggle('display');
         $('#togglebutton' + parentID).attr("value", buttonCaption);
+        correctPageHeight();
       };
       forElm.parentElement.insertBefore(newElement, forElm);
     }
@@ -3053,19 +3086,20 @@ const JRAS_CurrVersion = '1.8.2';
                     <section class="jras-prop-gui-section"> ${getHTMLProp('stCorrectStyle')} </section>
                     <section class="jras-prop-gui-section" style="margin-left: 20px; margin-top: -10px;">
                       ${getHTMLProp('stHideSideBar')} <br>
-                      <section class="jras-prop-gui-section" style="margin-left: 20px;">${getHTMLProp('stSideBarSizeToPage')}
-                        <section class="jras-prop-gui-section" style="margin-left: 20px;">${getHTMLProp('stShowSideBarOnHideContent')} </section> 
-                      </section>
                       ${getHTMLProp('stStretchContent')} <br>
                       ${getHTMLProp('stStretchSize')}
-                      </section>  
-                      <div style="bottom: 0; position: absolute; opacity: .7; font-size: 80%; padding: 15px; border-top: 1px dashed; width: 90%;">
-                        * Так же стили можно найти в виде стилей для Stylish и подобных. Мне кажется что использовать их отдельно от скрипта удобнее, хотя и настроить сложно.<br>
-                        Они доступны по ссылка<br>
-                          - Для нового дизайна - <a href="https://userstyles.org/styles/148705/jras-style-for-new-reactor-cc" target="_blank" rel="nofollow">ссылка</a><br>
-                          - Для старого дизайна - <a href="https://userstyles.org/styles/148704/jras-style-for-old-reactor-cc" target="_blank" rel="nofollow">ссылка</a><br>
-                          - Для старого со стилем Steam - <a href="https://userstyles.org/styles/148702/jras-style-for-old-black-reactor-cc-steam" target="_blank" rel="nofollow">ссылка</a> (Сам стиль Steam доступен <a href="https://userstyles.org/styles/102457/joyreactor-old-steam" target="_blank" rel="nofollow">здесь</a>)
-                      </div>
+                    </section> 
+                    <section class="jras-prop-gui-section"> ${getHTMLProp('stUseDynStyleChanges')} </section>
+                    <section class="jras-prop-gui-section"> ${getHTMLProp('stSideBarSizeToPage')}
+                    <section class="jras-prop-gui-section" style="margin-left: 20px;">${getHTMLProp('stShowSideBarOnHideContent')} </section> 
+                    </section>
+                    <div style="bottom: 0; position: absolute; opacity: .7; font-size: 80%; padding: 15px; border-top: 1px dashed; width: 90%;">
+                      * JRAS style так же можно найти в виде стилей для Stylish и подобных. Мне кажется что использовать их отдельно от скрипта удобнее, хотя и настроить сложно.<br>
+                      Они доступны по ссылкам<br>
+                        - Для нового дизайна - <a href="https://userstyles.org/styles/148705/jras-style-for-new-reactor-cc" target="_blank" rel="nofollow">ссылка</a><br>
+                        - Для старого дизайна - <a href="https://userstyles.org/styles/148704/jras-style-for-old-reactor-cc" target="_blank" rel="nofollow">ссылка</a><br>
+                        - Для старого со стилем Steam - <a href="https://userstyles.org/styles/148702/jras-style-for-old-black-reactor-cc-steam" target="_blank" rel="nofollow">ссылка</a> (Сам стиль Steam доступен <a href="https://userstyles.org/styles/102457/joyreactor-old-steam" target="_blank" rel="nofollow">здесь</a>)
+                    </div>
                   </div>
                 </div>
               </div>
@@ -3572,6 +3606,9 @@ const JRAS_CurrVersion = '1.8.2';
     };
     this.JRAS_GUI_STSHOWSIDEBARONHIDECONTENT = {
       ru: 'Показывать правое меню когда контент вышел за границы'
+    };
+    this.JRAS_GUI_STUSEDYNSTYLECHANGES = {
+      ru: 'Мне нужны только динамические эффекты нового стиля (я использую JRAS style)'
     };
   }
 
