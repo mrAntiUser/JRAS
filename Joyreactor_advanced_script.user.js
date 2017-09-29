@@ -1103,6 +1103,7 @@ const JRAS_CurrVersion = '1.8.4';
         const action = (userOptions.val('collapseCommentToSize') == h) ? 'open' : 'close' ;
         $('div#jras-commSizer-sizer.jras-comment-sizer').each(function(){
           $(this).trigger('click', [{action: action, correctPos: false}]);
+          correctPageHeight();
         });
       })
     };
@@ -2790,7 +2791,7 @@ const JRAS_CurrVersion = '1.8.4';
       sideBar = `div#sidebar{${sideBar} transition: 0.2s; position: absolute;padding-left: 10px; z-index: 10;}`;
     }
 
-    let style = `
+    const style = `
       ${stretchContent}
       ${divContent}
       div#tagArticle{width: 100%;}
@@ -2815,7 +2816,6 @@ const JRAS_CurrVersion = '1.8.4';
       return;
     }
     if (userOptions.val('stSideBarSizeToPage')){
-      win.console.log('ddfsdf');
       if (!userOptions.val('stCorrectStyle')){
         newCssClass(`div#sidebar.hovered { ${(page.isNewDesign)?'right: 0;':'right: -15px;'} box-shadow: -6px 0px 20px -5px rgba(0, 0, 0, 0.47);}`);
       }
