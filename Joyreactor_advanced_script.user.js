@@ -12,7 +12,7 @@
 // @include     *jr-proxy.com*
 // @require     http://ajax.googleapis.com/ajax/libs/jquery/2.2.0/jquery.min.js
 // @require     https://code.jquery.com/ui/1.11.4/jquery-ui.min.js
-// @version     1.8.4
+// @version     1.8.5
 // @grant       GM_getValue
 // @grant       GM_setValue
 // @grant       GM_listValues
@@ -22,9 +22,11 @@
 // @run-at      document-end
 // ==/UserScript==
 
-const JRAS_CurrVersion = '1.8.4';
+const JRAS_CurrVersion = '1.8.5';
 
 /* RELEASE NOTES
+ 1.8.5
+   * Мелкие фиксы
  1.8.4
    + Опция: мне нужны только динамические эффекты нового стиля [false]
    + Опции по поведению правого меню (Issue-39)
@@ -761,7 +763,7 @@ const JRAS_CurrVersion = '1.8.4';
       },
 
       correctForRegexp: function(str){
-        return str.replace(/[.*+?^${}()|[\]\\]/g, '_');
+        return str.replace(/[.*\W[\]\\]/g, '_');
       },
 
       removeSavedUserData: function(user){
