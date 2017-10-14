@@ -12,7 +12,7 @@
 // @include     *jr-proxy.com*
 // @require     http://ajax.googleapis.com/ajax/libs/jquery/2.2.0/jquery.min.js
 // @require     https://code.jquery.com/ui/1.11.4/jquery-ui.min.js
-// @version     1.8.5
+// @version     1.8.7
 // @grant       GM_getValue
 // @grant       GM_setValue
 // @grant       GM_listValues
@@ -22,9 +22,12 @@
 // @run-at      document-end
 // ==/UserScript==
 
-const JRAS_CurrVersion = '1.8.5';
+const JRAS_CurrVersion = '1.8.7';
 
 /* RELEASE NOTES
+ 1.8.7
+   * Размер страницы (динамический стиль) теперь считается нормально при разворачивании разных эледементов (Issue-43)
+   * В свете длинных тегов поправлены стили. Не в скрипте, а в JRAS styles
  1.8.5
    * Мелкие фиксы
  1.8.4
@@ -1089,6 +1092,7 @@ const JRAS_CurrVersion = '1.8.5';
         $commBody.animate({ 'height': h }, {
           duration: 300,
           complete: function(){
+            correctPageHeight();
             if (!opt.correctPos) {return}
             const tmp = $(this).closest('div[id^=comment].comment').offset().top;
             if(tmp < win.pageYOffset){
@@ -1105,7 +1109,6 @@ const JRAS_CurrVersion = '1.8.5';
         const action = (userOptions.val('collapseCommentToSize') == h) ? 'open' : 'close' ;
         $('div#jras-commSizer-sizer.jras-comment-sizer').each(function(){
           $(this).trigger('click', [{action: action, correctPos: false}]);
-          correctPageHeight();
         });
       })
     };
@@ -2344,9 +2347,10 @@ const JRAS_CurrVersion = '1.8.5';
         font-size: large;
         position: absolute;
         overflow: hidden;
-        max-width: 60%;
+        max-width: 75%;
         word-wrap: break-word;
         padding-left: 8px;
+        max-height: 20%;
       }
       .jras-comment-expand-all {
         cursor: pointer;
@@ -2876,9 +2880,10 @@ const JRAS_CurrVersion = '1.8.5';
         const buttonCaption = toggleContainer.css('display') != 'none'
           ? lng.getVal('JRAS_TOGGLEBUTTONCAPTIONHIDE')
           : lng.getVal('JRAS_TOGGLEBUTTONCAPTIONSHOW');
-        toggleContainer.slideToggle('display');
+        toggleContainer.slideToggle('display', function(){
+          correctPageHeight();
+        });
         $('#togglebutton' + parentID).attr("value", buttonCaption);
-        correctPageHeight();
       };
       forElm.parentElement.insertBefore(newElement, forElm);
     }
@@ -2920,7 +2925,9 @@ const JRAS_CurrVersion = '1.8.5';
     if (!userOptions.val('delUserComment')){
       newElement.style.cursor = 'pointer';
       newElement.onclick = function(){
-        $('#' + parentID + ' > div.txt').slideToggle('display');
+        $('#' + parentID + ' > div.txt').slideToggle('display', function(){
+          correctPageHeight();
+        });
       };
     }
     newDIV.appendChild(newElement);
