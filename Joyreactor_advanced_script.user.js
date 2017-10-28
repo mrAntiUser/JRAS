@@ -12,7 +12,7 @@
 // @include     *jr-proxy.com*
 // @require     http://ajax.googleapis.com/ajax/libs/jquery/2.2.0/jquery.min.js
 // @require     https://code.jquery.com/ui/1.11.4/jquery-ui.min.js
-// @version     1.8.7
+// @version     1.8.8
 // @grant       GM_getValue
 // @grant       GM_setValue
 // @grant       GM_listValues
@@ -22,9 +22,13 @@
 // @run-at      document-end
 // ==/UserScript==
 
-const JRAS_CurrVersion = '1.8.7';
+const JRAS_CurrVersion = '1.8.8';
 
 /* RELEASE NOTES
+ 1.8.8
+   * Центрование контента (изображения, гифки, фреймы) (Issue-46)
+   * поправлена ширина коментов с новыми стилями на не черном олде
+   + Опция Центровать контент [true]
  1.8.7
    * Размер страницы (динамический стиль) теперь считается нормально при разворачивании разных эледементов (Issue-43)
    * В свете длинных тегов поправлены стили. Не в скрипте, а в JRAS styles
@@ -720,7 +724,13 @@ const JRAS_CurrVersion = '1.8.7';
           init: function(){this.dt = this.def},
           guiDesc: function(){return lng.getVal('JRAS_GUI_STUSEDYNSTYLECHANGES')}
         },
-
+        stCenterContent: {
+          dt: null,
+          def: true,
+          type: 'checkbox',
+          init: function(){this.dt = this.def},
+          guiDesc: function(){return lng.getVal('JRAS_GUI_STCENTERCONTENT')}
+        },
         BlockUsers: [],
         BlockTags: []
       },
@@ -1265,6 +1275,7 @@ const JRAS_CurrVersion = '1.8.7';
                 }
               }
             });
+          correctPageHeight();
         });
         retVal = $newElm;
       }
@@ -2796,6 +2807,12 @@ const JRAS_CurrVersion = '1.8.7';
       }
       sideBar = `div#sidebar{${sideBar} transition: 0.2s; position: absolute;padding-left: 10px; z-index: 10;}`;
     }
+    const form_addPost = (!page.isNewDesign && !page.isSchemeLight())
+      ? 'form#add_post{ background-size: 100% !important;}'
+      : '';
+    const centerContent = (userOptions.val('stCenterContent'))
+      ? '.image { text-align: center !important; }'
+      : '';
 
     const style = `
       ${stretchContent}
@@ -2810,6 +2827,17 @@ const JRAS_CurrVersion = '1.8.7';
       div#navcontainer { background-size: 100%; }   
       div#searchBar { background-size: 100%; } 
       div.blogs a img { width: 100%; }
+      div#searchBar{ display: flex; }
+      form#searchform{ float: right; }
+      div#submenu{ width: 75%; }
+      div#blogName{ max-width: 85%; }
+      div.tagname{ max-width: 60%; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;}
+      div#searchmenu{ width: 25%; }
+      textarea#add_post_text { width: 99%; border: 1px ${(page.isSchemeLight()) ? 'solid #bbbbbb; background: none;' : 'border-color: #444 !important;'} }
+      input[name="tag"], input[name="header"] { width: 99% !important; margin-top: -6px !important; }
+      .article .ufoot { width: 100% !important; }
+      ${centerContent}
+      ${form_addPost}
     `;
     newCssClass(style);
     if (!userOptions.val('stHideSideBar')){
@@ -2825,9 +2853,22 @@ const JRAS_CurrVersion = '1.8.7';
       if (!userOptions.val('stCorrectStyle')){
         newCssClass(`div#sidebar.hovered { ${(page.isNewDesign)?'right: 0;':'right: -15px;'} box-shadow: -6px 0px 20px -5px rgba(0, 0, 0, 0.47);}`);
       }
+      correctPageHeight();
+      $('div.post_content_expand').each(function(){
+        new MutationObserver(function(){ correctPageHeight() }).observe(this, {attributes: true});
+      });
+    }
+  }
+
+  function correctPageHeight(){
+    if (!(userOptions.val('stCorrectStyle') || (!userOptions.val('stCorrectStyle') && userOptions.val('stUseDynStyleChanges')))){
+      return;
+    }
+    if (userOptions.val('stSideBarSizeToPage')){
       const $divSideBar = $('div#sidebar');
-      const $divPageInner = $('div#pageinner');
       const sbh = $divSideBar.height();
+      const $divPageInner = $('div#pageinner');
+      $divPageInner.css('height', 'auto');
       if ($divPageInner.height() < sbh){
         $divPageInner.height(sbh);
         const $contentBlock = $('div#content');
@@ -2840,23 +2881,6 @@ const JRAS_CurrVersion = '1.8.7';
             }
           })
         }
-      }
-      $('div.post_content_expand').each(function(){
-        new MutationObserver(function(){ correctPageHeight() }).observe(this, {attributes: true});
-      });
-    }
-  }
-
-  function correctPageHeight(){
-    if (!(userOptions.val('stCorrectStyle') || (!userOptions.val('stCorrectStyle') && userOptions.val('stUseDynStyleChanges')))){
-      return;
-    }
-    if (userOptions.val('stSideBarSizeToPage')){
-      const sbh = $('div#sidebar').height();
-      const $divPageInner = $('div#pageinner');
-      $divPageInner.css('height', 'auto');
-      if ($divPageInner.height() < sbh){
-        $divPageInner.height(sbh);
       }
     }
   }
@@ -3101,13 +3125,14 @@ const JRAS_CurrVersion = '1.8.7';
                     <section class="jras-prop-gui-section" style="margin-left: 20px; margin-top: -10px;">
                       ${getHTMLProp('stHideSideBar')} <br>
                       ${getHTMLProp('stStretchContent')} <br>
+                      ${getHTMLProp('stCenterContent')} <br>
                       ${getHTMLProp('stStretchSize')}
                     </section> 
                     <section class="jras-prop-gui-section"> ${getHTMLProp('stUseDynStyleChanges')} </section>
                     <section class="jras-prop-gui-section"> ${getHTMLProp('stSideBarSizeToPage')}
                     <section class="jras-prop-gui-section" style="margin-left: 20px;">${getHTMLProp('stShowSideBarOnHideContent')} </section> 
                     </section>
-                    <div style="bottom: 0; position: absolute; opacity: .7; font-size: 80%; padding: 15px; border-top: 1px dashed; width: 90%;">
+                    <div style="opacity: .7; line-height: 12px; font-size: 80%; padding: 15px; border-top: 1px dashed; width: 90%;">
                       * JRAS style так же можно найти в виде стилей для Stylish и подобных. Мне кажется что использовать их отдельно от скрипта удобнее, хотя и настроить сложно.<br>
                       Они доступны по ссылкам<br>
                         - Для нового дизайна - <a href="https://userstyles.org/styles/148705/jras-style-for-new-reactor-cc" target="_blank" rel="nofollow">ссылка</a><br>
@@ -3623,6 +3648,9 @@ const JRAS_CurrVersion = '1.8.7';
     };
     this.JRAS_GUI_STUSEDYNSTYLECHANGES = {
       ru: 'Мне нужны только динамические эффекты нового стиля (я использую JRAS style)'
+    };
+    this.JRAS_GUI_STCENTERCONTENT = {
+      ru: 'Центровать контент'
     };
   }
 
