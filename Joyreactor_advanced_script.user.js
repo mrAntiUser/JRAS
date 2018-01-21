@@ -12,7 +12,7 @@
 // @include     *jr-proxy.com*
 // @require     http://ajax.googleapis.com/ajax/libs/jquery/2.2.0/jquery.min.js
 // @require     https://code.jquery.com/ui/1.11.4/jquery-ui.min.js
-// @version     1.8.8
+// @version     1.9.0
 // @grant       GM_getValue
 // @grant       GM_setValue
 // @grant       GM_listValues
@@ -22,9 +22,13 @@
 // @run-at      document-end
 // ==/UserScript==
 
-const JRAS_CurrVersion = '1.8.8';
+const JRAS_CurrVersion = '1.9.0';
 
 /* RELEASE NOTES
+ 1.9.0
+   * кнопки перехода в начало и конец поста (Issue-48)
+ 1.8.9
+   * перенос длинных ников в тултипе
  1.8.8
    * Центрование контента (изображения, гифки, фреймы) (Issue-46)
    * поправлена ширина коментов с новыми стилями на не черном олде
@@ -1541,6 +1545,14 @@ const JRAS_CurrVersion = '1.8.8';
           const $pcLinks = $postContainer.find('sitm#jras-PostControlLinks');
           $pcLinks.children().remove();
           $pcLinks.append(`<span style="margin-left: ${itmContentPos}px;">`);
+          $pcLinks.append(`<s><div class="jras-pcToTop" ${(page.isNewDesign)?'style="margin-top: 2px;"':''}></div></s>`);
+          $pcLinks.find('div.jras-pcToTop').click(function(){
+            $('html, body').animate({ scrollTop: $postContainer.offset().top - 50}, 500);
+          });
+          $pcLinks.append(`<s><div class="jras-pcToDown" ${(page.isNewDesign)?'style="margin-top: 2px;"':''}></div></s>`);
+          $pcLinks.find('div.jras-pcToDown').click(function(){
+            $('html, body').animate({ scrollTop: $postContainer.offset().top + $postContainer.height() - win.innerHeight + 50}, 500);
+          });
           if (page.isNewDesign){
             $pcLinks.append($postContainer.find('div.ufoot span.link_wr').clone());
             $pcLinks.append($postContainer.find('div.ufoot span.hidden_link').clone());
@@ -1557,6 +1569,7 @@ const JRAS_CurrVersion = '1.8.8';
             $pcLinks.find('>span.hidden_link').addClass('jras-pcLinksSepBefore');
             itemW = itmHeight + $Links.width() + $Links.children().find(':visible').length * 7;
           }
+          itemW += 60;
           $pcLinks.find('span.setTag a.link.setTagLink').click(function(){
             const $tagEdit = $postContainer.find('div.ufoot span.post_add_tag');
             const hidden = $tagEdit.css('display') == 'none';
@@ -1704,7 +1717,8 @@ const JRAS_CurrVersion = '1.8.8';
         'border': '1px solid rgb(102, 102, 102)',
         '-webkit-box-shadow': '6px 6px 8px 0px rgba(0, 0, 0, 0.5)',
         '-moz-box-shadow': '6px 6px 8px 0px rgba(0, 0, 0, 0.5)',
-        'box-shadow': '6px 6px 8px 0px rgba(0, 0, 0, 0.5)'
+        'box-shadow': '6px 6px 8px 0px rgba(0, 0, 0, 0.5)',
+        'word-break': 'break-all'
       });
       getTagData(TagName, TagLink, $tooltip, $tooltip.find('div#jras-tooltipcontainer'));
     });
@@ -1889,7 +1903,8 @@ const JRAS_CurrVersion = '1.8.8';
         'border': '1px solid rgb(102, 102, 102)',
         '-webkit-box-shadow': '6px 6px 8px 0px rgba(0, 0, 0, 0.5)',
         '-moz-box-shadow': '6px 6px 8px 0px rgba(0, 0, 0, 0.5)',
-        'box-shadow': '6px 6px 8px 0px rgba(0, 0, 0, 0.5)'
+        'box-shadow': '6px 6px 8px 0px rgba(0, 0, 0, 0.5)',
+        'word-break': 'break-all'
       });
       getUserData(UserName, UserLink, $tooltip, $tooltip.find('div#jras-tooltipcontainer'));
     });
@@ -2481,7 +2496,19 @@ const JRAS_CurrVersion = '1.8.8';
       }   
       .jras-pcVoteMinus-img {
         background: transparent url("data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABQAAAAUCAYAAACNiR0NAAAABGdBTUEAALGPC/xhBQAAACBjSFJNAAB6JgAAgIQAAPoAAACA6AAAdTAAAOpgAAA6mAAAF3CculE8AAAABmJLR0QAAAAAAAD5Q7t/AAAACXBIWXMAAAsSAAALEgHS3X78AAAD2klEQVQ4y32VS2hUZxiGn3OZxGacXCbeEiNpJJrEJFYtJelQqpZiC1kEJVIotHRjkS5LC3ZRuqzR7grGRRuwtmgVtFlqrBTTCnUhiEJUTGJ0wtiYmZPJxMzlXN4ujtZGox8c/sN3+J7/fJf//Q2WMCfRVK5crhff24Vld2EYawGQ7uN7V7DsYSMWG6q5PFF8NtZ41pHZVvex5ucO2M1tbZHEDuzWTswVq0AQzEzj3bqOe/kPvDujo8byym/jV1PHeZGlO+L9Tlej8kf6FUyOSYUFaWE+XP/3HkyOKX+kX05Xo9Id8YMvhu1olXvpvKRAmk1LybvS1OTiJ3k3/KZA7qVzcra3LIIaj9PcbZSVnYkd/gHrrXchlYTAB8NYOhUJLAvWNOCPDJP7ch9yS3viV1NnLSfRFNNs5kzF/i9qIns+ggdJ8FyoiEJ8JRQL4HshyLJhxWoQUMhDfh6zfQuG61K6NPzGVy1rB03Nz71nNbetL+/pg9kM+D68UkFwf4LSyUGUnYVIOdgRVFigdPoY/p3RcMMggFmH8p4+rOaW9Zqfe9/E83rLEjthVR0s5MA0oaoGd+R3svv244/fglglRKMEqSRzn31K6dwQLK8E0wpjVtdRlngHPK/Xxo5ssds6w7pghGvWIbJ9F9XH12I1t0EuCxJW/TqqBn/CatoQ+oLgvxi7tQPsyGs2htFg1q5a3IBCHrO+AbOlHZwMuG7oL19GpGcvPMrBwqMwGwDD4DGjwV6yi6YJxSIYOYjXhjVUEIKcmbDOT2DPmI2UDNLT1Zb0dCTsCNTE0fhtSmd/IZi6h1ERJbK1C6vr7XCk5rJPoRJBehqkpI3nXfNu3uiI9PSFsLIyWFZBcfB78scHwLQwTBMMg8KpY1ibNhP9+jvM1fWQdcJJNgy8WzfAc68Zmc21fea6ptNVA6egqhokiid+xB25QNnuD7E7X8esroFSCW9yjOLQCTSXpeLzbzBXrgn/Mpclu/8DguTEXpxEUyy9MTpeGDgkSfKvXVHx56PSgynJdyVnRppOSQ8fhGfZd1UaOqnSr4NS5qEkqTDQr/TG6JiTaIo9UZg9Tver8v68IHmeNPNPCFjqLKfuS86MgonbUuDL++uCnO5GZbbV7X5eHLa3yr18UZKkzMxLxCEjSXJHhp+IQ//SitMe73e6G5U/eljBvfEXyFdewb0x5QcOyeluVLp9Mex5gd265hM9yh2wN2xqiSR2Yrd1YtauDAU2/RDv5nXcvy7i3Rm9aSyvPBi/mjr2UiCA82bTMs3P9eL7u7DtbgyjHoBAU/je31jWeSNW+dtSV8C/Gxd0zlRsvhIAAAAASUVORK5CYII=") no-repeat scroll 0px 0px;
-      }        
+      }
+      .jras-pcToTop{
+        width: 24px;
+        height: 18px;
+        display: inline-block;
+        background: transparent url("data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABgAAAAYCAYAAADgdz34AAAA+0lEQVRIS+3UrU5DMRjG8d/AgEIjuQYEhqBx8zOAGTdAguIbMbMrAAR3gCWgp9Ek3MDsPJAXzknIcnbaJkwsWZOmafL0+ff9aDvmPDpz9rcEJDPclqIdbCYdfgVjjJq0bYAndDMBz9gvBWxhIxMwwUcpoEl/iS9cZYKL2jTMLyrjWK9zILnvoDb/5OdSMc9xk4LkAGrzB0Rd1vGOgxxIClCb36OPF6xhDwE8xBluZ0XSBjjFAHc4ror7WgF2sYIAH+EEw9Iu2kavOhydE+MvIPYBCeNHvJUCmvTTgFSNi9q0KYLFA8QHuDrrY/uPGiRTMi1IvYNiwyWgOGXf4uYlGUp2/rYAAAAASUVORK5CYII=") no-repeat scroll 3px -3px;
+      }
+      .jras-pcToDown{
+        width: 33px;
+        height: 18px;
+        display: inline-block;
+        background: transparent url("data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABgAAAAYCAYAAADgdz34AAAA6ElEQVRIS+3TIU4EQRBG4W8xSBwOuRdAoBAEi+ECbELwBAkOFDgugAa9CZYEgSFcgQvguACBdFIknQV6qknWTasRVe/1/FU9seQzWTLfKBhMuDei7SA+DZKjoFfwGH07o6AksIkjHOMjIlmMaAXXuMXzb7G1ZnBSNc9CUgsK/AaHOMNVr6DUn+ISdzjAQ0B2K/gFzv8aemaLaskGPvEaN2/CizQjqP+kfBdB6RuE9wgWJSl4r+Bbshq3T721VkRTrKUovMdcfpS3BPfYSwrm2O9d0y2sJwVveOkVJNntsuya/ls2Cgaj+wJTFiUZUSeJ8gAAAABJRU5ErkJggg==") no-repeat scroll 3px -3px;
+      }
       .jras-pcLinksSepAfter:after{ 
         color: #535353;
         content: " | ";
@@ -2541,6 +2568,7 @@ const JRAS_CurrVersion = '1.8.8';
         box-shadow: 1px 1px 4px 0px rgba(0,0,0, .5);
         opacity: 0.6;
         font-size: 12px;
+        display: inline-flex;
       }
       #jras-PostControlBlock sitm:hover {
         opacity: 1;
@@ -2838,6 +2866,8 @@ const JRAS_CurrVersion = '1.8.8';
       .article .ufoot { width: 100% !important; }
       ${centerContent}
       ${form_addPost}
+      .post_content table { margin: 0 auto; }
+      .post_content_expand{ width: 100% !important; }
     `;
     newCssClass(style);
     if (!userOptions.val('stHideSideBar')){
