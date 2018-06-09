@@ -230,7 +230,6 @@ const JRAS_CurrVersion = '1.9.1';
    * Не работал в хроме из-за неверного определения адреса документа
  1.0.0 - http://old.reactor.cc/post/2485300
    + release
-
  */
 
 (function(win){
@@ -2296,7 +2295,6 @@ const JRAS_CurrVersion = '1.9.1';
 
   function addNewCSSClasses(){
     newCssClass(`
-
     	.video_gif_source{
         top: 0;
         right: 0;
@@ -2307,7 +2305,6 @@ const JRAS_CurrVersion = '1.9.1';
       .video_gif_holder:hover .video_gif_source{
         display: block;
       } 
-
      /* для старого дизайна */
       .treeCross-old{
         float: left;
@@ -2351,7 +2348,6 @@ const JRAS_CurrVersion = '1.9.1';
         width: 100%;
         height: 100%;
       }
-
       /* для нового дизайна */
       .treeCross-new{
         float: left;
@@ -2672,9 +2668,7 @@ const JRAS_CurrVersion = '1.9.1';
         margin-top: 4px;
         cursor: pointer;
       }
-
      .jras-tabs-panel-content {padding: 6px 10px;}
-
      #jras-prop-gui-dialog{
        border: 0;
        width: 100%;
@@ -2725,7 +2719,6 @@ const JRAS_CurrVersion = '1.9.1';
        float: right;
        right: 0;
      }
-
       /* Окно настроек  */
       .modal {
         z-index: 1000;
@@ -2832,6 +2825,7 @@ const JRAS_CurrVersion = '1.9.1';
     let divContainer = '';
     let sideBar = '';
     let divContent = '';
+    let commentListLine = '';
     if (userOptions.val('stHideSideBar')){
       divContent = 'div#content{width: 100%;}';
       if (page.isNewDesign){
@@ -2843,6 +2837,8 @@ const JRAS_CurrVersion = '1.9.1';
         sideBar += (page.isSchemeLight()) ? 'white;' : '#3B3B3B;';
         sideBarHover = 'right: -15px;';
         divContainer = 'width: 98%;';
+        commentListLine = `.comment_list { border-left: 1px solid ${(page.isSchemeLight())?'#f4f4f4':'#2b2b2c'} ; }
+                           .comment_list:hover { border-left: 1px dashed ${(page.isSchemeLight())?'#d5d5d5':'#3F6B36'}; }`;
       }
       sideBar = `div#sidebar{${sideBar} transition: 0.2s; position: absolute;padding-left: 10px; z-index: 10;}`;
     }
@@ -2879,6 +2875,7 @@ const JRAS_CurrVersion = '1.9.1';
       ${form_addPost}
       .post_content table { margin: 0 auto; }
       .post_content_expand{ width: 100% !important; }
+      ${commentListLine}
     `;
     newCssClass(style);
     if (!userOptions.val('stHideSideBar')){
