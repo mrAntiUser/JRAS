@@ -3,6 +3,7 @@
 // @namespace   http://joyreactor.cc/tag/jras
 // @description comment tree collapse, remove/hide posts/comments by username/tag, remove share buttons and more on http://joyreactor.cc/tag/jras
 // @author      AntiUser
+// @license     MIT
 // @copyright   2016+, AntiUser (http://joyreactor.cc/user/AntiUser)
 // @homepage    http://joyreactor.cc/tag/jras
 // @homepageURL http://joyreactor.cc/tag/jras
@@ -12,7 +13,12 @@
 // @include     *jr-proxy.com*
 // @require     http://ajax.googleapis.com/ajax/libs/jquery/2.2.0/jquery.min.js
 // @require     https://code.jquery.com/ui/1.11.4/jquery-ui.min.js
-// @version     1.9.0
+// @version     1.9.1
+// @grant       GM.getValue
+// @grant       GM.setValue
+// @grant       GM.listValues
+// @grant       GM.deleteValue
+// @grant       GM.xmlhttpRequest
 // @grant       GM_getValue
 // @grant       GM_setValue
 // @grant       GM_listValues
@@ -22,9 +28,11 @@
 // @run-at      document-end
 // ==/UserScript==
 
-const JRAS_CurrVersion = '1.9.0';
+const JRAS_CurrVersion = '1.9.1';
 
 /* RELEASE NOTES
+ 1.9.1
+   * Поддержка нового движка FireFox и нового GreaseMonkey (Issue-51)
  1.9.0
    * кнопки перехода в начало и конец поста (Issue-48)
  1.8.9
@@ -236,6 +244,12 @@ const JRAS_CurrVersion = '1.9.0';
   }
 
   const MutationObserver = window.MutationObserver || window.WebKitMutationObserver || window.MozMutationObserver;
+
+  const gm3 = 'undefined' !== typeof GM_xmlhttpRequest;
+  const GMgetValue     = (gm3) ? GM_getValue : GM.getValue;
+  const GMsetValue     = (gm3) ? GM_setValue : GM.setValue;
+  const GMlistValues   = (gm3) ? GM_listValues : GM.listValues;
+  const GMdeleteValue  = (gm3) ? GM_deleteValue : GM.deleteValue;
 
   const defLoadTooltipSize = 212;
   const defUserTooltipSize = 212;
@@ -786,11 +800,11 @@ const JRAS_CurrVersion = '1.9.0';
       removeSavedUserData: function(user){
         user = this.correctForRegexp(user);
         let pref = (user === undefined) ? '' : user + '_';
-        let keys = GM_listValues();
+        let keys = GMlistValues();
         for(let i = 0; i < keys.length; i++){
           let key = keys[i];
           if(key.match(new RegExp(pref + '.*'))){
-            GM_deleteValue(key);
+            GMdeleteValue(key);
           }
         }
       },
@@ -800,13 +814,13 @@ const JRAS_CurrVersion = '1.9.0';
         this.removeSavedUserData(forUser);
         const pref = forUser + '_';
         this.each(function(optName, opt){
-          GM_setValue(pref + optName, opt.dt);
+          GMsetValue(pref + optName, opt.dt);
         });
         for(let i = 0; i < this.data.BlockUsers.length; i++){
-          GM_setValue(pref + 'BlockUsers_name_' + i, this.data.BlockUsers[i]);
+          GMsetValue(pref + 'BlockUsers_name_' + i, this.data.BlockUsers[i]);
         }
         for(let i = 0; i < this.data.BlockTags.length; i++){
-          GM_setValue(pref + 'BlockTags_name_' + i, this.data.BlockTags[i]);
+          GMsetValue(pref + 'BlockTags_name_' + i, this.data.BlockTags[i]);
         }
       },
 
@@ -814,7 +828,7 @@ const JRAS_CurrVersion = '1.9.0';
         prefix = this.correctForRegexp(prefix);
         let retVal = false;
         const posf = '.*';
-        let keys = GM_listValues();
+        let keys = GMlistValues();
         this.data.BlockUsers = [];
         this.data.BlockTags = [];
         for(let i = 0; i < keys.length; i++){
@@ -823,16 +837,16 @@ const JRAS_CurrVersion = '1.9.0';
             continue
           }
           if(key.match(new RegExp(prefix + 'BlockUsers_name_' + posf))){
-            this.data.BlockUsers.push(GM_getValue(key, ''));
+            this.data.BlockUsers.push(GMgetValue(key, ''));
           }else{
             if(key.match(new RegExp(prefix + 'BlockTags_name_' + posf))){
-              this.data.BlockTags.push(GM_getValue(key, ''));
+              this.data.BlockTags.push(GMgetValue(key, ''));
             }else{
               const rkey = key.replace(prefix, '');
               if(this.data[rkey] === undefined){
                 continue
               }
-              this.data[rkey].dt = GM_getValue(key, this.data[rkey]);
+              this.data[rkey].dt = GMgetValue(key, this.data[rkey]);
               retVal = true;
             }
           }
@@ -1194,7 +1208,7 @@ const JRAS_CurrVersion = '1.9.0';
                   }
                 })
               }
-            correctPageHeight();
+              correctPageHeight();
             }, 10
           );
 
@@ -1518,7 +1532,7 @@ const JRAS_CurrVersion = '1.9.0';
           $pcRating.append($Rating.clone(true));
           const $pcRatingPost = $pcRating.find('span.post_rating');
           $pcRatingPost.css('display', '');
-          $pcRatingPost.css('right', 'unset');
+          // $pcRatingPost.css('right', 'unset');
           const $pcRatingPostPlus = $pcRatingPost.find('div.vote-plus');
           $pcRatingPostPlus.removeClass('vote-plus').addClass('jras-PostControlRatingVote').click(function(){
             $Rating.find('div.vote-plus').get(0).click()});
@@ -1638,16 +1652,21 @@ const JRAS_CurrVersion = '1.9.0';
     $PostCrtlsBlock.css({'top': newTop});
   }
 
+  function HttpRequest(link, onload){
+    const xhr = new XMLHttpRequest();
+    xhr.onload = onload;
+    xhr.open("GET", link, true);
+    xhr.send();
+  }
+
   function actionTooltipButton($button, link, buttonTxtID){
     $button.click({clickLink: link, updateContainer: $button}, function(eventObject){
       const t = eventObject.data.updateContainer.find('#' + buttonTxtID);
       const ct = t.text();
       t.text(ct + ' : wait');
-      GM_xmlhttpRequest({
-        method: 'GET', url: eventObject.data.clickLink,
-        onload: function(response){
-          if(response.status != 200){
-            t.text(ct + ' : error: ' + response.status);
+      HttpRequest(eventObject.data.clickLink, function(e){
+          if(e.target.status != 200){
+            t.text(ct + ' : error: ' + e.target.status);
           }else{
             t.text(ct + ' : ok');
           }
@@ -1656,7 +1675,7 @@ const JRAS_CurrVersion = '1.9.0';
             .removeClass('jras-tooltip-button')
             .unbind(eventObject);
         }
-      });
+      );
     });
   }
 
@@ -1726,96 +1745,92 @@ const JRAS_CurrVersion = '1.9.0';
 
   function getTagData(tagName, tagLink, $tooltip, $outContainer){
     setTooltipBounds($tooltip, {width: defLoadTooltipSize});
-    GM_xmlhttpRequest({
-      method: 'GET',
-      url: tagLink,
-      onload: function(response){
-        if(response.status != 200){
-          $outContainer.text('Loading error: ' + response.status);
-          // win.console.log("Loading tag data error:  - " + response.status);
-        }else{
-          const doc = document.implementation.createHTMLDocument("");
-          doc.documentElement.innerHTML = response.responseText;
+    HttpRequest(tagLink, function(e){
+      win.console.log(e);
+      if(e.target.status != 200){
+        $outContainer.text('Loading error: ' + e.target.status);
+      }else{
+        const doc = document.implementation.createHTMLDocument("");
+        doc.documentElement.innerHTML = e.target.response;
 
-          clearContainer($outContainer);
+        clearContainer($outContainer);
 
-          let tmpW = win.innerWidth;
-          const w = defTagTooltipSize;//tmpW / 2 - 30;
-          if ($tooltip.position().left + w > tmpW){
-            tmpW = tmpW - w - 30;
-          } else {
-            tmpW = null;
-          }
-          setTooltipBounds($tooltip, {left: tmpW, width: w});
+        let tmpW = win.innerWidth;
+        const w = defTagTooltipSize;//tmpW / 2 - 30;
+        if ($tooltip.position().left + w > tmpW){
+          tmpW = tmpW - w - 30;
+        } else {
+          tmpW = null;
+        }
+        setTooltipBounds($tooltip, {left: tmpW, width: w});
 
-          const $tagHeaderPathBlock = $('<div id="jras-tagHeaderPathBlock">')
-            .css({
-              'font-size': '10px',
-              'margin-top': '-6px',
-              'margin-bottom': '4px'
-            });
-          $outContainer.append($tagHeaderPathBlock);
-          const $tagDocHeaderSide = $(doc).find('div.sidebar_block div.sideheader.taginfo');
-          const $tagSideBar = $tagDocHeaderSide.closest('div#sidebar');
-          $tagDocHeaderSide.find('a').each(function(){
-            $(this).appendTo($tagHeaderPathBlock);
-            $tagHeaderPathBlock.append('<span>&nbsp&gt&nbsp;</span>');
+        const $tagHeaderPathBlock = $('<div id="jras-tagHeaderPathBlock">')
+          .css({
+            'font-size': '10px',
+            'margin-top': '-6px',
+            'margin-bottom': '4px'
           });
-          const $tagHeaderBlock = $('<div id="jras-tagHeaderBlock">').css({'line-height': '22px'});
-          $outContainer.append($tagHeaderBlock);
-          const $tagDocStats = $(doc).find('div.sidebar_block div.blog_stats');
-          $tagDocStats.closest('div.sidebarContent').find('img.blog_avatar').clone().appendTo($tagHeaderBlock);
-          $tagDocHeaderSide.find('span.fn').appendTo($tagHeaderBlock).addClass('jras-tooltip-caption');
+        $outContainer.append($tagHeaderPathBlock);
+        const $tagDocHeaderSide = $(doc).find('div.sidebar_block div.sideheader.taginfo');
+        const $tagSideBar = $tagDocHeaderSide.closest('div#sidebar');
+        $tagDocHeaderSide.find('a').each(function(){
+          $(this).appendTo($tagHeaderPathBlock);
+          $tagHeaderPathBlock.append('<span>&nbsp&gt&nbsp;</span>');
+        });
+        const $tagHeaderBlock = $('<div id="jras-tagHeaderBlock">').css({'line-height': '22px'});
+        $outContainer.append($tagHeaderBlock);
+        const $tagDocStats = $(doc).find('div.sidebar_block div.blog_stats');
+        $tagDocStats.closest('div.sidebarContent').find('img.blog_avatar').clone().appendTo($tagHeaderBlock);
+        $tagDocHeaderSide.find('span.fn').appendTo($tagHeaderBlock).addClass('jras-tooltip-caption');
 
-          makeTagModers($tagSideBar, $outContainer);
-          makeTagStatistics($tagDocStats, $outContainer);
+        makeTagModers($tagSideBar, $outContainer);
+        makeTagStatistics($tagDocStats, $outContainer);
 
-          const $mainBtnContainer = $('<div id="jras-tooltip-mainTagBtn" class="jras-tooltip-section-topborder"></div>').appendTo($outContainer);
-          if(page.isUserLogon){
-            const $tagDocHeader = $(doc).find('div#blogHeader');
-            let txtToTagAction;
-            let linkToTagAction;
+        const $mainBtnContainer = $('<div id="jras-tooltip-mainTagBtn" class="jras-tooltip-section-topborder"></div>').appendTo($outContainer);
+        if(page.isUserLogon){
+          const $tagDocHeader = $(doc).find('div#blogHeader');
+          let txtToTagAction;
+          let linkToTagAction;
 
-            if($tagDocHeader.find('div#blogFavroiteLinks > p').is('.add_to_fav')){
-              txtToTagAction = lng.getVal('JRAS_ADDTAGFAV');
-              linkToTagAction = $tagDocHeader.find('div#blogFavroiteLinks > p.add_to_fav > a.change_favorite_link').attr('href');
-            }else{
-              if($tagDocHeader.find('div#blogFavroiteLinks > p').is('.remove_from_fav')){
-                txtToTagAction = lng.getVal('JRAS_REMOVETAGFAV');
-                linkToTagAction = $tagDocHeader.find('div#blogFavroiteLinks > p.remove_from_fav > a.change_favorite_link').attr('href');
-              }
+          if($tagDocHeader.find('div#blogFavroiteLinks > p').is('.add_to_fav')){
+            txtToTagAction = lng.getVal('JRAS_ADDTAGFAV');
+            linkToTagAction = $tagDocHeader.find('div#blogFavroiteLinks > p.add_to_fav > a.change_favorite_link').attr('href');
+          }else{
+            if($tagDocHeader.find('div#blogFavroiteLinks > p').is('.remove_from_fav')){
+              txtToTagAction = lng.getVal('JRAS_REMOVETAGFAV');
+              linkToTagAction = $tagDocHeader.find('div#blogFavroiteLinks > p.remove_from_fav > a.change_favorite_link').attr('href');
             }
-            if(txtToTagAction){
-              const $favTagBtn = $mainBtnContainer.append(`
+          }
+          if(txtToTagAction){
+            const $favTagBtn = $mainBtnContainer.append(`
                 <div id="jras-tooltip-favtag" class="jras-tooltip-button" style="cursor: pointer;">
                   <i class="jras-tooltip-button-img jras-tooltip-favtag-img""></i>
                   <span id="jras-tooltip-favtag-txt" class="jras-tooltip-button-text">${txtToTagAction}</span>
                 </div>
               `).find('#jras-tooltip-favtag');
-              actionTooltipButton($favTagBtn, linkToTagAction, 'jras-tooltip-favtag-txt');
-            }
+            actionTooltipButton($favTagBtn, linkToTagAction, 'jras-tooltip-favtag-txt');
+          }
 
-            if($tagDocHeader.find('div#blogFavroiteLinks > p').is('.add_to_unpopular')){
-              txtToTagAction = lng.getVal('JRAS_BLOCKTAG_JR');
-              linkToTagAction = $tagDocHeader.find('div#blogFavroiteLinks > p.add_to_unpopular > a.change_favorite_link').attr('href');
-            }else{
-              if($tagDocHeader.find('div#blogFavroiteLinks > p').is('.remove_from_unpopular')){
-                txtToTagAction = lng.getVal('JRAS_UNBLOCKTAG_JR');
-                linkToTagAction = $tagDocHeader.find('div#blogFavroiteLinks > p.remove_from_unpopular > a.change_favorite_link').attr('href');
-              }
+          if($tagDocHeader.find('div#blogFavroiteLinks > p').is('.add_to_unpopular')){
+            txtToTagAction = lng.getVal('JRAS_BLOCKTAG_JR');
+            linkToTagAction = $tagDocHeader.find('div#blogFavroiteLinks > p.add_to_unpopular > a.change_favorite_link').attr('href');
+          }else{
+            if($tagDocHeader.find('div#blogFavroiteLinks > p').is('.remove_from_unpopular')){
+              txtToTagAction = lng.getVal('JRAS_UNBLOCKTAG_JR');
+              linkToTagAction = $tagDocHeader.find('div#blogFavroiteLinks > p.remove_from_unpopular > a.change_favorite_link').attr('href');
             }
-            if(txtToTagAction){
-              const $blockTagBtn = $mainBtnContainer.append(`
+          }
+          if(txtToTagAction){
+            const $blockTagBtn = $mainBtnContainer.append(`
                 <div id="jras-tooltip-blocktag" class="jras-tooltip-button" style="cursor: pointer;">
                   <i class="jras-tooltip-button-img jras-tooltip-blockuser-img""></i>
                   <span id="jras-tooltip-blocktag-txt" class="jras-tooltip-button-text">${txtToTagAction}</span>
                 </div>
               `).find('#jras-tooltip-blocktag');
-              actionTooltipButton($blockTagBtn, linkToTagAction, 'jras-tooltip-blocktag-txt');
-            }
+            actionTooltipButton($blockTagBtn, linkToTagAction, 'jras-tooltip-blocktag-txt');
           }
-          makeJRASTagTooltipElm($mainBtnContainer, tagName);
         }
+        makeJRASTagTooltipElm($mainBtnContainer, tagName);
       }
     });
   }
@@ -1917,113 +1932,109 @@ const JRAS_CurrVersion = '1.9.0';
 
     if(userOptions.val('isToBeLoadingUserData')){
       setTooltipBounds($tooltip, {width: defLoadTooltipSize});
-      GM_xmlhttpRequest({
-        method: 'GET',
-        url: userLink,
-        onload: function(response){
-          //win.console.log('Loading user data from "' + userLink + '" - ' + response.status);
+      HttpRequest(userLink, function(e){
+        //win.console.log('Loading user data from "' + userLink + '" - ' + response.status);
 
-          if(response.status != 200){
-            $outContainer.text('Loading error: ' + response.status);
-            // win.console.log("Loading user data error:  - " + response.status);
-          }else{
-            const doc = document.implementation.createHTMLDocument("");
-            doc.documentElement.innerHTML = response.responseText;
+        if(e.target.status != 200){
+          $outContainer.text('Loading error: ' + e.target.status);
+          // win.console.log("Loading user data error:  - " + response.status);
+        }else{
+          const doc = document.implementation.createHTMLDocument("");
+          doc.documentElement.innerHTML = e.target.response;
 
-            clearContainer($outContainer);
-            setTooltipBounds($tooltip, {width: defUserTooltipSize});
-            const $userSideBar = $(doc).find('div.user-awards').closest('div#sidebar');
-            const $userData = $(doc).find('div.user-awards').parent('div.sidebarContent');
-            $userData.find('div.user').clone().appendTo($outContainer).css({'line-height': '22px'})
-              .find('span').addClass('jras-tooltip-caption');
-            if (userOptions.val('chatlaneToPacaki')){
-              $outContainer.find('div.user > span').css('color', $outContainer.find('div.user').css('color'));
-            }
-            const colUserOnline = ($.trim($userData.find('span.userOnline').text()) == 'Оффлайн') ? 'rgb(255, 0, 0)' : 'rgb(0, 255, 0)';
-            $outContainer.find('div.user').prepend(
-              `<div style="background-color: ${colUserOnline}; height: 83%; margin-right: 4px; display: inline-block; width: 5px; border-radius: 10px;"></div>`
-            );
-
-
-            makeUserAwardsBlock($userData.find('div.user-awards'), $outContainer);
-
-            const $userStars = $userData.find('div.stars').clone().appendTo($outContainer);
-            $userStars.css('width', '100%');
-            $userStars.find('div:not([class])').not('[style*="border: black solid 1px"]').remove();
-            $userStars.find('div[class*="star-row-"]')
-              .css({
-                'height': '15px',
-                'margin-left': '15px',
-                'transform': 'scale(0.7)'
-              });
-            let a = page.isNewDesign ? 'rgb(230, 230, 230)' : 'rgb(72, 72, 72)';
-            $userStars.find('[style*="border: black solid 1px"]')
-              .css({
-                'border': '',
-                'margin-top': '3px',
-                'background-color': a,
-                'height': '4px'
-              });
-            a = makeModerElements($userSideBar, $outContainer) ? 'jras-tooltip-section-topborder' : '';
-            $userData.find('div#rating-text').clone().appendTo($outContainer)
-              .css('font-size', '10px')
-              .css('line-height', '16px')
-              .addClass(a);
-
-            makePostsElements($userSideBar, $outContainer);
-
-            const $mainBtnContainer = $outContainer.append(mainBtnContainer).find('#jras-tooltip-mainBtnContainer');
-
-            if(page.isUserLogon){ // если залоген
-
-              makeSendPMElements($mainBtnContainer, userName);
-
-              let txtToUserAction;
-              let linkToUserAction;
-
-              if($userData.find('div#friend_link > p').is('.add_tofr_lnk.user_icons')){
-                txtToUserAction = lng.getVal('JRAS_ADDFRIEND');
-                linkToUserAction = $userData.find('div#friend_link > p.add_tofr_lnk.user_icons > a[href]').attr('href');
-              }else{
-                if($userData.find('div#friend_link > p').is('.remove_fromfr_lnk.user_icons')){
-                  txtToUserAction = lng.getVal('JRAS_REMOVEFRIEND');
-                  linkToUserAction = $userData.find('div#friend_link > p.remove_fromfr_lnk.user_icons > a[href]').attr('href');
-                }
-              }
-              if(txtToUserAction){
-                const $friendUser = $mainBtnContainer.append(
-                  '<div id="jras-tooltip-frienduser" class="jras-tooltip-button" style="cursor: pointer;">' +
-                  '<i class="jras-tooltip-button-img jras-tooltip-frienduser-img"></i>' +
-                  '<span id="jras-tooltip-frienduser-txt" class="jras-tooltip-button-text">' + txtToUserAction + '</span>' +
-                  '</div>'
-                ).find('#jras-tooltip-frienduser');
-                actionTooltipButton($friendUser, linkToUserAction, 'jras-tooltip-frienduser-txt');
-              }
-
-
-              txtToUserAction = null;
-              if($userData.find('div#friend_link > p').is('.add_toblock_lnk.user_icons')){
-                txtToUserAction = lng.getVal('JRAS_BLOCKUSER_JR');
-                linkToUserAction = $userData.find('div#friend_link > p.add_toblock_lnk.user_icons > a[href]').attr('href');
-              }else{
-                if($userData.find('div#friend_link > p').is('.remove_fromblock_lnk.user_icons')){
-                  txtToUserAction = lng.getVal('JRAS_UNBLOCKUSER_JR');
-                  linkToUserAction = $userData.find('div#friend_link > p.remove_fromblock_lnk.user_icons > a[href]').attr('href');
-                }
-              }
-              if(txtToUserAction){
-                const $blockUserJR = $mainBtnContainer.append(
-                  '<div id="jras-tooltip-blockuser-jr" class="jras-tooltip-button" style="cursor: pointer;">' +
-                  '<i class="jras-tooltip-button-img jras-tooltip-blockuser-img"></i>' +
-                  '<span id="jras-tooltip-blockuser-jr-txt" class="jras-tooltip-button-text">' + txtToUserAction + '</span>' +
-                  '</div>'
-                ).find('#jras-tooltip-blockuser-jr');
-                actionTooltipButton($blockUserJR, linkToUserAction, 'jras-tooltip-blockuser-jr-txt');
-              }
-            }
-
-            makeJRASUserTooltipElm($mainBtnContainer, userName);
+          clearContainer($outContainer);
+          setTooltipBounds($tooltip, {width: defUserTooltipSize});
+          const $userSideBar = $(doc).find('div.user-awards').closest('div#sidebar');
+          const $userData = $(doc).find('div.user-awards').parent('div.sidebarContent');
+          $userData.find('div.user').clone().appendTo($outContainer).css({'line-height': '22px'})
+            .find('span').addClass('jras-tooltip-caption');
+          if (userOptions.val('chatlaneToPacaki')){
+            $outContainer.find('div.user > span').css('color', $outContainer.find('div.user').css('color'));
           }
+          const colUserOnline = ($.trim($userData.find('span.userOnline').text()) == 'Оффлайн') ? 'rgb(255, 0, 0)' : 'rgb(0, 255, 0)';
+          $outContainer.find('div.user').prepend(
+            `<div style="background-color: ${colUserOnline}; height: 83%; margin-right: 4px; display: inline-block; width: 5px; border-radius: 10px;"></div>`
+          );
+
+
+          makeUserAwardsBlock($userData.find('div.user-awards'), $outContainer);
+
+          const $userStars = $userData.find('div.stars').clone().appendTo($outContainer);
+          $userStars.css('width', '100%');
+          $userStars.find('div:not([class])').not('[style*="border: black solid 1px"]').remove();
+          $userStars.find('div[class*="star-row-"]')
+            .css({
+              'height': '15px',
+              'margin-left': '15px',
+              'transform': 'scale(0.7)'
+            });
+          let a = page.isNewDesign ? 'rgb(230, 230, 230)' : 'rgb(72, 72, 72)';
+          $userStars.find('[style*="border: black solid 1px"]')
+            .css({
+              'border': '',
+              'margin-top': '3px',
+              'background-color': a,
+              'height': '4px'
+            });
+          a = makeModerElements($userSideBar, $outContainer) ? 'jras-tooltip-section-topborder' : '';
+          $userData.find('div#rating-text').clone().appendTo($outContainer)
+            .css('font-size', '10px')
+            .css('line-height', '16px')
+            .addClass(a);
+
+          makePostsElements($userSideBar, $outContainer);
+
+          const $mainBtnContainer = $outContainer.append(mainBtnContainer).find('#jras-tooltip-mainBtnContainer');
+
+          if(page.isUserLogon){ // если залоген
+
+            makeSendPMElements($mainBtnContainer, userName);
+
+            let txtToUserAction;
+            let linkToUserAction;
+
+            if($userData.find('div#friend_link > p').is('.add_tofr_lnk.user_icons')){
+              txtToUserAction = lng.getVal('JRAS_ADDFRIEND');
+              linkToUserAction = $userData.find('div#friend_link > p.add_tofr_lnk.user_icons > a[href]').attr('href');
+            }else{
+              if($userData.find('div#friend_link > p').is('.remove_fromfr_lnk.user_icons')){
+                txtToUserAction = lng.getVal('JRAS_REMOVEFRIEND');
+                linkToUserAction = $userData.find('div#friend_link > p.remove_fromfr_lnk.user_icons > a[href]').attr('href');
+              }
+            }
+            if(txtToUserAction){
+              const $friendUser = $mainBtnContainer.append(
+                '<div id="jras-tooltip-frienduser" class="jras-tooltip-button" style="cursor: pointer;">' +
+                '<i class="jras-tooltip-button-img jras-tooltip-frienduser-img"></i>' +
+                '<span id="jras-tooltip-frienduser-txt" class="jras-tooltip-button-text">' + txtToUserAction + '</span>' +
+                '</div>'
+              ).find('#jras-tooltip-frienduser');
+              actionTooltipButton($friendUser, linkToUserAction, 'jras-tooltip-frienduser-txt');
+            }
+
+
+            txtToUserAction = null;
+            if($userData.find('div#friend_link > p').is('.add_toblock_lnk.user_icons')){
+              txtToUserAction = lng.getVal('JRAS_BLOCKUSER_JR');
+              linkToUserAction = $userData.find('div#friend_link > p.add_toblock_lnk.user_icons > a[href]').attr('href');
+            }else{
+              if($userData.find('div#friend_link > p').is('.remove_fromblock_lnk.user_icons')){
+                txtToUserAction = lng.getVal('JRAS_UNBLOCKUSER_JR');
+                linkToUserAction = $userData.find('div#friend_link > p.remove_fromblock_lnk.user_icons > a[href]').attr('href');
+              }
+            }
+            if(txtToUserAction){
+              const $blockUserJR = $mainBtnContainer.append(
+                '<div id="jras-tooltip-blockuser-jr" class="jras-tooltip-button" style="cursor: pointer;">' +
+                '<i class="jras-tooltip-button-img jras-tooltip-blockuser-img"></i>' +
+                '<span id="jras-tooltip-blockuser-jr-txt" class="jras-tooltip-button-text">' + txtToUserAction + '</span>' +
+                '</div>'
+              ).find('#jras-tooltip-blockuser-jr');
+              actionTooltipButton($blockUserJR, linkToUserAction, 'jras-tooltip-blockuser-jr-txt');
+            }
+          }
+
+          makeJRASUserTooltipElm($mainBtnContainer, userName);
         }
       });
     }else{
@@ -2916,7 +2927,7 @@ const JRAS_CurrVersion = '1.9.0';
   }
 
   function makeBlockPostElements(forElm, parentID, blockMess, blockMessBold, blockMessDesc, fromTag){
-    // буээээ 
+    // буээээ
     if($('#togglebutton' + parentID)[0]){
       return
     }
