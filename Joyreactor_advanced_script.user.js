@@ -3368,10 +3368,10 @@ const JRAS_CurrVersion = '1.9.1';
     const getColorSchema = function(){ // light or dark
       let c = $('div#pageinner').css('background-color');
       let rgb = (/^#[0-9A-F]{6}$/i.test(c)) ? c : c.match(/^rgba?\((\d+),\s*(\d+),\s*(\d+)/);
-      if (!c || (rgb[1] == 0 && rgb[2] == 0 && rgb[3] == 0)){
+      if (!rgb || !c || (rgb[1] == 0 && rgb[2] == 0 && rgb[3] == 0)){
         c = $('#background').css('background-color');
         let rgb = (/^#[0-9A-F]{6}$/i.test(c)) ? c : c.match(/^rgba?\((\d+),\s*(\d+),\s*(\d+)/);
-        if (!c || (rgb[1] == 0 && rgb[2] == 0 && rgb[3] == 0)){
+        if (!rgb || !c || (rgb[1] == 0 && rgb[2] == 0 && rgb[3] == 0)){
           c = $('body').css('background-color');
         }
       }
