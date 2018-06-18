@@ -32,204 +32,205 @@ const JRAS_CurrVersion = '1.9.1';
 
 /* RELEASE NOTES
  1.9.1
-   * Поддержка нового движка FireFox и нового GreaseMonkey (Issue-51)
+ * Поддержка нового движка FireFox и нового GreaseMonkey (Issue-51)
  1.9.0
-   * кнопки перехода в начало и конец поста (Issue-48)
+ * кнопки перехода в начало и конец поста (Issue-48)
  1.8.9
-   * перенос длинных ников в тултипе
+ * перенос длинных ников в тултипе
  1.8.8
-   * Центрование контента (изображения, гифки, фреймы) (Issue-46)
-   * поправлена ширина коментов с новыми стилями на не черном олде
-   + Опция Центровать контент [true]
+ * Центрование контента (изображения, гифки, фреймы) (Issue-46)
+ * поправлена ширина коментов с новыми стилями на не черном олде
+ + Опция Центровать контент [true]
  1.8.7
-   * Размер страницы (динамический стиль) теперь считается нормально при разворачивании разных эледементов (Issue-43)
-   * В свете длинных тегов поправлены стили. Не в скрипте, а в JRAS styles
+ * Размер страницы (динамический стиль) теперь считается нормально при разворачивании разных эледементов (Issue-43)
+ * В свете длинных тегов поправлены стили. Не в скрипте, а в JRAS styles
  1.8.5
-   * Мелкие фиксы
+ * Мелкие фиксы
  1.8.4
-   + Опция: мне нужны только динамические эффекты нового стиля [false]
-   + Опции по поведению правого меню (Issue-39)
-     + Устанавливать высоту страницы по высоте правого меню [true]
-     + Показывать правое меню когда контент вышел за границы [true]
+ + Опция: мне нужны только динамические эффекты нового стиля [false]
+ + Опции по поведению правого меню (Issue-39)
+ + Устанавливать высоту страницы по высоте правого меню [true]
+ + Показывать правое меню когда контент вышел за границы [true]
  1.8.0 - http://reactor.cc/post/3249308
-   * Фикс определения цвета темы (Issue-13)
-   + Опция скрывать шарные кнопки в БУП [false] (Issue-18.1)
-   * Корректировка даты поста (Issue-33)
-   + Возможность скрыть правое меню и/или настроить ширину контентта (Issue-36)
-   Опции
-     + Корректировать дизайн и стиль сайта [false]
-     + Скрывать правое меню [true]
-     + Растягивать контент по границам экрана [true]
-     + Растягивать контент на (%) [90]
+ * Фикс определения цвета темы (Issue-13)
+ + Опция скрывать шарные кнопки в БУП [false] (Issue-18.1)
+ * Корректировка даты поста (Issue-33)
+ + Возможность скрыть правое меню и/или настроить ширину контентта (Issue-36)
+ Опции
+ + Корректировать дизайн и стиль сайта [false]
+ + Скрывать правое меню [true]
+ + Растягивать контент по границам экрана [true]
+ + Растягивать контент на (%) [90]
  1.7.16
-   * Исправлен баг даты комментария, которая пропадала или вообще не появлялась (Issue-29)
+ * Исправлен баг даты комментария, которая пропадала или вообще не появлялась (Issue-29)
  1.7.15 - http://old.reactor.cc/post/3247143
-   * Исправлен баг сохранения настроек (спасибо Silent John за тесты и терпение) (Issue-25)
-   * Исправлен баг добавления в избранное на новом дизайне (Issue-27)
-   + Разная иконка для постов, которые уже в избранном и которые еще можно добавить (Issue-20)
-   + Вывод даты комментария. Только в старом дизайне и только при включенной опции аватаров для старого дизайна (Issue-17)
-   + Опция - "Показывать в коменте его дату" [true] в "Комментарии" > "Создавать аватары для старого дизайна"
-   + Опции теперь чекаются при клике по label'у (Issue-11)
-   + Опция - Анимировать перемещения блока' [true] (Issue-19)
-   + Опция - Скорость перемещения при анимации (1-9) [2]
+ * Исправлен баг сохранения настроек (спасибо Silent John за тесты и терпение) (Issue-25)
+ * Исправлен баг добавления в избранное на новом дизайне (Issue-27)
+ + Разная иконка для постов, которые уже в избранном и которые еще можно добавить (Issue-20)
+ + Вывод даты комментария. Только в старом дизайне и только при включенной опции аватаров для старого дизайна (Issue-17)
+ + Опция - "Показывать в коменте его дату" [true] в "Комментарии" > "Создавать аватары для старого дизайна"
+ + Опции теперь чекаются при клике по label'у (Issue-11)
+ + Опция - Анимировать перемещения блока' [true] (Issue-19)
+ + Опция - Скорость перемещения при анимации (1-9) [2]
  1.7.2
-   * Переделал иконки кнопок шары в блоке управления постом (Issue-12)
+ * Переделал иконки кнопок шары в блоке управления постом (Issue-12)
  1.7.1
-   + Тултип на юзере в блоке управления постом (Issue-7)
-   + Опция показывать тултип на юзере в блоке управления [true]
+ + Тултип на юзере в блоке управления постом (Issue-7)
+ + Опция показывать тултип на юзере в блоке управления [true]
  1.7.0 - http://old.reactor.cc/post/3243856
-   + Блок управления постом доступный в любом месте самого поста
-     + Информация (автор, дата)
-     + шары (все что было плюс добавил телеграм)
-     + рейтинг
-     + ссылки
-   Опции
-     + Блок управления постом [true] (Issue-1)
-     + Только в полном посте [false]
-     + Скрывать блок шарных кнопок поста [false]
-     + Скрывать блок рейтинга поста [false]
-     + Верхний стопор для блока внутри поста (px) [10]
-     + Нижний стопор для блока внутри поста (px) [10]
-     + Верхняя позиция на экране (px) [30]
+ + Блок управления постом доступный в любом месте самого поста
+ + Информация (автор, дата)
+ + шары (все что было плюс добавил телеграм)
+ + рейтинг
+ + ссылки
+ Опции
+ + Блок управления постом [true] (Issue-1)
+ + Только в полном посте [false]
+ + Скрывать блок шарных кнопок поста [false]
+ + Скрывать блок рейтинга поста [false]
+ + Верхний стопор для блока внутри поста (px) [10]
+ + Нижний стопор для блока внутри поста (px) [10]
+ + Верхняя позиция на экране (px) [30]
  1.6.7 - http://old.reactor.cc/post/3235468
-   + Показывать в правом баре для лучших коментов [true]
-   + Загружать данные тега для Tooltip'а [true]
-   + Показывать в ленте [true]
-   + Показывать в полном посте [true]
-   + Показывать в правом баре для трендов [true]
-   + Показывать в правом баре для любимых тегов [true]
-   + Показывать в правом баре для интересного [true]
+ + Показывать в правом баре для лучших коментов [true]
+ + Загружать данные тега для Tooltip'а [true]
+ + Показывать в ленте [true]
+ + Показывать в полном посте [true]
+ + Показывать в правом баре для трендов [true]
+ + Показывать в правом баре для любимых тегов [true]
+ + Показывать в правом баре для интересного [true]
  1.6.0 - http://old.reactor.cc/post/3233487
-   + Tooltip'ы для тегов
+ + Tooltip'ы для тегов
  1.5.23
-   * fix таблиц с гифками на олде
-   + версия скрипта в заголовке окна скрипта
+ * fix таблиц с гифками на олде
+ + версия скрипта в заголовке окна скрипта
  1.5.21 - http://old.reactor.cc/post/3151778
-   + fix таблиц на олде
-   * поправлено определение цветовой гаммы страницы
+ + fix таблиц на олде
+ * поправлено определение цветовой гаммы страницы
  1.5.19
-   + user tooltip на лучшем комменте
+ + user tooltip на лучшем комменте
  1.5.18
-   * исправлен регексп определения стиля страницы
+ * исправлен регексп определения стиля страницы
  1.5.17
-   * поддержка сайта old.jr-proxy.com
+ * поддержка сайта old.jr-proxy.com
  1.5.16
-   * опечатки
+ * опечатки
  1.5.15 - http://old.reactor.cc/post/3079550
-   + Скрывать комментарий без возможности просмотра [false]
-   + Показывать в заблокированном комментрарии ник юзера [true]
-   + Удалять пост из ленты полностью [false]
-   + Скрывать пост без возможности просмотра [false]
-   + Показывать в заблокированном посте ник юзера [true]
+ + Скрывать комментарий без возможности просмотра [false]
+ + Показывать в заблокированном комментрарии ник юзера [true]
+ + Удалять пост из ленты полностью [false]
+ + Скрывать пост без возможности просмотра [false]
+ + Показывать в заблокированном посте ник юзера [true]
  1.5.12
-   + Определение логина юзера по ссылке, а не по тексту (в свете Soldat AntiUser)
+ + Определение логина юзера по ссылке, а не по тексту (в свете Soldat AntiUser)
  1.5.11 - http://old.reactor.cc/post/2832945
-   + В Tooltip'е юзера отметка о том Online ли он или нет (красный - нет, зеленый - да)
+ + В Tooltip'е юзера отметка о том Online ли он или нет (красный - нет, зеленый - да)
  1.5.10
-   * Анимация показа/скрытия верхней панели
-   + Опция удаление Share buttons [false]
+ * Анимация показа/скрытия верхней панели
+ + Опция удаление Share buttons [false]
  1.5.8
-   + Теперь работает на странице "Обсуждаемое"
+ + Теперь работает на странице "Обсуждаемое"
  1.5.7 - http://old.reactor.cc/post/2760618
-   + Показывать аватары пользователей в комментариях [true] (ТОЛЬКО СТАРЫЙ ДИЗАЙН)
-   + Показывать аватары только в полном посте [false] (ТОЛЬКО СТАРЫЙ ДИЗАЙН)
-   + Размер показываемых аватаров в пикселях [35] (ТОЛЬКО СТАРЫЙ ДИЗАЙН)
-   + Опция показывать сразу скрытые заминусованные коменты [false]
-   + Опция отмечать раскрытые заминусованные коменты [true]
-   * Поменял жирноту в Tooltip'е юзера
-   * Вернул на гифки линк "Ссылка на гифку" в старом дизайне
-   * мелкие исправления
+ + Показывать аватары пользователей в комментариях [true] (ТОЛЬКО СТАРЫЙ ДИЗАЙН)
+ + Показывать аватары только в полном посте [false] (ТОЛЬКО СТАРЫЙ ДИЗАЙН)
+ + Размер показываемых аватаров в пикселях [35] (ТОЛЬКО СТАРЫЙ ДИЗАЙН)
+ + Опция показывать сразу скрытые заминусованные коменты [false]
+ + Опция отмечать раскрытые заминусованные коменты [true]
+ * Поменял жирноту в Tooltip'е юзера
+ * Вернул на гифки линк "Ссылка на гифку" в старом дизайне
+ * мелкие исправления
  1.5.0 - http://old.reactor.cc/post/2611233
-   + В Tooltip'е юзера информация модератор ли
-   + В Tooltip'е юзера информация из блока "Профиль"
+ + В Tooltip'е юзера информация модератор ли
+ + В Tooltip'е юзера информация из блока "Профиль"
  1.4.11
-   * разрешил уменьшение комментариев для хрома
-   * обработка редиректных ссылок везде, а не только в посте
+ * разрешил уменьшение комментариев для хрома
+ * обработка редиректных ссылок везде, а не только в посте
  1.4.10
-   * при сворачивании к паренту (collapseToParent) не учитывалось текущее состояние ветвей и
-     некотрые ветви разворачивались если были свернуты
+ * при сворачивании к паренту (collapseToParent) не учитывалось текущее состояние ветвей и
+ некотрые ветви разворачивались если были свернуты
  1.4.9 - http://old.reactor.cc/post/2536817
-   + добавлен новый адрес на котором работает скрипт - jr-proxy.com
-   + свернуть/развернуть все комментарии
-   + раскрытие редиректных ссылок. опция - [true]
-   + опция уменьшать комментарии только в полном посте [false]
+ + добавлен новый адрес на котором работает скрипт - jr-proxy.com
+ + свернуть/развернуть все комментарии
+ + раскрытие редиректных ссылок. опция - [true]
+ + опция уменьшать комментарии только в полном посте [false]
  1.4.3
-   + Уменьшение комментариев при раскрытии их в ленте (кроме хрома)
-   * мелкие исправления
+ + Уменьшение комментариев при раскрытии их в ленте (кроме хрома)
+ * мелкие исправления
  1.4.0 - http://old.reactor.cc/post/2527831
-   + Уменьшение больших комментариев (опционально)
-   + Новые опции
-   - Уменьшать большие комментарии [true]
-   - Уменьшать если размер больше (px) [110]
-   - Уменьшать до (px) [72]
+ + Уменьшение больших комментариев (опционально)
+ + Новые опции
+ - Уменьшать большие комментарии [true]
+ - Уменьшать если размер больше (px) [110]
+ - Уменьшать до (px) [72]
  1.3.18
-   + Диалог настроек закрывается при нажатии "сохранить"
+ + Диалог настроек закрывается при нажатии "сохранить"
  1.3.17 - http://old.reactor.cc/post/2524192
-   + опция "Убирать цветовую отметку донатера" в тултипах [false]
-   + опция при каком количестве медальки скрывать [60] (0 - показывать все)
-   * опция сколько показывать, если скрывать  [40]
-   * добавлены кнопки в GUI настроек
-   - Отправить мне персональное сообщение
-   - Удалить все сохраненные данные
-   - Настройки по умолчанию
-   * поправлены медальки в тултипе
-   + дерево комментариев теперь строится также и в старом дизайне при разворачивании коментов в ленте
-   + для комментариев маленькая кнопка collapseToParent при отсутствии большой collapseNode рисуется выше
-   * поправлена высота ника в тултипе
-   * мелкие исправления
+ + опция "Убирать цветовую отметку донатера" в тултипах [false]
+ + опция при каком количестве медальки скрывать [60] (0 - показывать все)
+ * опция сколько показывать, если скрывать  [40]
+ * добавлены кнопки в GUI настроек
+ - Отправить мне персональное сообщение
+ - Удалить все сохраненные данные
+ - Настройки по умолчанию
+ * поправлены медальки в тултипе
+ + дерево комментариев теперь строится также и в старом дизайне при разворачивании коментов в ленте
+ + для комментариев маленькая кнопка collapseToParent при отсутствии большой collapseNode рисуется выше
+ * поправлена высота ника в тултипе
+ * мелкие исправления
  1.3.6 - http://old.reactor.cc/post/2514832
-   + сворачивание комментариев наверх к паренту
-   * не блокировался юзер в комментариях при раскрытии их в ленте в новом дизайне
+ + сворачивание комментариев наверх к паренту
+ * не блокировался юзер в комментариях при раскрытии их в ленте в новом дизайне
  1.3.2 - http://old.reactor.cc/post/2513114
-   + отправка сообщения пользователю из tooltip'а
-   + возможность ограничить количество сразу выводимых в tooltip'е медалек
-   + плавающая верхняя панель в новой дизайне
-   + автоматическая отметка комментариев как прочитанных при сворачивании ветки
-   + настройки сохраняются для каждого пользователя реактора отдельно
-   + добавлены опции для настройки работы скрипта
-   - создавать ли дерево комментариев [true]
-   - дерево комментариев только для полного поста (в ленте при раскрытии не будет создаваться) [false]
-   - когда ветка комментариев сворачивается все дочерние коменты помечаются прочитанными [true]
-   - загружать ли данные пользователя для Tooltip'а [true]
-   - сколько медалек показывать при загрузке [40] (0 - все)
-   - зафиксировать верхнюю панель наверху окна (только новый дизайн) [true]
-   - скрывать зафиксированную верхнюю панель (только новый дизайн) [true]
-   - показывать Tooltip'ы в ленте [true]
-   - показывать Tooltip'ы в комментариях [true]
-   - показывать Tooltip'ы на странице ПМ [true]
-   - показывать Tooltip'ы на странице Люди [true]
-   - показывать Tooltip'ы в правом баре для юзеров топа [true]
-   - показывать Tooltip'ы в правом баре для аватарок [true]
-   * мелкие исправления
+ + отправка сообщения пользователю из tooltip'а
+ + возможность ограничить количество сразу выводимых в tooltip'е медалек
+ + плавающая верхняя панель в новой дизайне
+ + автоматическая отметка комментариев как прочитанных при сворачивании ветки
+ + настройки сохраняются для каждого пользователя реактора отдельно
+ + добавлены опции для настройки работы скрипта
+ - создавать ли дерево комментариев [true]
+ - дерево комментариев только для полного поста (в ленте при раскрытии не будет создаваться) [false]
+ - когда ветка комментариев сворачивается все дочерние коменты помечаются прочитанными [true]
+ - загружать ли данные пользователя для Tooltip'а [true]
+ - сколько медалек показывать при загрузке [40] (0 - все)
+ - зафиксировать верхнюю панель наверху окна (только новый дизайн) [true]
+ - скрывать зафиксированную верхнюю панель (только новый дизайн) [true]
+ - показывать Tooltip'ы в ленте [true]
+ - показывать Tooltip'ы в комментариях [true]
+ - показывать Tooltip'ы на странице ПМ [true]
+ - показывать Tooltip'ы на странице Люди [true]
+ - показывать Tooltip'ы в правом баре для юзеров топа [true]
+ - показывать Tooltip'ы в правом баре для аватарок [true]
+ * мелкие исправления
  1.2.3
-   - некоторый фунционал был удален
-   Если вы обнаружили его недостачу и он вам нужен - пишите ПМ
+ - некоторый фунционал был удален
+ Если вы обнаружили его недостачу и он вам нужен - пишите ПМ
  1.2.2
-   * добавиил tooltip'ы на:
-   - страница личных сообщений
-   - страница люди
-   - топы в правой колонке
-   - на авах в правой колонке
-   * мелкие исправления
+ * добавиил tooltip'ы на:
+ - страница личных сообщений
+ - страница люди
+ - топы в правой колонке
+ - на авах в правой колонке
+ * мелкие исправления
  1.2.0 - http://old.reactor.cc/post/2504300
-   + просмотр информации по пользователю при наведении мыши на его ник
-   + возможность добавить в друзья, заблокировать пользователя из tooltip'а
-   * мелкие исправления
+ + просмотр информации по пользователю при наведении мыши на его ник
+ + возможность добавить в друзья, заблокировать пользователя из tooltip'а
+ * мелкие исправления
  1.1.3
-   * в хроме на новом дизайне не строилось дерево комментариев при раскрытии их в ленте
-   * по той же причине не блокировались комментарии пользователей
+ * в хроме на новом дизайне не строилось дерево комментариев при раскрытии их в ленте
+ * по той же причине не блокировались комментарии пользователей
  1.1.0 - http://old.reactor.cc/post/2497823
-   + GUI для настройки JRAS
-   * не блокировались теги на новом дизайне
+ + GUI для настройки JRAS
+ * не блокировались теги на новом дизайне
  1.0.6
-   * в список заблокированных тегов, котрый выводится при блокировке поста
-     могло попасть содержимое поста, а не только теги
+ * в список заблокированных тегов, котрый выводится при блокировке поста
+ могло попасть содержимое поста, а не только теги
  1.0.5
-   * в случае нахождения блокированного юзера в коментах, мог быть заблокирован пост
+ * в случае нахождения блокированного юзера в коментах, мог быть заблокирован пост
  1.0.2
-   * Не работал в хроме из-за неверного определения адреса документа
+ * Не работал в хроме из-за неверного определения адреса документа
  1.0.0 - http://old.reactor.cc/post/2485300
-   + release
+ + release
+
  */
 
 (function(win){
@@ -256,6 +257,7 @@ const JRAS_CurrVersion = '1.9.1';
 
   const lng = new LanguageData();
   const page = new PageData();
+  let lazyLoadQueue = [];
 
   const userOptions = initOptions();
   userOptions.loadUserData(page.currentUser);
@@ -279,12 +281,14 @@ const JRAS_CurrVersion = '1.9.1';
       makeAvatarOnOldDesign();
     }
 
-    userRemove(userOptions.data.BlockUsers);
-    tagRemove(userOptions.data.BlockTags, true);
+    userRemove(null, userOptions.data.BlockUsers);
+    tagRemove(null, userOptions.data.BlockTags, true);
 
     subscribeShowComment();
 
     dynamicStyle();
+
+    ActivateLazyLoad();
 
   }catch(err){
     win.console.log("~~JRAS_ERROR: " + err + ' (line ' + (err.lineNumber || '') + ')')
@@ -298,455 +302,332 @@ const JRAS_CurrVersion = '1.9.1';
     const retVal = {
       data: {
         currentLng: {
-          dt: null,
-          def: 'ru',
-          type: 'combobox',
+          dt: null, def: 'ru', type: 'combobox',
           init: function(){this.dt = this.def},
           guiDesc: function(){return lng.getVal('JRAS_GUI_SELECTLANGUAGE')},
           values: function(){return lng.getLangs()}
         },
         correctRedirectLink: {
-          dt: null,
-          def: true,
-          type: 'checkbox',
+          dt: null, def: true, type: 'checkbox',
           init: function(){this.dt = this.def},
           guiDesc: function(){return lng.getVal('JRAS_GUI_CORRECTREDIRECTLINK')}
         },
         removeShareButtons: {
-          dt: null,
-          def: false,
-          type: 'checkbox',
+          dt: null, def: false, type: 'checkbox',
           init: function(){this.dt = this.def},
           guiDesc: function(){return lng.getVal('JRAS_GUI_REMOVESHAREBUTTONS')}
         },
         makeAvatarOnOldDesign: {
-          dt: null,
-          def: true,
-          type: 'checkbox',
+          dt: null, def: true, type: 'checkbox',
           init: function(){this.dt = this.def},
           guiDesc: function(){return lng.getVal('JRAS_GUI_MAKEAVATARONOLDDESIGN')}
         },
         makeAvatarOnlyFullPost: {
-          dt: null,
-          def: false,
-          type: 'checkbox',
+          dt: null, def: false, type: 'checkbox',
           init: function(){this.dt = this.def},
           guiDesc: function(){ return lng.getVal('JRAS_GUI_MAKEAVATARONLYFULLPOST')}
         },
         avatarHeight: {
-          dt: null,
-          def: 35,
-          type: 'number',
-          min: 5,
-          max: 300,
+          dt: null, def: 35, type: 'number', min: 5, max: 300,
           init: function(){this.dt = this.def},
           validator: function(val){return $.isNumeric(val) && val >= this.min && val <= this.max},
           guiDesc: function(){return lng.getVal('JRAS_GUI_AVATARHEIGHT')}
         },
         makeTreeComments: {
-          dt: null,
-          def: true,
-          type: 'checkbox',
+          dt: null, def: true, type: 'checkbox',
           init: function(){this.dt = this.def},
           guiDesc: function(){return lng.getVal('JRAS_GUI_MAKETREECOMMENTS')}
         },
         treeCommentsOnlyFullPost: {
-          dt: null,
-          def: false,
-          type: 'checkbox',
+          dt: null, def: false, type: 'checkbox',
           init: function(){this.dt = this.def},
           guiDesc: function(){return lng.getVal('JRAS_GUI_TREECOMMENTSONLYFULLPOST')}
         },
         whenCollapseMakeRead: {
-          dt: null,
-          def: true,
-          type: 'checkbox',
+          dt: null, def: true, type: 'checkbox',
           init: function(){this.dt = this.def},
           guiDesc: function(){return lng.getVal('JRAS_GUI_WHENCOLLAPSEMAKEREAD')}
         },
         isToBeLoadingUserData: {
-          dt: null,
-          def: true,
-          type: 'checkbox',
+          dt: null, def: true, type: 'checkbox',
           init: function(){this.dt = this.def},
           guiDesc: function(){return lng.getVal('JRAS_GUI_ISTOBELOADINGUSERDATA')}
         },
         hideUserAwardsWhen: {
-          dt: null,
-          def: 60,
-          type: 'combobox',
+          dt: null, def: 60, type: 'combobox',
           init: function(){this.dt = this.def},
           guiDesc: function(){return lng.getVal('JRAS_GUI_HIDEUSERAWARDSWHEN')},
-          values: function(){
-            const retVal = {};
-            for(let i = 0; i < 101; i += 5){
-              if (i != 0 && i < 20){continue}
-              retVal[i] = i;
-            }
-            return retVal;
-          }
+          values: function(){const retVal = {}; for(let i = 0; i < 101; i += 5){ if (i != 0 && i < 20){continue} retVal[i] = i; } return retVal; }
         },
         minShowUserAwards: {
-          dt: null,
-          def: 40,
-          type: 'combobox',
+          dt: null, def: 40, type: 'combobox',
           init: function(){this.dt = this.def},
           guiDesc: function(){return lng.getVal('JRAS_GUI_MINSHOWUSERAWARDS')},
-          values: function(){
-            const retVal = {};
-            for(let i = 10; i < 101; i += 10){ retVal[i] = i }
-            return retVal;
-          }
+          values: function(){const retVal = {}; for(let i = 10; i < 101; i += 10){ retVal[i] = i } return retVal;}
         },
         fixedTopbar: {
-          dt: null,
-          def: true,
-          type: 'checkbox',
+          dt: null, def: true, type: 'checkbox',
           init: function(){this.dt = this.def},
           guiDesc: function(){return lng.getVal('JRAS_GUI_FIXEDTOPBAR')}
         },
         hideFixedTopbar: {
-          dt: null,
-          def: true,
-          type: 'checkbox',
+          dt: null, def: true, type: 'checkbox',
           init: function(){this.dt = this.def},
           guiDesc: function(){return lng.getVal('JRAS_GUI_HIDEFIXEDTOPBAR')}
         },
         showUTOnLine: {
-          dt: null,
-          def: true,
-          type: 'checkbox',
+          dt: null, def: true, type: 'checkbox',
           init: function(){this.dt = this.def},
           guiDesc: function(){return lng.getVal('JRAS_GUI_SHOWUTONLINE')}
         },
         showUTOnComment: {
-          dt: null,
-          def: true,
-          type: 'checkbox',
+          dt: null, def: true, type: 'checkbox',
           init: function(){this.dt = this.def},
           guiDesc: function(){return lng.getVal('JRAS_GUI_SHOWUTONCOMMENT')}
         },
         showUTOnPrivateMess: {
-          dt: null,
-          def: true,
-          type: 'checkbox',
+          dt: null, def: true, type: 'checkbox',
           init: function(){this.dt = this.def},
           guiDesc: function(){return lng.getVal('JRAS_GUI_SHOWUTONPRIVATEMESS')}
         },
         showUTOnPeople: {
-          dt: null,
-          def: true,
-          type: 'checkbox',
+          dt: null, def: true, type: 'checkbox',
           init: function(){this.dt = this.def},
           guiDesc: function(){return lng.getVal('JRAS_GUI_SHOWUTONPEOPLE')}
         },
         showUTOnSidebarTopUsers: {
-          dt: null,
-          def: true,
-          type: 'checkbox',
+          dt: null, def: true, type: 'checkbox',
           init: function(){this.dt = this.def},
           guiDesc: function(){return lng.getVal('JRAS_GUI_SHOWUTONSIDEBARTOPUSERS')}
         },
         showUTOnTopComments: {
-          dt: null,
-          def: true,
-          type: 'checkbox',
+          dt: null, def: true, type: 'checkbox',
           init: function(){this.dt = this.def},
           guiDesc: function(){return lng.getVal('JRAS_GUI_SHOWUTONTOPCOMMENTS')}
         },
         showUTOnSidebarOnline: {
-          dt: null,
-          def: true,
-          type: 'checkbox',
+          dt: null, def: true, type: 'checkbox',
           init: function(){this.dt = this.def},
           guiDesc: function(){return lng.getVal('JRAS_GUI_SHOWUTONSIDEBARONLINE')}
         },
         showUTOnPostControl: {
-          dt: null,
-          def: true,
-          type: 'checkbox',
+          dt: null, def: true, type: 'checkbox',
           init: function(){this.dt = this.def},
           guiDesc: function(){return lng.getVal('JRAS_GUI_SHOWUTONPOSTCONTROL')}
         },
         showHiddenComments: {
-          dt: null,
-          def: false,
-          type: 'checkbox',
+          dt: null, def: false, type: 'checkbox',
           init: function(){this.dt = this.def},
           guiDesc: function(){return lng.getVal('JRAS_GUI_SHOWHIDDENCOMMENTS')}
         },
         showHiddenCommentsMark: {
-          dt: null,
-          def: true,
-          type: 'checkbox',
+          dt: null, def: true, type: 'checkbox',
           init: function(){this.dt = this.def},
           guiDesc: function(){return lng.getVal('JRAS_GUI_SHOWHIDDENCOMMENTSMARK')}
         },
         isToBeLoadingTagData: {
-          dt: null,
-          def: true,
-          type: 'checkbox',
+          dt: null, def: true, type: 'checkbox',
           init: function(){this.dt = this.def},
           guiDesc: function(){return lng.getVal('JRAS_GUI_ISTOBELOADINGTAGDATA')}
         },
         showTTOnTrends: {
-          dt: null,
-          def: true,
-          type: 'checkbox',
+          dt: null, def: true, type: 'checkbox',
           init: function(){this.dt = this.def},
           guiDesc: function(){return lng.getVal('JRAS_GUI_SHOWTTONTRENDS')}
         },
         showTTOnLikeTags: {
-          dt: null,
-          def: true,
-          type: 'checkbox',
+          dt: null, def: true, type: 'checkbox',
           init: function(){this.dt = this.def},
           guiDesc: function(){return lng.getVal('JRAS_GUI_SHOWTTONLIKETAGS')}
         },
         showTTOnInteresting: {
-          dt: null,
-          def: true,
-          type: 'checkbox',
+          dt: null, def: true, type: 'checkbox',
           init: function(){this.dt = this.def},
           guiDesc: function(){return lng.getVal('JRAS_GUI_SHOWTTONINTERESTING')}
         },
         showTTOnLine: {
-          dt: null,
-          def: true,
-          type: 'checkbox',
+          dt: null, def: true, type: 'checkbox',
           init: function(){this.dt = this.def},
           guiDesc: function(){return lng.getVal('JRAS_GUI_SHOWTTONLINE')}
         },
         showTTFullPost: {
-          dt: null,
-          def: true,
-          type: 'checkbox',
+          dt: null, def: true, type: 'checkbox',
           init: function(){this.dt = this.def},
           guiDesc: function(){return lng.getVal('JRAS_GUI_SHOWTTFULLPOST')}
         },
         delUserComment: {
-          dt: null,
-          def: false,
-          type: 'checkbox',
+          dt: null, def: false, type: 'checkbox',
           init: function(){this.dt = this.def},
           guiDesc: function(){return lng.getVal('JRAS_GUI_DELUSERCOMMENT')}
         },
         showUserNameDelComment: {
-          dt: null,
-          def: true,
-          type: 'checkbox',
+          dt: null, def: true, type: 'checkbox',
           init: function(){this.dt = this.def},
           guiDesc: function(){return lng.getVal('JRAS_GUI_SHOWUSERNAMEDELCOMMENT')}
         },
         fullDelUserPost: {
-          dt: null,
-          def: false,
-          type: 'checkbox',
+          dt: null, def: false, type: 'checkbox',
           init: function(){this.dt = this.def},
           guiDesc: function(){return lng.getVal('JRAS_GUI_FULLDELUSERPOST')}
         },
         delUserPost: {
-          dt: null,
-          def: false,
-          type: 'checkbox',
+          dt: null, def: false, type: 'checkbox',
           init: function(){this.dt = this.def},
           guiDesc: function(){return lng.getVal('JRAS_GUI_DELUSERPOST')}
         },
         showUserNameDelPost: {
-          dt: null,
-          def: true,
-          type: 'checkbox',
+          dt: null, def: true, type: 'checkbox',
           init: function(){this.dt = this.def},
           guiDesc: function(){return lng.getVal('JRAS_GUI_SHOWUSERNAMEDELPOST')}
         },
         chatlaneToPacaki: {   // Убирать цветовую отметку донатера
-          dt: null,
-          def: false,
-          type: 'checkbox',
+          dt: null, def: false, type: 'checkbox',
           init: function(){this.dt = this.def},
           guiDesc: function(){return lng.getVal('JRAS_GUI_CHATLANETOPACAKI')}
         },
         collapseComments: {
-          dt: null,
-          def: false,
-          type: 'checkbox',
+          dt: null, def: false, type: 'checkbox',
           init: function(){this.dt = this.def},
           guiDesc: function(){return lng.getVal('JRAS_GUI_COLLAPSECOMMENTS')}
         },
         collapseCommentsOnlyFullPost: {
-          dt: null,
-          def: false,
-          type: 'checkbox',
+          dt: null, def: false, type: 'checkbox',
           init: function(){this.dt = this.def},
           guiDesc: function(){return lng.getVal('JRAS_GUI_COLLAPSECOMMENTSONLYFULLPOST')}
         },
         collapseCommentWhenSize: {
-          dt: null,
-          def: 110,
-          type: 'number',
-          min: 20,
-          max: 10000,
+          dt: null, def: 110, type: 'number', min: 20, max: 10000,
           init: function(){this.dt = this.def},
           validator: function(val){return $.isNumeric(val) && val >= this.min && val <= this.max},
           guiDesc: function(){return lng.getVal('JRAS_GUI_COLLAPSECOMMENTWHENSIZE')}
         },
         collapseCommentToSize: {
-          dt: null,
-          def: 72,
-          type: 'number',
-          min: 20,
-          max: 10000,
+          dt: null, def: 72, type: 'number', min: 20, max: 10000,
           init: function(){this.dt = this.def},
           validator: function(val){return $.isNumeric(val) && val >= this.min && val <= this.max},
           guiDesc: function(){return lng.getVal('JRAS_GUI_COLLAPSECOMMENTTOSIZE')}
         },
         pcbShowPostControl: {
-          dt: null,
-          def: true,
-          type: 'checkbox',
+          dt: null, def: true, type: 'checkbox',
           init: function(){this.dt = this.def},
           guiDesc: function(){return lng.getVal('JRAS_GUI_PCBSHOWPOSTCONTROL')}
         },
         pcbShowInFullPost: {
-          dt: null,
-          def: false,
-          type: 'checkbox',
+          dt: null, def: false, type: 'checkbox',
           init: function(){this.dt = this.def},
           guiDesc: function(){return lng.getVal('JRAS_GUI_PCBSHOWINFULLPOST')}
         },
         pcbHideJRShareBlock: {
-          dt: null,
-          def: false,
-          type: 'checkbox',
+          dt: null, def: false, type: 'checkbox',
           init: function(){this.dt = this.def},
           guiDesc: function(){return lng.getVal('JRAS_GUI_PCBHIDEJRSHAREBLOCK')}
         },
         pcbHideJRRatingBlock: {
-          dt: null,
-          def: false,
-          type: 'checkbox',
+          dt: null, def: false, type: 'checkbox',
           init: function(){this.dt = this.def},
           guiDesc: function(){return lng.getVal('JRAS_GUI_PCBHIDEJRRATINGBLOCK')}
         },
         pcbTopBorder: {
-          dt: null,
-          def: 10,
-          type: 'number',
-          min: 0,
-          max: 200,
+          dt: null, def: 10, type: 'number', min: 0, max: 200,
           init: function(){this.dt = this.def},
           validator: function(val){return $.isNumeric(val) && val >= this.min && val <= this.max},
           guiDesc: function(){return lng.getVal('JRAS_GUI_PCBTOPBORDER')}
         },
         pcbBottomBorder: {
-          dt: null,
-          def: 10,
-          type: 'number',
-          min: 0,
-          max: 200,
+          dt: null, def: 10, type: 'number', min: 0, max: 200,
           init: function(){this.dt = this.def},
           validator: function(val){return $.isNumeric(val) && val >= this.min && val <= this.max},
           guiDesc: function(){return lng.getVal('JRAS_GUI_PCBBOTTOMBORDER')}
         },
         pcbTopScreenPos: {
-          dt: null,
-          def: 30,
-          type: 'number',
-          min: 0,
-          max: 200,
+          dt: null, def: 30, type: 'number', min: 0, max: 200,
           init: function(){this.dt = this.def},
           validator: function(val){return $.isNumeric(val) && val >= this.min && val <= this.max},
           guiDesc: function(){return lng.getVal('JRAS_GUI_PCBTOPSCREENPOS')}
         },
         showCommentDate: {
-          dt: null,
-          def: true,
-          type: 'checkbox',
+          dt: null, def: true, type: 'checkbox',
           init: function(){this.dt = this.def},
           guiDesc: function(){return lng.getVal('JRAS_GUI_SHOWCOMMENTDATE')}
         },
         pcbAnimateMove: {
-          dt: null,
-          def: true,
-          type: 'checkbox',
+          dt: null, def: true, type: 'checkbox',
           init: function(){this.dt = this.def},
           guiDesc: function(){return lng.getVal('JRAS_GUI_PCBANIMATEMOVE')}
         },
         pcbAnimateMoveSpeed: {
-          dt: null,
-          def: 2,
-          type: 'number',
-          min: 1,
-          max: 9,
+          dt: null, def: 2, type: 'number', min: 1, max: 9,
           init: function(){this.dt = this.def},
           validator: function(val){return $.isNumeric(val) && val >= this.min && val <= this.max},
           guiDesc: function(){return lng.getVal('JRAS_GUI_PCBANIMATEMOVESPEED')}
         },
         pcbHideShareButoons: {
-          dt: null,
-          def: false,
-          type: 'checkbox',
+          dt: null, def: false, type: 'checkbox',
           init: function(){this.dt = this.def},
           guiDesc: function(){return lng.getVal('JRAS_GUI_PCBHIDESHAREBUTOONS')}
         },
         stCorrectStyle: {
-          dt: null,
-          def: false,
-          type: 'checkbox',
+          dt: null, def: false, type: 'checkbox',
           init: function(){this.dt = this.def},
           guiDesc: function(){return lng.getVal('JRAS_GUI_STCORRECTSTYLE')}
         },
         stHideSideBar: {
-          dt: null,
-          def: true,
-          type: 'checkbox',
+          dt: null, def: true, type: 'checkbox',
           init: function(){this.dt = this.def},
           guiDesc: function(){return lng.getVal('JRAS_GUI_STHIDESIDEBAR')}
         },
         stStretchContent: {
-          dt: null,
-          def: true,
-          type: 'checkbox',
+          dt: null, def: true, type: 'checkbox',
           init: function(){this.dt = this.def},
           guiDesc: function(){return lng.getVal('JRAS_GUI_STSTRETCHCONTENT')}
         },
         stStretchSize: {
-          dt: null,
-          def: 90,
-          type: 'number',
-          min: 60,
-          max: 100,
+          dt: null, def: 90, type: 'number', min: 60, max: 100,
           init: function(){this.dt = this.def},
           validator: function(val){return $.isNumeric(val) && val >= this.min && val <= this.max},
           guiDesc: function(){return lng.getVal('JRAS_GUI_STSTRETCHSIZE')}
         },
         stSideBarSizeToPage: {
-          dt: null,
-          def: true,
-          type: 'checkbox',
+          dt: null, def: true, type: 'checkbox',
           init: function(){this.dt = this.def},
           guiDesc: function(){return lng.getVal('JRAS_GUI_STSIDEBARSIZETOPAGE')}
         },
         stShowSideBarOnHideContent: {
-          dt: null,
-          def: true,
-          type: 'checkbox',
+          dt: null, def: true, type: 'checkbox',
           init: function(){this.dt = this.def},
           guiDesc: function(){return lng.getVal('JRAS_GUI_STSHOWSIDEBARONHIDECONTENT')}
         },
         stUseDynStyleChanges: {
-          dt: null,
-          def: false,
-          type: 'checkbox',
+          dt: null, def: false, type: 'checkbox',
           init: function(){this.dt = this.def},
           guiDesc: function(){return lng.getVal('JRAS_GUI_STUSEDYNSTYLECHANGES')}
         },
         stCenterContent: {
-          dt: null,
-          def: true,
-          type: 'checkbox',
+          dt: null, def: true, type: 'checkbox',
           init: function(){this.dt = this.def},
           guiDesc: function(){return lng.getVal('JRAS_GUI_STCENTERCONTENT')}
+        },
+        lazyLoadFeed: {
+          dt: null, def: false, type: 'checkbox',
+          init: function(){this.dt = this.def},
+          guiDesc: function(){return lng.getVal('JRAS_GUI_LAZYLOADFEED')}
+        },
+        lazyLoadFeedDelay: {
+          dt: null, def: 2, type: 'number', min: 1, max: 5,
+          init: function(){this.dt = this.def},
+          validator: function(val){return $.isNumeric(val) && val >= this.min && val <= this.max},
+          guiDesc: function(){return lng.getVal('JRAS_GUI_LAZYLOADFEEDDELAY')}
+        },
+        lazyLoadFeedStoredPage: {
+          dt: null, def: 2, type: 'number', min: 1, max: 10,
+          init: function(){this.dt = this.def},
+          validator: function(val){return $.isNumeric(val) && val >= this.min && val <= this.max},
+          guiDesc: function(){return lng.getVal('JRAS_GUI_LAZYLOADFEEDSTOREDPAGE')}
+        },
+        lazyLoadFeedChangeWinUrl: {
+          dt: null, def: true, type: 'checkbox',
+          init: function(){this.dt = this.def},
+          guiDesc: function(){return lng.getVal('JRAS_GUI_LAZYLOADFEEDCHANGEWINURL')}
         },
         BlockUsers: [],
         BlockTags: []
@@ -870,15 +751,15 @@ const JRAS_CurrVersion = '1.9.1';
     return retVal;
   }
 
-  function removeRedirectLink($inElm){
+  function removeRedirectLink($SrcElm){
     if(!userOptions.val('correctRedirectLink')){
       return;
     }
     let $selElmts;
-    if ($inElm === undefined){
-      $selElmts = $(('a[href*="redirect?"]'));
+    if ($SrcElm === undefined){
+      $selElmts = $('body').find('a[href*="redirect?"]')
     } else{
-      $selElmts = $inElm.find('a[href*="redirect?"]');
+      $selElmts = $SrcElm.find('a[href*="redirect?"]');
     }
     $selElmts.each(function(){
       const $currA = $(this);
@@ -892,17 +773,19 @@ const JRAS_CurrVersion = '1.9.1';
     });
   }
 
-  function removeShareButtons(){
+  function removeShareButtons($SrcElm){
     if(!userOptions.val('removeShareButtons')){
       return;
     }
-    removeElementsByClass('a', ['share_vk', 'share_fb', 'share_twitter', 'share_mail']);
+    const $Src = ($SrcElm) ? $SrcElm : $('body');
+    removeElementsByClass($Src, 'a', ['share_vk', 'share_fb', 'share_twitter', 'share_mail']);
   }
 
-  function makeAllTagTooltip(){
+  function makeAllTagTooltip($SrcElm){
     if(!userOptions.val('isToBeLoadingTagData')){
       return;
     }
+    const $Src = ($SrcElm) ? $SrcElm : $('body');
     let sel = [];
     if(userOptions.val('showTTOnLine')){
       sel.push('div.postContainer h2.taglist a');
@@ -922,14 +805,15 @@ const JRAS_CurrVersion = '1.9.1';
       sel.push('div.sidebar_block.blogs_wr > div.sidebarContent > div.blogs > table > tbody > tr > td:nth-child(2) > a');
     }
     if(sel.length != 0){
-      makeTagTooltips(sel.join(', '));
+      makeTagTooltips($Src, sel.join(', '));
     }
   }
 
-  function makeAllUserTooltip(){
+  function makeAllUserTooltip($SrcElm){
     if(!userOptions.val('isToBeLoadingUserData')){
       return;
     }
+    const $Src = ($SrcElm) ? $SrcElm : $('body');
     let sel = [];
     sel.push('div.comments_bottom > span >a.comment_username');
     if(userOptions.val('showUTOnLine')){
@@ -954,16 +838,17 @@ const JRAS_CurrVersion = '1.9.1';
       sel.push('div.topComments small > a');
     }
     if(sel.length != 0){
-      makeUserTooltips(sel.join(', '));
+      makeUserTooltips($Src, sel.join(', '));
     }
   }
 
-  function removeElementsByClass(elm, removeClassArr){
+  function removeElementsByClass($SrcElm, elm, removeClassArr){
     if(removeClassArr == null){
       return
     }
+    const $Src = ($SrcElm) ? $SrcElm : $('body');
     for(let i = 0; i < removeClassArr.length; i++){
-      $(elm + '.' + removeClassArr[i]).each(function(){
+      $Src.find(elm).find('.' + removeClassArr[i]).each(function(){
         $(this).remove();
       })
     }
@@ -1001,10 +886,14 @@ const JRAS_CurrVersion = '1.9.1';
     }
   }
 
-  function userRemove(userNameArr){
+  function userRemove($SrcElm, userNameArr){
+    if(userNameArr.length == 0){
+      return;
+    }
     let currentUser;
+    const $Src = ($SrcElm) ? $SrcElm : $('body');
     const blockUsersAsFindStr = 'a:contains(' + userOptions.data.BlockUsers.join('), a:contains(') + ')';
-    $(blockUsersAsFindStr).parent('div.uhead_nick').closest('div.article').each(function(idx, elm){
+    $Src.find(blockUsersAsFindStr).parent('div.uhead_nick').closest('div.article').each(function(idx, elm){
       currentUser = $(this).find(blockUsersAsFindStr).text();
       if(userNameArr.indexOf(currentUser) != -1){
         if (userOptions.val('fullDelUserPost')){
@@ -1017,7 +906,7 @@ const JRAS_CurrVersion = '1.9.1';
         $(this).hide();
       }
     });
-    $(blockUsersAsFindStr).parent('span.reply-link').closest('div[id^=comment_txt_].txt').each(function(idx, elm){
+    $Src.find(blockUsersAsFindStr).parent('span.reply-link').closest('div[id^=comment_txt_].txt').each(function(idx, elm){
       currentUser = $(this).find(blockUsersAsFindStr).text();
       if(userNameArr.indexOf(currentUser) != -1){
         //       $(this).remove(); // для просто удаления. Будет пустой комент
@@ -1029,11 +918,15 @@ const JRAS_CurrVersion = '1.9.1';
     })
   }
 
-  function tagRemove(tagNameArr, strictComp){
+  function tagRemove($SrcElm, tagNameArr, strictComp){
+    if(tagNameArr.length == 0){
+      return;
+    }
+    const $Src = ($SrcElm) ? $SrcElm : $('body');
     const findStr = 'a:contains(' + tagNameArr.join('), a:contains(') + ')';
     //     findStr = ':contains(Anime):not(:contains(Anime Coub))'; // тест варианта условной блокировки
 
-    $('.taglist ' + findStr).closest('div.article').each(function(idx, elm){
+    $Src.find('.taglist ' + findStr).closest('div.article').each(function(idx, elm){
       let foundTagStr = '';
       let validTag = strictComp !== true;
       $(this).find('.taglist').find(findStr).text(function(index, text){
@@ -1163,60 +1056,58 @@ const JRAS_CurrVersion = '1.9.1';
 
   }
 
-  function subscribeShowComment(){
+  function subscribeShowComment($SrcElm){
+    const $Src = ($SrcElm) ? $SrcElm : $('body');
     const observer = new MutationObserver(function(mutations){
       mutations.forEach(function(mutation){
         if (mutation.type === 'childList'){
 
           setTimeout(function(){
+            if (userOptions.val('showUTOnComment')){
+              makeUserTooltips($Src, $(mutation.addedNodes).find('span.reply-link > a:first-child'));
+            }
+            for (let i = 0; i < mutation.addedNodes.length; i++){
+              const itm = mutation.addedNodes[i];
 
-              if (userOptions.val('showUTOnComment')){
-                makeUserTooltips($(mutation.addedNodes).find('span.reply-link > a:first-child'), 'a');
+              removeRedirectLink($(itm));
+              showHiddenComments($(itm));
+
+              if (userOptions.val('collapseComments')
+                && !userOptions.val('collapseCommentsOnlyFullPost')
+              //&& !page.isChrome // в хроме не работает. Не хочу разбираться возвращает хз какой height
+              ){
+                $(itm).find('div[id^=comment].comment>div[id^=comment_txt_].txt').each(function(idx, elm){
+                  makeCommentSizer(elm);
+                })
               }
-              for (let i = 0; i < mutation.addedNodes.length; i++){
-                const itm = mutation.addedNodes[i];
 
-                removeRedirectLink($(itm));
-                showHiddenComments($(itm));
-
-                if (userOptions.val('collapseComments')
-                  && !userOptions.val('collapseCommentsOnlyFullPost')
-                //&& !page.isChrome // в хроме не работает. Не хочу разбираться возвращает хз какой height
-                ){
-                  $(itm).find('div[id^=comment].comment>div[id^=comment_txt_].txt').each(function(idx, elm){
-                    makeCommentSizer(elm);
-                  })
-                }
-
-                if ($(itm).is('div[id^=comment_list_post].comment_list_post')){
-                  $(itm).find('div[id^=comment].comment').each(function(idx, elm){
-                    if (userOptions.val('makeTreeComments') && !userOptions.val('treeCommentsOnlyFullPost')){
-                      makeTreeCommentNode(elm, elm.id.replace('comment', ''));
-                    }
-                    if (userOptions.val('makeAvatarOnOldDesign') && !userOptions.val('makeAvatarOnlyFullPost')){
-                      makeAvatarOnOldDesign(elm);
-                    }
-                  })
-                }
-                const blockUsersAsFindStr = 'a:contains(' + userOptions.data.BlockUsers.join('), a:contains(') + ')';
-                $(itm).find(blockUsersAsFindStr).closest('div[id^=comment_txt_].txt').each(function(idx, elm){
-                  const currUser = $.trim($(this).find(blockUsersAsFindStr).text());
-                  if (userOptions.data.BlockUsers.indexOf(currUser) != -1){
-                    makeBlockCommElements(elm, elm.parentElement.id, lng.getVal('JRAS_COMMBLOCKBYUSER'), currUser);
-                    $(this).hide();
+              if ($(itm).is('div[id^=comment_list_post].comment_list_post')){
+                $(itm).find('div[id^=comment].comment').each(function(idx, elm){
+                  if (userOptions.val('makeTreeComments') && !userOptions.val('treeCommentsOnlyFullPost')){
+                    makeTreeCommentNode(elm, elm.id.replace('comment', ''));
+                  }
+                  if (userOptions.val('makeAvatarOnOldDesign') && !userOptions.val('makeAvatarOnlyFullPost')){
+                    makeAvatarOnOldDesign(elm);
                   }
                 })
               }
-              correctPageHeight();
-            }, 10
-          );
-
+              const blockUsersAsFindStr = 'a:contains(' + userOptions.data.BlockUsers.join('), a:contains(') + ')';
+              $(itm).find(blockUsersAsFindStr).closest('div[id^=comment_txt_].txt').each(function(idx, elm){
+                const currUser = $.trim($(this).find(blockUsersAsFindStr).text());
+                if (userOptions.data.BlockUsers.indexOf(currUser) != -1){
+                  makeBlockCommElements(elm, elm.parentElement.id, lng.getVal('JRAS_COMMBLOCKBYUSER'), currUser);
+                  $(this).hide();
+                }
+              })
+            }
+            correctPageHeight();
+          }, 10);
 
         }
       });
     });
 
-    $('div.post_comment_list').each(function(idx, elm){
+    $Src.find('div.post_comment_list').each(function(idx, elm){
       observer.observe(elm, {
         characterData: true,
         childList: true,
@@ -1415,8 +1306,9 @@ const JRAS_CurrVersion = '1.9.1';
     }
   }
 
-  function correctPostDate(){
-    const $spanDate = $('body').find('div#contentinner div.article.post-normal div.ufoot span.date');
+  function correctPostDate($SrcElm){
+    const $Src = ($SrcElm) ? $SrcElm : $('body');
+    const $spanDate = $Src.find('div#contentinner div.article.post-normal div.ufoot span.date');
     const reconnect = function($th, observe){
       observe.observe($th.get(0), {subtree: true, attributes: true, childList: true});
     };
@@ -1440,8 +1332,9 @@ const JRAS_CurrVersion = '1.9.1';
     return (ret == undefined) ? '' : ret[0];
   }
 
-  function makePostControls(){
+  function makePostControls($SrcElm){
     if (!userOptions.val('pcbShowPostControl')) {return}
+    const $Src = ($SrcElm) ? $SrcElm : $('body');
     const step = 25;
     const itmHeight = (page.isNewDesign) ? 24 : 16;
     const itmContentPos = itmHeight + 5;
@@ -1560,11 +1453,11 @@ const JRAS_CurrVersion = '1.9.1';
           $pcLinks.append(`<span style="margin-left: ${itmContentPos}px;">`);
           $pcLinks.append(`<s><div class="jras-pcToTop" ${(page.isNewDesign)?'style="margin-top: 2px;"':''}></div></s>`);
           $pcLinks.find('div.jras-pcToTop').click(function(){
-            $('html, body').animate({ scrollTop: $postContainer.offset().top - 50}, 500);
+            $Src.animate({ scrollTop: $postContainer.offset().top - 50}, 500);
           });
           $pcLinks.append(`<s><div class="jras-pcToDown" ${(page.isNewDesign)?'style="margin-top: 2px;"':''}></div></s>`);
           $pcLinks.find('div.jras-pcToDown').click(function(){
-            $('html, body').animate({ scrollTop: $postContainer.offset().top + $postContainer.height() - win.innerHeight + 50}, 500);
+            $Src.animate({ scrollTop: $postContainer.offset().top + $postContainer.height() - win.innerHeight + 50}, 500);
           });
           if (page.isNewDesign){
             $pcLinks.append($postContainer.find('div.ufoot span.link_wr').clone());
@@ -1588,7 +1481,7 @@ const JRAS_CurrVersion = '1.9.1';
             const hidden = $tagEdit.css('display') == 'none';
             $postContainer.find('div.ufoot span.setTag a.link.setTagLink').get(0).click();
             if (hidden){
-              $('html, body').animate({ scrollTop: $tagEdit.offset().top - 150}, 500);
+              $Src.animate({ scrollTop: $tagEdit.offset().top - 150}, 500);
               blinkElement($tagEdit, 5);
             }
           });
@@ -1597,7 +1490,7 @@ const JRAS_CurrVersion = '1.9.1';
             const hidden = $captionEdit.css('display') == 'none';
             $postContainer.find('div.ufoot a.setHeaderLink').get(0).click();
             if (hidden){
-              $('html, body').animate({ scrollTop: $captionEdit.offset().top - 150}, 500);
+              $Src.animate({ scrollTop: $captionEdit.offset().top - 150}, 500);
               blinkElement($captionEdit, 5);
             }
           });
@@ -1614,7 +1507,7 @@ const JRAS_CurrVersion = '1.9.1';
 
     let selector = 'div[id^=postContainer].postContainer';
     if (userOptions.val('pcbShowInFullPost')) {selector = 'div#pageinner div#contentinner > ' + selector}
-    $(selector).each(function(){
+    $Src.find(selector).each(function(){
       const $post = $(this);
       makePostCtrl($post);
       new MutationObserver(function(){ makePostCtrl($post) })
@@ -1622,7 +1515,7 @@ const JRAS_CurrVersion = '1.9.1';
     });
 
     $(window).on('scroll', function(){
-      $('div[id^=postContainer].postContainer').each(function(){
+      $Src.find('div[id^=postContainer].postContainer').each(function(){
         checkPostControlPos($(this));
       });
     });
@@ -1651,6 +1544,143 @@ const JRAS_CurrVersion = '1.9.1';
     $PostCrtlsBlock.css({'top': newTop});
   }
 
+  function ActivateLazyLoad($SrcElm){
+    if (!page.isUserLogon || !userOptions.val('lazyLoadFeed')){ return; }
+
+    let needSetTimerAgain = true;
+    let endlessTimer;
+    const $Src = ($SrcElm) ? $SrcElm : $('body');
+    $(window).on('scroll', function(){
+      const $pag = $Src.find('div#Pagination.pagination:last');
+      const $contentinner = $pag.parent();
+      const pagb = $pag.offset().top + $pag.height();
+      let $endlessTimerElm = $Src.find('div#jras-lazyLoad-timer');
+      const endlessTimerStop = function(){
+        clearTimeout(endlessTimer);
+        $Src.find('div#jras-lazyLoad-timer').remove();
+      };
+      if (pagb > win.pageYOffset + win.innerHeight){
+        endlessTimerStop();
+      }else{
+        if (needSetTimerAgain && $endlessTimerElm.length == 0) {
+          const delay = userOptions.val('lazyLoadFeedDelay');
+          const timeAnim = `<div id="jras-lazyLoad-timer" class="jras-lazyLoad-timer">
+                              <span style="width:100%;"><span class="jras-progress-lazyLoad"/></span>
+                              <div style="position: relative; left: 46%; top: -60px;">
+                                <svg width="60" viewBox="0 0 70 70" xmlns="http://www.w3.org/2000/svg" version="1.1" xmlns:xlink="http://www.w3.org/1999/xlink">
+                                  <g>
+                                    <ellipse cx="35" cy="35" rx="30" ry="30" style="fill:none; stroke-width:1; stroke:blue"></ellipse>
+                                    <line x1="35" y1="5" x2="35" y2="35" style="stroke:rgb(255,0,0);stroke-width:2"></line>
+                                    <animateTransform attributeName="transform" attributeType="XML" type="rotate" from="0 35 35" to="360 35 35" dur="${delay}s" repeatCount="indefinite"></animateTransform>
+                                  </g>  
+                                </svg>
+                              </div>
+                            </div>`;
+          $contentinner.append(timeAnim);
+          correctPageHeight();
+
+          let $endlessTimerElm = $Src.find('div#jras-lazyLoad-timer');
+          $endlessTimerElm.find('span.jras-progress-lazyLoad').css({'background-color': `${!page.isSchemeLight() ? '#383838': '#e4c465'}`,
+            '-webkit-animation': `jras-progress-lazyLoad ${delay}s linear`,
+            '-moz-animation': `jras-progress-lazyLoad ${delay}s linear`
+          });
+          // if($endlessTimerElm.offset().top + $endlessTimerElm.height() < win.pageYOffset){
+          //   $Src.animate({scrollTop: $endlessTimerElm.offset().top + $endlessTimerElm.height() - win.innerHeight}, 100);
+          // }
+          $endlessTimerElm.click(function(){
+            needSetTimerAgain = false;
+            endlessTimerStop();
+          });
+          endlessTimer = setTimeout(function(){
+            needSetTimerAgain = false;
+            endlessTimerStop();
+
+            const nextPageLink = $pag.find('a.next').attr('href');
+            const nextPageNum = nextPageLink.match(/\d+$/g)[0];
+
+            win.console.log(' ================ start JRAS lazyLoadFeed page ' + nextPageNum);
+
+            $contentinner.append(`<div id="jras-lazyLoad-loading-label" class="jras-lazyLoad-loading-label">
+                                    <div style="text-align: center;">
+                                      <t style="font-size: 200%;">Страница <a href="${nextPageLink}">${nextPageNum}</a></t><re><br><tl>loading...</tl></re>
+                                    </div>
+                                  </div>`);
+            const $lazyLoadLoadingLabel = $Src.find('div#jras-lazyLoad-loading-label:last');
+
+            const processRequest = function(e){
+              if (xhr.readyState == 4) {
+                if (e.target.status != 200){
+                  $lazyLoadLoadingLabel.find('tl').text('Loading error: ' + e.target.status);
+                  return;
+                }
+                $lazyLoadLoadingLabel.find('tl').text('JRAS parsing...');
+
+                lazyLoadQueue.push($Src.find('div#Pagination.pagination:last').parent().children().slice(1)
+                  .not('form#add_post, div#add_post_uploading, div#add_post_duplicate, div#showCreatePost, div#add_post_holder'));
+                if (lazyLoadQueue.length > userOptions.val('lazyLoadFeedStoredPage')){
+                  lazyLoadQueue.shift().remove();
+                }
+
+                setTimeout(function(){
+                  const doc = document.implementation.createHTMLDocument("");
+                  doc.documentElement.innerHTML = e.target.response;
+
+                  $contentinner.append($(doc).find('body').find('div#Pagination.pagination:last').parent().children().slice(1).clone(true, true));
+                  const $SrcElm = $('div#post_list:last, div#Pagination.pagination:last');
+                  try{
+                    correctPostDate($SrcElm);
+                    makeAllUserTooltip($SrcElm);
+                    makeAllTagTooltip($SrcElm);
+                    makePostControls($SrcElm);
+                    removeRedirectLink($SrcElm);
+                    removeShareButtons($SrcElm);
+                    userRemove($SrcElm, userOptions.data.BlockUsers);
+                    tagRemove($SrcElm, userOptions.data.BlockTags, true);
+                    subscribeShowComment($SrcElm);
+                    ActivateLazyLoad($SrcElm);
+
+                    $pag.remove();
+                    $lazyLoadLoadingLabel.find('re').remove();
+                    $lazyLoadLoadingLabel.css({'background-color': `${!page.isSchemeLight() ? '#383838': '#e4c465'}`});
+
+                    correctPageHeight();
+
+                    if (userOptions.val('lazyLoadFeedChangeWinUrl')){
+                      if (typeof(history.pushState) != "undefined"){
+                        const orUrl = decodeURIComponent(window.location.href);
+                        let url = orUrl.match(/\d+$/g);
+                        url = (url == undefined)
+                          ? orUrl + '/' + nextPageNum
+                          : orUrl.replace(url[0], nextPageNum);
+                        const obj ={Page: 'JoyReactor - page ' + nextPageNum,
+                          Url: url};
+                        history.pushState(obj, obj.Page, obj.Url);
+                      }
+                    }
+
+                    needSetTimerAgain = true;
+                  }catch(err){
+                    let errStr = err + ' (line ' + (err.lineNumber || '') + ')';
+                    win.console.log("~~JRAS_ERROR in lazyLoadFeed: " + errStr);
+                    $lazyLoadLoadingLabel.find('tl').text('lazyLoadFeed error: ' + errStr);
+                  }
+                  win.console.log(' ================ end JRAS lazyLoadFeed');
+                },100);
+
+              }
+            };
+
+            const xhr = new XMLHttpRequest();
+            xhr.open("GET", nextPageLink, true);
+            xhr.onreadystatechange = processRequest;
+            xhr.send();
+
+          }, delay * 1000);
+        }
+      }
+    });
+  }
+
   function HttpRequest(link, onload){
     const xhr = new XMLHttpRequest();
     xhr.onload = onload;
@@ -1664,22 +1694,22 @@ const JRAS_CurrVersion = '1.9.1';
       const ct = t.text();
       t.text(ct + ' : wait');
       HttpRequest(eventObject.data.clickLink, function(e){
-          if(e.target.status != 200){
-            t.text(ct + ' : error: ' + e.target.status);
-          }else{
-            t.text(ct + ' : ok');
-          }
-          eventObject.data.updateContainer
-            .css('cursor', '')
-            .removeClass('jras-tooltip-button')
-            .unbind(eventObject);
+        if(e.target.status != 200){
+          t.text(ct + ' : error: ' + e.target.status);
+        }else{
+          t.text(ct + ' : ok');
         }
-      );
+        eventObject.data.updateContainer
+          .css('cursor', '')
+          .removeClass('jras-tooltip-button')
+          .unbind(eventObject);
+      });
     });
   }
 
-  function makeTooltips(selector, openCallBack){
-    $(selector).tooltip({
+  function makeTooltips($SrcElm, selector, openCallBack){
+    const $Src = ($SrcElm) ? $SrcElm : $('body');
+    $Src.find(selector).tooltip({
       items: 'a',
       content: function(){
         return '<div id="jras-tooltipcontainer"' +
@@ -1722,8 +1752,8 @@ const JRAS_CurrVersion = '1.9.1';
     }
   }
 
-  function makeTagTooltips(selector){
-    makeTooltips(selector, function(event, ui){
+  function makeTagTooltips($SrcElm, selector){
+    makeTooltips($SrcElm, selector, function(event, ui){
       const $item = $(event.target);
       const TagName = $.trim($item.text());
       const TagLink = $item.attr('href');
@@ -1745,7 +1775,6 @@ const JRAS_CurrVersion = '1.9.1';
   function getTagData(tagName, tagLink, $tooltip, $outContainer){
     setTooltipBounds($tooltip, {width: defLoadTooltipSize});
     HttpRequest(tagLink, function(e){
-      win.console.log(e);
       if(e.target.status != 200){
         $outContainer.text('Loading error: ' + e.target.status);
       }else{
@@ -1903,9 +1932,9 @@ const JRAS_CurrVersion = '1.9.1';
     })
   }
 
-  function makeUserTooltips(selector){
+  function makeUserTooltips($SrcElm, selector){
     if(!userOptions.val('isToBeLoadingUserData')){ return }
-    makeTooltips(selector, function(event, ui){
+    makeTooltips($SrcElm, selector, function(event, ui){
       const $item = $(event.target);
       const UserName = $.trim($item.text());
       const UserLink = $item.attr('href');
@@ -2295,6 +2324,7 @@ const JRAS_CurrVersion = '1.9.1';
 
   function addNewCSSClasses(){
     newCssClass(`
+
     	.video_gif_source{
         top: 0;
         right: 0;
@@ -2305,6 +2335,7 @@ const JRAS_CurrVersion = '1.9.1';
       .video_gif_holder:hover .video_gif_source{
         display: block;
       } 
+
      /* для старого дизайна */
       .treeCross-old{
         float: left;
@@ -2348,6 +2379,7 @@ const JRAS_CurrVersion = '1.9.1';
         width: 100%;
         height: 100%;
       }
+
       /* для нового дизайна */
       .treeCross-new{
         float: left;
@@ -2432,6 +2464,35 @@ const JRAS_CurrVersion = '1.9.1';
         vertical-align: middle;
         display: inline-block;
         line-height: 10px;
+      }
+      #jras-lazyLoad-loading-label{
+        position: relative;
+        height: 60px;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        margin-bottom: 5px;
+      }
+      #jras-lazyLoad-timer {
+        position: relative;
+        overflow: hidden;
+        height: 60px;
+      }
+      #jras-lazyLoad-timer span {
+        display: block;
+        height: 100%;
+      }
+      .jras-progress-lazyLoad {
+        -webkit-animation-fill-mode:both; 
+        -moz-animation-fill-mode:both; 
+      }
+      @-webkit-keyframes jras-progress-lazyLoad {
+        0% { width: 0; }
+        100% { width: 100%; }
+      }
+      @-moz-keyframes jras-progress-lazyLoad {
+        0% { width: 0; }
+        100% { width: 100%; }
       }
       .jras-tooltip-favtag-img {
         background: transparent url("data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAYAAAAf8/9hAAACOUlEQVQ4T6WTu4oaURiAz5kzXmaxUUgR8AKivoGVRcSIQjqJ40SCiqKMRSTISiJGLDRVQFALHRPICAEtBLt0EgttUqdZQt5AXS/MrNHoTJhhV5TVbJFT/9/3Xw8E//ngQ3w+n3eLohgHADw7jOU47geGYe5/CrLZrBvDsB5JkoTFYsEPBblc7s9ms6mcFWQyGTdC6AhuNBq/FQqFGI/HiWKxyPM8f3VSkE6n3RBCGbZarXLm5XIJyuWyaDabV5FI5KJYLHLr9fr6niCVSt2DJcFwOASr1Qp4PB65k1KpxG23W+5IkEgk3DiO9wKBwD7zXd/tdhvY7XZgtVqlaoRKpfITQvh4L4jFYvLATsGShGEYQFEUQAgJLMuu5vN5QaVSFWRBOByWyz4HSzG1Wg0Eg0Gh3W6vFotFYb1eV3U63RQGAgF52hRFETab7WhVh2urVqtgt9txi8Ui3+12q9Fo9JFSqfwO/X7/8iF4NpsJnU4HG4/Hb3u93gdJnEwmXYIgvIY+n28ZCoUuTCYTOnWV0+lUaLVaNxqNZovjuL1er/+6FbwTBOEaer3e50qlkpV2azAYjiQSzLLsDcdxb4xG4xMI4VeGYb6QJIm0Wu0VAOCpPESXy0USBPE5HA4Ter1elkwmkz3c7/cbNE1Toii+lyAMw0KiKBqbzSa9X6PT6XyhVqs/RSIRQqVSwdvMl4PB4ONdazRNlwEArwAA3xBCZL1ePz4kh8PxkiAIBiEEeJ6/HI1Ge/jcr/0L5NPyr4kFGRcAAAAASUVORK5CYII=") no-repeat scroll 0 0;
@@ -2668,7 +2729,9 @@ const JRAS_CurrVersion = '1.9.1';
         margin-top: 4px;
         cursor: pointer;
       }
+
      .jras-tabs-panel-content {padding: 6px 10px;}
+
      #jras-prop-gui-dialog{
        border: 0;
        width: 100%;
@@ -2719,6 +2782,7 @@ const JRAS_CurrVersion = '1.9.1';
        float: right;
        right: 0;
      }
+
       /* Окно настроек  */
       .modal {
         z-index: 1000;
@@ -3098,6 +3162,11 @@ const JRAS_CurrVersion = '1.9.1';
                       ${getHTMLProp('pcbTopScreenPos')} <br>
                       ${getHTMLProp('pcbTopBorder')} <br>
                       ${getHTMLProp('pcbBottomBorder')} </section>  
+                    <section class="jras-prop-gui-section""> ${getHTMLProp('lazyLoadFeed')} </section>   
+                    <section class="jras-prop-gui-section" style="margin-left: 20px; margin-top: -10px;">
+                      ${getHTMLProp('lazyLoadFeedChangeWinUrl')} <br>
+                      ${getHTMLProp('lazyLoadFeedDelay')} <br>
+                      ${getHTMLProp('lazyLoadFeedStoredPage')} </section>  
                   </div>
                 </div>
                 <div id="jras-prop-gui-tab-2" class="jras-tabs-panel">
@@ -3297,9 +3366,16 @@ const JRAS_CurrVersion = '1.9.1';
 
   function PageData(){
     const getColorSchema = function(){ // light or dark
-      let c = $('#background').css('background-color');
-      if (!c){c = $('body').css('background-color')}
-      const rgb = (/^#[0-9A-F]{6}$/i.test(c)) ? c : c.match(/^rgba?\((\d+),\s*(\d+),\s*(\d+)/);
+      let c = $('div#pageinner').css('background-color');
+      let rgb = (/^#[0-9A-F]{6}$/i.test(c)) ? c : c.match(/^rgba?\((\d+),\s*(\d+),\s*(\d+)/);
+      if (!c || (rgb[1] == 0 && rgb[2] == 0 && rgb[3] == 0)){
+        c = $('#background').css('background-color');
+        let rgb = (/^#[0-9A-F]{6}$/i.test(c)) ? c : c.match(/^rgba?\((\d+),\s*(\d+),\s*(\d+)/);
+        if (!c || (rgb[1] == 0 && rgb[2] == 0 && rgb[3] == 0)){
+          c = $('body').css('background-color');
+        }
+      }
+      rgb = (/^#[0-9A-F]{6}$/i.test(c)) ? c : c.match(/^rgba?\((\d+),\s*(\d+),\s*(\d+)/);
       const mono = (rgb !== null)
         ? parseInt((0.2125 * rgb[1]) + (0.7154 * rgb[2]) + (0.0721 * rgb[3]), 10)
         : 0;
@@ -3689,6 +3765,18 @@ const JRAS_CurrVersion = '1.9.1';
     };
     this.JRAS_GUI_STCENTERCONTENT = {
       ru: 'Центровать контент'
+    };
+    this.JRAS_GUI_LAZYLOADFEED = {
+      ru: 'Включить подгрузку следующей страницы'
+    };
+    this.JRAS_GUI_LAZYLOADFEEDDELAY = {
+      ru: 'Задержка перед началом загрузки сек. (1-10)'
+    };
+    this.JRAS_GUI_LAZYLOADFEEDSTOREDPAGE = {
+      ru: 'Оставлять предыдущих страниц (1-10)'
+    };
+    this.JRAS_GUI_LAZYLOADFEEDCHANGEWINURL = {
+      ru: 'Менять строку браузера на текущую страницу'
     };
   }
 
