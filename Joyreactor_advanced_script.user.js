@@ -751,15 +751,15 @@ const JRAS_CurrVersion = '1.9.1';
     return retVal;
   }
 
-  function removeRedirectLink($SrcElm){
+  function removeRedirectLink($srcElm){
     if(!userOptions.val('correctRedirectLink')){
       return;
     }
     let $selElmts;
-    if ($SrcElm === undefined){
+    if ($srcElm === undefined){
       $selElmts = $('body').find('a[href*="redirect?"]')
     } else{
-      $selElmts = $SrcElm.find('a[href*="redirect?"]');
+      $selElmts = $srcElm.find('a[href*="redirect?"]');
     }
     $selElmts.each(function(){
       const $currA = $(this);
@@ -773,19 +773,19 @@ const JRAS_CurrVersion = '1.9.1';
     });
   }
 
-  function removeShareButtons($SrcElm){
+  function removeShareButtons($srcElm){
     if(!userOptions.val('removeShareButtons')){
       return;
     }
-    const $Src = ($SrcElm) ? $SrcElm : $('body');
-    removeElementsByClass($Src, 'a', ['share_vk', 'share_fb', 'share_twitter', 'share_mail']);
+    const $src = ($srcElm) ? $srcElm : $('body');
+    removeElementsByClass($src, 'a', ['share_vk', 'share_fb', 'share_twitter', 'share_mail']);
   }
 
-  function makeAllTagTooltip($SrcElm){
+  function makeAllTagTooltip($srcElm){
     if(!userOptions.val('isToBeLoadingTagData')){
       return;
     }
-    const $Src = ($SrcElm) ? $SrcElm : $('body');
+    const $src = ($srcElm) ? $srcElm : $('body');
     let sel = [];
     if(userOptions.val('showTTOnLine')){
       sel.push('div.postContainer h2.taglist a');
@@ -805,15 +805,15 @@ const JRAS_CurrVersion = '1.9.1';
       sel.push('div.sidebar_block.blogs_wr > div.sidebarContent > div.blogs > table > tbody > tr > td:nth-child(2) > a');
     }
     if(sel.length != 0){
-      makeTagTooltips($Src, sel.join(', '));
+      makeTagTooltips($src, sel.join(', '));
     }
   }
 
-  function makeAllUserTooltip($SrcElm){
+  function makeAllUserTooltip($srcElm){
     if(!userOptions.val('isToBeLoadingUserData')){
       return;
     }
-    const $Src = ($SrcElm) ? $SrcElm : $('body');
+    const $src = ($srcElm) ? $srcElm : $('body');
     let sel = [];
     sel.push('div.comments_bottom > span >a.comment_username');
     if(userOptions.val('showUTOnLine')){
@@ -838,17 +838,17 @@ const JRAS_CurrVersion = '1.9.1';
       sel.push('div.topComments small > a');
     }
     if(sel.length != 0){
-      makeUserTooltips($Src, sel.join(', '));
+      makeUserTooltips($src, sel.join(', '));
     }
   }
 
-  function removeElementsByClass($SrcElm, elm, removeClassArr){
+  function removeElementsByClass($srcElm, elm, removeClassArr){
     if(removeClassArr == null){
       return
     }
-    const $Src = ($SrcElm) ? $SrcElm : $('body');
+    const $src = ($srcElm) ? $srcElm : $('body');
     for(let i = 0; i < removeClassArr.length; i++){
-      $Src.find(elm).find('.' + removeClassArr[i]).each(function(){
+      $src.find(elm).find('.' + removeClassArr[i]).each(function(){
         $(this).remove();
       })
     }
@@ -886,14 +886,14 @@ const JRAS_CurrVersion = '1.9.1';
     }
   }
 
-  function userRemove($SrcElm, userNameArr){
+  function userRemove($srcElm, userNameArr){
     if(userNameArr.length == 0){
       return;
     }
     let currentUser;
-    const $Src = ($SrcElm) ? $SrcElm : $('body');
+    const $src = ($srcElm) ? $srcElm : $('body');
     const blockUsersAsFindStr = 'a:contains(' + userOptions.data.BlockUsers.join('), a:contains(') + ')';
-    $Src.find(blockUsersAsFindStr).parent('div.uhead_nick').closest('div.article').each(function(idx, elm){
+    $src.find(blockUsersAsFindStr).parent('div.uhead_nick').closest('div.article').each(function(idx, elm){
       currentUser = $(this).find(blockUsersAsFindStr).text();
       if(userNameArr.indexOf(currentUser) != -1){
         if (userOptions.val('fullDelUserPost')){
@@ -906,7 +906,7 @@ const JRAS_CurrVersion = '1.9.1';
         $(this).hide();
       }
     });
-    $Src.find(blockUsersAsFindStr).parent('span.reply-link').closest('div[id^=comment_txt_].txt').each(function(idx, elm){
+    $src.find(blockUsersAsFindStr).parent('span.reply-link').closest('div[id^=comment_txt_].txt').each(function(idx, elm){
       currentUser = $(this).find(blockUsersAsFindStr).text();
       if(userNameArr.indexOf(currentUser) != -1){
         //       $(this).remove(); // для просто удаления. Будет пустой комент
@@ -918,15 +918,15 @@ const JRAS_CurrVersion = '1.9.1';
     })
   }
 
-  function tagRemove($SrcElm, tagNameArr, strictComp){
+  function tagRemove($srcElm, tagNameArr, strictComp){
     if(tagNameArr.length == 0){
       return;
     }
-    const $Src = ($SrcElm) ? $SrcElm : $('body');
+    const $src = ($srcElm) ? $srcElm : $('body');
     const findStr = 'a:contains(' + tagNameArr.join('), a:contains(') + ')';
     //     findStr = ':contains(Anime):not(:contains(Anime Coub))'; // тест варианта условной блокировки
 
-    $Src.find('.taglist ' + findStr).closest('div.article').each(function(idx, elm){
+    $src.find('.taglist ' + findStr).closest('div.article').each(function(idx, elm){
       let foundTagStr = '';
       let validTag = strictComp !== true;
       $(this).find('.taglist').find(findStr).text(function(index, text){
@@ -1056,15 +1056,15 @@ const JRAS_CurrVersion = '1.9.1';
 
   }
 
-  function subscribeShowComment($SrcElm){
-    const $Src = ($SrcElm) ? $SrcElm : $('body');
+  function subscribeShowComment($srcElm){
+    const $src = ($srcElm) ? $srcElm : $('body');
     const observer = new MutationObserver(function(mutations){
       mutations.forEach(function(mutation){
         if (mutation.type === 'childList'){
 
           setTimeout(function(){
             if (userOptions.val('showUTOnComment')){
-              makeUserTooltips($Src, $(mutation.addedNodes).find('span.reply-link > a:first-child'));
+              makeUserTooltips($src, $(mutation.addedNodes).find('span.reply-link > a:first-child'));
             }
             for (let i = 0; i < mutation.addedNodes.length; i++){
               const itm = mutation.addedNodes[i];
@@ -1107,7 +1107,7 @@ const JRAS_CurrVersion = '1.9.1';
       });
     });
 
-    $Src.find('div.post_comment_list').each(function(idx, elm){
+    $src.find('div.post_comment_list').each(function(idx, elm){
       observer.observe(elm, {
         characterData: true,
         childList: true,
@@ -1306,9 +1306,9 @@ const JRAS_CurrVersion = '1.9.1';
     }
   }
 
-  function correctPostDate($SrcElm){
-    const $Src = ($SrcElm) ? $SrcElm : $('body');
-    const $spanDate = $Src.find('div#contentinner div.article.post-normal div.ufoot span.date');
+  function correctPostDate($srcElm){
+    const $src = ($srcElm) ? $srcElm : $('body');
+    const $spanDate = $src.find('div#contentinner div.article.post-normal div.ufoot span.date');
     const reconnect = function($th, observe){
       observe.observe($th.get(0), {subtree: true, attributes: true, childList: true});
     };
@@ -1332,9 +1332,9 @@ const JRAS_CurrVersion = '1.9.1';
     return (ret == undefined) ? '' : ret[0];
   }
 
-  function makePostControls($SrcElm){
+  function makePostControls($srcElm){
     if (!userOptions.val('pcbShowPostControl')) {return}
-    const $Src = ($SrcElm) ? $SrcElm : $('body');
+    const $src = ($srcElm) ? $srcElm : $('body');
     const step = 25;
     const itmHeight = (page.isNewDesign) ? 24 : 16;
     const itmContentPos = itmHeight + 5;
@@ -1453,11 +1453,11 @@ const JRAS_CurrVersion = '1.9.1';
           $pcLinks.append(`<span style="margin-left: ${itmContentPos}px;">`);
           $pcLinks.append(`<s><div class="jras-pcToTop" ${(page.isNewDesign)?'style="margin-top: 2px;"':''}></div></s>`);
           $pcLinks.find('div.jras-pcToTop').click(function(){
-            $Src.animate({ scrollTop: $postContainer.offset().top - 50}, 500);
+            $src.animate({ scrollTop: $postContainer.offset().top - 50}, 500);
           });
           $pcLinks.append(`<s><div class="jras-pcToDown" ${(page.isNewDesign)?'style="margin-top: 2px;"':''}></div></s>`);
           $pcLinks.find('div.jras-pcToDown').click(function(){
-            $Src.animate({ scrollTop: $postContainer.offset().top + $postContainer.height() - win.innerHeight + 50}, 500);
+            $src.animate({ scrollTop: $postContainer.offset().top + $postContainer.height() - win.innerHeight + 50}, 500);
           });
           if (page.isNewDesign){
             $pcLinks.append($postContainer.find('div.ufoot span.link_wr').clone());
@@ -1481,7 +1481,7 @@ const JRAS_CurrVersion = '1.9.1';
             const hidden = $tagEdit.css('display') == 'none';
             $postContainer.find('div.ufoot span.setTag a.link.setTagLink').get(0).click();
             if (hidden){
-              $Src.animate({ scrollTop: $tagEdit.offset().top - 150}, 500);
+              $src.animate({ scrollTop: $tagEdit.offset().top - 150}, 500);
               blinkElement($tagEdit, 5);
             }
           });
@@ -1490,7 +1490,7 @@ const JRAS_CurrVersion = '1.9.1';
             const hidden = $captionEdit.css('display') == 'none';
             $postContainer.find('div.ufoot a.setHeaderLink').get(0).click();
             if (hidden){
-              $Src.animate({ scrollTop: $captionEdit.offset().top - 150}, 500);
+              $src.animate({ scrollTop: $captionEdit.offset().top - 150}, 500);
               blinkElement($captionEdit, 5);
             }
           });
@@ -1507,7 +1507,7 @@ const JRAS_CurrVersion = '1.9.1';
 
     let selector = 'div[id^=postContainer].postContainer';
     if (userOptions.val('pcbShowInFullPost')) {selector = 'div#pageinner div#contentinner > ' + selector}
-    $Src.find(selector).each(function(){
+    $src.find(selector).each(function(){
       const $post = $(this);
       makePostCtrl($post);
       new MutationObserver(function(){ makePostCtrl($post) })
@@ -1515,7 +1515,7 @@ const JRAS_CurrVersion = '1.9.1';
     });
 
     $(window).on('scroll', function(){
-      $Src.find('div[id^=postContainer].postContainer').each(function(){
+      $src.find('div[id^=postContainer].postContainer').each(function(){
         checkPostControlPos($(this));
       });
     });
@@ -1544,20 +1544,20 @@ const JRAS_CurrVersion = '1.9.1';
     $PostCrtlsBlock.css({'top': newTop});
   }
 
-  function ActivateLazyLoad($SrcElm){
+  function ActivateLazyLoad($srcElm){
     if (!page.isUserLogon || !userOptions.val('lazyLoadFeed')){ return; }
 
     let needSetTimerAgain = true;
     let endlessTimer;
-    const $Src = ($SrcElm) ? $SrcElm : $('body');
+    const $src = ($srcElm) ? $srcElm : $('body');
     $(window).on('scroll', function(){
-      const $pag = $Src.find('div#Pagination.pagination:last');
+      const $pag = $src.find('div#Pagination.pagination:last');
       const $contentinner = $pag.parent();
       const pagb = $pag.offset().top + $pag.height();
-      let $endlessTimerElm = $Src.find('div#jras-lazyLoad-timer');
+      let $endlessTimerElm = $src.find('div#jras-lazyLoad-timer');
       const endlessTimerStop = function(){
         clearTimeout(endlessTimer);
-        $Src.find('div#jras-lazyLoad-timer').remove();
+        $src.find('div#jras-lazyLoad-timer').remove();
       };
       if (pagb > win.pageYOffset + win.innerHeight){
         endlessTimerStop();
@@ -1579,13 +1579,13 @@ const JRAS_CurrVersion = '1.9.1';
           $contentinner.append(timeAnim);
           correctPageHeight();
 
-          let $endlessTimerElm = $Src.find('div#jras-lazyLoad-timer');
+          let $endlessTimerElm = $src.find('div#jras-lazyLoad-timer');
           $endlessTimerElm.find('span.jras-progress-lazyLoad').css({'background-color': `${!page.isSchemeLight() ? '#383838': '#e4c465'}`,
             '-webkit-animation': `jras-progress-lazyLoad ${delay}s linear`,
             '-moz-animation': `jras-progress-lazyLoad ${delay}s linear`
           });
           // if($endlessTimerElm.offset().top + $endlessTimerElm.height() < win.pageYOffset){
-          //   $Src.animate({scrollTop: $endlessTimerElm.offset().top + $endlessTimerElm.height() - win.innerHeight}, 100);
+          //   $src.animate({scrollTop: $endlessTimerElm.offset().top + $endlessTimerElm.height() - win.innerHeight}, 100);
           // }
           $endlessTimerElm.click(function(){
             needSetTimerAgain = false;
@@ -1605,7 +1605,7 @@ const JRAS_CurrVersion = '1.9.1';
                                       <t style="font-size: 200%;">Страница <a href="${nextPageLink}">${nextPageNum}</a></t><re><br><tl>loading...</tl></re>
                                     </div>
                                   </div>`);
-            const $lazyLoadLoadingLabel = $Src.find('div#jras-lazyLoad-loading-label:last');
+            const $lazyLoadLoadingLabel = $src.find('div#jras-lazyLoad-loading-label:last');
 
             const processRequest = function(e){
               if (xhr.readyState == 4) {
@@ -1615,7 +1615,7 @@ const JRAS_CurrVersion = '1.9.1';
                 }
                 $lazyLoadLoadingLabel.find('tl').text('JRAS parsing...');
 
-                lazyLoadQueue.push($Src.find('div#Pagination.pagination:last').parent().children().slice(1)
+                lazyLoadQueue.push($src.find('div#Pagination.pagination:last').parent().children().slice(1)
                   .not('form#add_post, div#add_post_uploading, div#add_post_duplicate, div#showCreatePost, div#add_post_holder'));
                 if (lazyLoadQueue.length > userOptions.val('lazyLoadFeedStoredPage')){
                   lazyLoadQueue.shift().remove();
@@ -1626,18 +1626,18 @@ const JRAS_CurrVersion = '1.9.1';
                   doc.documentElement.innerHTML = e.target.response;
 
                   $contentinner.append($(doc).find('body').find('div#Pagination.pagination:last').parent().children().slice(1).clone(true, true));
-                  const $SrcElm = $('div#post_list:last, div#Pagination.pagination:last');
+                  const $srcElmts = $('div#post_list:last, div#Pagination.pagination:last');
                   try{
-                    correctPostDate($SrcElm);
-                    makeAllUserTooltip($SrcElm);
-                    makeAllTagTooltip($SrcElm);
-                    makePostControls($SrcElm);
-                    removeRedirectLink($SrcElm);
-                    removeShareButtons($SrcElm);
-                    userRemove($SrcElm, userOptions.data.BlockUsers);
-                    tagRemove($SrcElm, userOptions.data.BlockTags, true);
-                    subscribeShowComment($SrcElm);
-                    ActivateLazyLoad($SrcElm);
+                    correctPostDate($srcElmts);
+                    makeAllUserTooltip($srcElmts);
+                    makeAllTagTooltip($srcElmts);
+                    makePostControls($srcElmts);
+                    removeRedirectLink($srcElmts);
+                    removeShareButtons($srcElmts);
+                    userRemove($srcElmts, userOptions.data.BlockUsers);
+                    tagRemove($srcElmts, userOptions.data.BlockTags, true);
+                    subscribeShowComment($srcElmts);
+                    ActivateLazyLoad($srcElmts);
 
                     $pag.remove();
                     $lazyLoadLoadingLabel.find('re').remove();
@@ -1707,9 +1707,9 @@ const JRAS_CurrVersion = '1.9.1';
     });
   }
 
-  function makeTooltips($SrcElm, selector, openCallBack){
-    const $Src = ($SrcElm) ? $SrcElm : $('body');
-    $Src.find(selector).tooltip({
+  function makeTooltips($srcElm, selector, openCallBack){
+    const $src = ($srcElm) ? $srcElm : $('body');
+    $src.find(selector).tooltip({
       items: 'a',
       content: function(){
         return '<div id="jras-tooltipcontainer"' +
@@ -1752,8 +1752,8 @@ const JRAS_CurrVersion = '1.9.1';
     }
   }
 
-  function makeTagTooltips($SrcElm, selector){
-    makeTooltips($SrcElm, selector, function(event, ui){
+  function makeTagTooltips($srcElm, selector){
+    makeTooltips($srcElm, selector, function(event, ui){
       const $item = $(event.target);
       const TagName = $.trim($item.text());
       const TagLink = $item.attr('href');
@@ -1932,9 +1932,9 @@ const JRAS_CurrVersion = '1.9.1';
     })
   }
 
-  function makeUserTooltips($SrcElm, selector){
+  function makeUserTooltips($srcElm, selector){
     if(!userOptions.val('isToBeLoadingUserData')){ return }
-    makeTooltips($SrcElm, selector, function(event, ui){
+    makeTooltips($srcElm, selector, function(event, ui){
       const $item = $(event.target);
       const UserName = $.trim($item.text());
       const UserLink = $item.attr('href');
