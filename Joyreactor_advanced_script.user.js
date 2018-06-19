@@ -1567,7 +1567,7 @@ const JRAS_CurrVersion = '1.9.1';
           const timeAnim = `<div id="jras-lazyLoad-timer" class="jras-lazyLoad-timer">
                               <span style="width:100%;"><span class="jras-progress-lazyLoad"/></span>
                               <div style="position: relative; left: 46%; top: -60px;">
-                                <svg width="60" viewBox="0 0 70 70" xmlns="http://www.w3.org/2000/svg" version="1.1" xmlns:xlink="http://www.w3.org/1999/xlink">
+                                <svg width="60" viewBox="0 0 70 70" xmlns="http://www.w3.org/2000/svg" version="1.1">
                                   <g>
                                     <ellipse cx="35" cy="35" rx="30" ry="30" style="fill:none; stroke-width:1; stroke:blue"></ellipse>
                                     <line x1="35" y1="5" x2="35" y2="35" style="stroke:rgb(255,0,0);stroke-width:2"></line>
