@@ -301,311 +301,185 @@ const JRAS_CurrVersion = '1.9.1';
   function initOptions(){
     const retVal = {
       data: {
-        currentLng: {
-          dt: null, def: 'ru', type: 'combobox',
-          init: function(){this.dt = this.def},
-          guiDesc: function(){return lng.getVal('JRAS_GUI_SELECTLANGUAGE')},
+        language: { dt: null,
+          propData: function(){return{ def: 'ru', type: 'combobox'}},
           values: function(){return lng.getLangs()}
         },
-        correctRedirectLink: {
-          dt: null, def: true, type: 'checkbox',
-          init: function(){this.dt = this.def},
-          guiDesc: function(){return lng.getVal('JRAS_GUI_CORRECTREDIRECTLINK')}
+        correctRedirectLink: { dt: null,
+          propData: function(){return { def: true, type: 'checkbox'}}
         },
-        removeShareButtons: {
-          dt: null, def: false, type: 'checkbox',
-          init: function(){this.dt = this.def},
-          guiDesc: function(){return lng.getVal('JRAS_GUI_REMOVESHAREBUTTONS')}
+        removeShareButtons: { dt: null,
+          propData: function(){return { def: false, type: 'checkbox'}}
         },
-        makeAvatarOnOldDesign: {
-          dt: null, def: true, type: 'checkbox',
-          init: function(){this.dt = this.def},
-          guiDesc: function(){return lng.getVal('JRAS_GUI_MAKEAVATARONOLDDESIGN')}
+        makeAvatarOnOldDesign: { dt: null,
+          propData: function(){return { def: true, type: 'checkbox'}}
         },
-        makeAvatarOnlyFullPost: {
-          dt: null, def: false, type: 'checkbox',
-          init: function(){this.dt = this.def},
-          guiDesc: function(){ return lng.getVal('JRAS_GUI_MAKEAVATARONLYFULLPOST')}
+        makeAvatarOnlyFullPost: { dt: null,
+          propData: function(){return { def: false, type: 'checkbox'}}
         },
-        avatarHeight: {
-          dt: null, def: 35, type: 'number', min: 5, max: 300,
-          init: function(){this.dt = this.def},
-          validator: function(val){return $.isNumeric(val) && val >= this.min && val <= this.max},
-          guiDesc: function(){return lng.getVal('JRAS_GUI_AVATARHEIGHT')}
+        avatarHeight: { dt: null,
+          propData: function(){return { def: 35, type: 'number', min: 5, max: 300}}
         },
-        makeTreeComments: {
-          dt: null, def: true, type: 'checkbox',
-          init: function(){this.dt = this.def},
-          guiDesc: function(){return lng.getVal('JRAS_GUI_MAKETREECOMMENTS')}
+        makeTreeComments: { dt: null,
+          propData: function(){return { def: true, type: 'checkbox'}}
         },
-        treeCommentsOnlyFullPost: {
-          dt: null, def: false, type: 'checkbox',
-          init: function(){this.dt = this.def},
-          guiDesc: function(){return lng.getVal('JRAS_GUI_TREECOMMENTSONLYFULLPOST')}
+        treeCommentsOnlyFullPost: { dt: null,
+          propData: function(){return { def: false, type: 'checkbox'}}
         },
-        whenCollapseMakeRead: {
-          dt: null, def: true, type: 'checkbox',
-          init: function(){this.dt = this.def},
-          guiDesc: function(){return lng.getVal('JRAS_GUI_WHENCOLLAPSEMAKEREAD')}
+        whenCollapseMakeRead: { dt: null,
+          propData: function(){return { def: true, type: 'checkbox'}}
         },
-        isToBeLoadingUserData: {
-          dt: null, def: true, type: 'checkbox',
-          init: function(){this.dt = this.def},
-          guiDesc: function(){return lng.getVal('JRAS_GUI_ISTOBELOADINGUSERDATA')}
+        isToBeLoadingUserData: { dt: null,
+          propData: function(){return { def: true, type: 'checkbox'}}
         },
-        hideUserAwardsWhen: {
-          dt: null, def: 60, type: 'combobox',
-          init: function(){this.dt = this.def},
-          guiDesc: function(){return lng.getVal('JRAS_GUI_HIDEUSERAWARDSWHEN')},
-          values: function(){const retVal = {}; for(let i = 0; i < 101; i += 5){ if (i != 0 && i < 20){continue} retVal[i] = i; } return retVal; }
+        hideUserAwardsWhen: { dt: null,
+          propData: function(){return { def: 60, type: 'combobox'}},
+          values: function(){const retVal = {}; for(let i = 0; i < 101; i += 5){ if (i != 0 && i < 20){continue} retVal[i] = i} return retVal}
         },
-        minShowUserAwards: {
-          dt: null, def: 40, type: 'combobox',
-          init: function(){this.dt = this.def},
-          guiDesc: function(){return lng.getVal('JRAS_GUI_MINSHOWUSERAWARDS')},
-          values: function(){const retVal = {}; for(let i = 10; i < 101; i += 10){ retVal[i] = i } return retVal;}
+        minShowUserAwards: { dt: null,
+          propData: function(){return { def: 40, type: 'combobox'}},
+          values: function(){const retVal = {}; for(let i = 10; i < 101; i += 10){ retVal[i] = i} return retVal}
         },
-        fixedTopbar: {
-          dt: null, def: true, type: 'checkbox',
-          init: function(){this.dt = this.def},
-          guiDesc: function(){return lng.getVal('JRAS_GUI_FIXEDTOPBAR')}
+        fixedTopbar: { dt: null,
+          propData: function(){return { def: true, type: 'checkbox'}}
         },
-        hideFixedTopbar: {
-          dt: null, def: true, type: 'checkbox',
-          init: function(){this.dt = this.def},
-          guiDesc: function(){return lng.getVal('JRAS_GUI_HIDEFIXEDTOPBAR')}
+        hideFixedTopbar: { dt: null,
+          propData: function(){return { def: true, type: 'checkbox'}}
         },
-        showUTOnLine: {
-          dt: null, def: true, type: 'checkbox',
-          init: function(){this.dt = this.def},
-          guiDesc: function(){return lng.getVal('JRAS_GUI_SHOWUTONLINE')}
+        showUTOnLine: { dt: null,
+          propData: function(){return { def: true, type: 'checkbox'}}
         },
-        showUTOnComment: {
-          dt: null, def: true, type: 'checkbox',
-          init: function(){this.dt = this.def},
-          guiDesc: function(){return lng.getVal('JRAS_GUI_SHOWUTONCOMMENT')}
+        showUTOnComment: { dt: null,
+          propData: function(){return { def: true, type: 'checkbox'}}
         },
-        showUTOnPrivateMess: {
-          dt: null, def: true, type: 'checkbox',
-          init: function(){this.dt = this.def},
-          guiDesc: function(){return lng.getVal('JRAS_GUI_SHOWUTONPRIVATEMESS')}
+        showUTOnPrivateMess: { dt: null,
+          propData: function(){return { def: true, type: 'checkbox'}}
         },
-        showUTOnPeople: {
-          dt: null, def: true, type: 'checkbox',
-          init: function(){this.dt = this.def},
-          guiDesc: function(){return lng.getVal('JRAS_GUI_SHOWUTONPEOPLE')}
+        showUTOnPeople: { dt: null,
+          propData: function(){return { def: true, type: 'checkbox'}}
         },
-        showUTOnSidebarTopUsers: {
-          dt: null, def: true, type: 'checkbox',
-          init: function(){this.dt = this.def},
-          guiDesc: function(){return lng.getVal('JRAS_GUI_SHOWUTONSIDEBARTOPUSERS')}
+        showUTOnSidebarTopUsers: { dt: null,
+          propData: function(){return { def: true, type: 'checkbox'}}
         },
-        showUTOnTopComments: {
-          dt: null, def: true, type: 'checkbox',
-          init: function(){this.dt = this.def},
-          guiDesc: function(){return lng.getVal('JRAS_GUI_SHOWUTONTOPCOMMENTS')}
+        showUTOnTopComments: { dt: null,
+          propData: function(){return { def: true, type: 'checkbox'}}
         },
-        showUTOnSidebarOnline: {
-          dt: null, def: true, type: 'checkbox',
-          init: function(){this.dt = this.def},
-          guiDesc: function(){return lng.getVal('JRAS_GUI_SHOWUTONSIDEBARONLINE')}
+        showUTOnSidebarOnline: { dt: null,
+          propData: function(){return { def: true, type: 'checkbox'}}
         },
-        showUTOnPostControl: {
-          dt: null, def: true, type: 'checkbox',
-          init: function(){this.dt = this.def},
-          guiDesc: function(){return lng.getVal('JRAS_GUI_SHOWUTONPOSTCONTROL')}
+        showUTOnPostControl: { dt: null,
+          propData: function(){return { def: true, type: 'checkbox'}}
         },
-        showHiddenComments: {
-          dt: null, def: false, type: 'checkbox',
-          init: function(){this.dt = this.def},
-          guiDesc: function(){return lng.getVal('JRAS_GUI_SHOWHIDDENCOMMENTS')}
+        showHiddenComments: { dt: null,
+          propData: function(){return { def: false, type: 'checkbox'}}
         },
-        showHiddenCommentsMark: {
-          dt: null, def: true, type: 'checkbox',
-          init: function(){this.dt = this.def},
-          guiDesc: function(){return lng.getVal('JRAS_GUI_SHOWHIDDENCOMMENTSMARK')}
+        showHiddenCommentsMark: { dt: null,
+          propData: function(){return { def: true, type: 'checkbox'}}
         },
-        isToBeLoadingTagData: {
-          dt: null, def: true, type: 'checkbox',
-          init: function(){this.dt = this.def},
-          guiDesc: function(){return lng.getVal('JRAS_GUI_ISTOBELOADINGTAGDATA')}
+        isToBeLoadingTagData: { dt: null,
+          propData: function(){return { def: true, type: 'checkbox'}}
         },
-        showTTOnTrends: {
-          dt: null, def: true, type: 'checkbox',
-          init: function(){this.dt = this.def},
-          guiDesc: function(){return lng.getVal('JRAS_GUI_SHOWTTONTRENDS')}
+        showTTOnTrends: { dt: null,
+          propData: function(){return { def: true, type: 'checkbox'}}
         },
-        showTTOnLikeTags: {
-          dt: null, def: true, type: 'checkbox',
-          init: function(){this.dt = this.def},
-          guiDesc: function(){return lng.getVal('JRAS_GUI_SHOWTTONLIKETAGS')}
+        showTTOnLikeTags: { dt: null,
+          propData: function(){return { def: true, type: 'checkbox'}}
         },
-        showTTOnInteresting: {
-          dt: null, def: true, type: 'checkbox',
-          init: function(){this.dt = this.def},
-          guiDesc: function(){return lng.getVal('JRAS_GUI_SHOWTTONINTERESTING')}
+        showTTOnInteresting: { dt: null,
+          propData: function(){return { def: true, type: 'checkbox'}}
         },
-        showTTOnLine: {
-          dt: null, def: true, type: 'checkbox',
-          init: function(){this.dt = this.def},
-          guiDesc: function(){return lng.getVal('JRAS_GUI_SHOWTTONLINE')}
+        showTTOnLine: { dt: null,
+          propData: function(){return { def: true, type: 'checkbox'}}
         },
-        showTTFullPost: {
-          dt: null, def: true, type: 'checkbox',
-          init: function(){this.dt = this.def},
-          guiDesc: function(){return lng.getVal('JRAS_GUI_SHOWTTFULLPOST')}
+        showTTFullPost: { dt: null,
+          propData: function(){return { def: true, type: 'checkbox'}}
         },
-        delUserComment: {
-          dt: null, def: false, type: 'checkbox',
-          init: function(){this.dt = this.def},
-          guiDesc: function(){return lng.getVal('JRAS_GUI_DELUSERCOMMENT')}
+        delUserComment: { dt: null,
+          propData: function(){return { def: false, type: 'checkbox'}}
         },
-        showUserNameDelComment: {
-          dt: null, def: true, type: 'checkbox',
-          init: function(){this.dt = this.def},
-          guiDesc: function(){return lng.getVal('JRAS_GUI_SHOWUSERNAMEDELCOMMENT')}
+        showUserNameDelComment: { dt: null,
+          propData: function(){return { def: true, type: 'checkbox'}}
         },
-        fullDelUserPost: {
-          dt: null, def: false, type: 'checkbox',
-          init: function(){this.dt = this.def},
-          guiDesc: function(){return lng.getVal('JRAS_GUI_FULLDELUSERPOST')}
+        fullDelUserPost: { dt: null,
+          propData: function(){return { def: false, type: 'checkbox'}}
         },
-        delUserPost: {
-          dt: null, def: false, type: 'checkbox',
-          init: function(){this.dt = this.def},
-          guiDesc: function(){return lng.getVal('JRAS_GUI_DELUSERPOST')}
+        delUserPost: { dt: null,
+          propData: function(){return { def: false, type: 'checkbox'}}
         },
-        showUserNameDelPost: {
-          dt: null, def: true, type: 'checkbox',
-          init: function(){this.dt = this.def},
-          guiDesc: function(){return lng.getVal('JRAS_GUI_SHOWUSERNAMEDELPOST')}
+        showUserNameDelPost: { dt: null,
+          propData: function(){return { def: true, type: 'checkbox'}}
         },
-        chatlaneToPacaki: {   // Убирать цветовую отметку донатера
-          dt: null, def: false, type: 'checkbox',
-          init: function(){this.dt = this.def},
-          guiDesc: function(){return lng.getVal('JRAS_GUI_CHATLANETOPACAKI')}
+        chatlaneToPacaki: { // Убирать цветовую отметку донатера dt: null,
+          propData: function(){return { def: false, type: 'checkbox'}}
         },
-        collapseComments: {
-          dt: null, def: false, type: 'checkbox',
-          init: function(){this.dt = this.def},
-          guiDesc: function(){return lng.getVal('JRAS_GUI_COLLAPSECOMMENTS')}
+        collapseComments: { dt: null,
+          propData: function(){return { def: false, type: 'checkbox'}}
         },
-        collapseCommentsOnlyFullPost: {
-          dt: null, def: false, type: 'checkbox',
-          init: function(){this.dt = this.def},
-          guiDesc: function(){return lng.getVal('JRAS_GUI_COLLAPSECOMMENTSONLYFULLPOST')}
+        collapseCommentsOnlyFullPost: { dt: null,
+          propData: function(){return { def: false, type: 'checkbox'}}
         },
-        collapseCommentWhenSize: {
-          dt: null, def: 110, type: 'number', min: 20, max: 10000,
-          init: function(){this.dt = this.def},
-          validator: function(val){return $.isNumeric(val) && val >= this.min && val <= this.max},
-          guiDesc: function(){return lng.getVal('JRAS_GUI_COLLAPSECOMMENTWHENSIZE')}
+        collapseCommentWhenSize: { dt: null,
+          propData: function(){return { def: 110, type: 'number', min: 20, max: 10000}}
         },
-        collapseCommentToSize: {
-          dt: null, def: 72, type: 'number', min: 20, max: 10000,
-          init: function(){this.dt = this.def},
-          validator: function(val){return $.isNumeric(val) && val >= this.min && val <= this.max},
-          guiDesc: function(){return lng.getVal('JRAS_GUI_COLLAPSECOMMENTTOSIZE')}
+        collapseCommentToSize: { dt: null,
+          propData: function(){return { def: 72, type: 'number', min: 20, max: 10000}}
         },
-        pcbShowPostControl: {
-          dt: null, def: true, type: 'checkbox',
-          init: function(){this.dt = this.def},
-          guiDesc: function(){return lng.getVal('JRAS_GUI_PCBSHOWPOSTCONTROL')}
+        pcbShowPostControl: { dt: null,
+          propData: function(){return { def: true, type: 'checkbox'}}
         },
-        pcbShowInFullPost: {
-          dt: null, def: false, type: 'checkbox',
-          init: function(){this.dt = this.def},
-          guiDesc: function(){return lng.getVal('JRAS_GUI_PCBSHOWINFULLPOST')}
+        pcbShowInFullPost: { dt: null,
+          propData: function(){return { def: false, type: 'checkbox'}}
         },
-        pcbHideJRShareBlock: {
-          dt: null, def: false, type: 'checkbox',
-          init: function(){this.dt = this.def},
-          guiDesc: function(){return lng.getVal('JRAS_GUI_PCBHIDEJRSHAREBLOCK')}
+        pcbHideJRShareBlock: { dt: null,
+          propData: function(){return { def: false, type: 'checkbox'}}
         },
-        pcbHideJRRatingBlock: {
-          dt: null, def: false, type: 'checkbox',
-          init: function(){this.dt = this.def},
-          guiDesc: function(){return lng.getVal('JRAS_GUI_PCBHIDEJRRATINGBLOCK')}
+        pcbHideJRRatingBlock: { dt: null,
+          propData: function(){return { def: false, type: 'checkbox'}}
         },
-        pcbTopBorder: {
-          dt: null, def: 10, type: 'number', min: 0, max: 200,
-          init: function(){this.dt = this.def},
-          validator: function(val){return $.isNumeric(val) && val >= this.min && val <= this.max},
-          guiDesc: function(){return lng.getVal('JRAS_GUI_PCBTOPBORDER')}
+        pcbTopBorder: { dt: null,
+          propData: function(){return { def: 10, type: 'number', min: 0, max: 200}}
         },
-        pcbBottomBorder: {
-          dt: null, def: 10, type: 'number', min: 0, max: 200,
-          init: function(){this.dt = this.def},
-          validator: function(val){return $.isNumeric(val) && val >= this.min && val <= this.max},
-          guiDesc: function(){return lng.getVal('JRAS_GUI_PCBBOTTOMBORDER')}
+        pcbBottomBorder: { dt: null,
+          propData: function(){return { def: 10, type: 'number', min: 0, max: 200}}
         },
-        pcbTopScreenPos: {
-          dt: null, def: 30, type: 'number', min: 0, max: 200,
-          init: function(){this.dt = this.def},
-          validator: function(val){return $.isNumeric(val) && val >= this.min && val <= this.max},
-          guiDesc: function(){return lng.getVal('JRAS_GUI_PCBTOPSCREENPOS')}
+        pcbTopScreenPos: { dt: null,
+          propData: function(){return { def: 30, type: 'number', min: 0, max: 200}}
         },
-        showCommentDate: {
-          dt: null, def: true, type: 'checkbox',
-          init: function(){this.dt = this.def},
-          guiDesc: function(){return lng.getVal('JRAS_GUI_SHOWCOMMENTDATE')}
+        showCommentDate: { dt: null,
+          propData: function(){return { def: true, type: 'checkbox'}}
         },
-        pcbAnimateMove: {
-          dt: null, def: true, type: 'checkbox',
-          init: function(){this.dt = this.def},
-          guiDesc: function(){return lng.getVal('JRAS_GUI_PCBANIMATEMOVE')}
+        pcbAnimateMove: { dt: null,
+          propData: function(){return { def: true, type: 'checkbox'}}
         },
-        pcbAnimateMoveSpeed: {
-          dt: null, def: 2, type: 'number', min: 1, max: 9,
-          init: function(){this.dt = this.def},
-          validator: function(val){return $.isNumeric(val) && val >= this.min && val <= this.max},
-          guiDesc: function(){return lng.getVal('JRAS_GUI_PCBANIMATEMOVESPEED')}
+        pcbAnimateMoveSpeed: { dt: null,
+          propData: function(){return { def: 2, type: 'number', min: 1, max: 9}}
         },
-        pcbHideShareButoons: {
-          dt: null, def: false, type: 'checkbox',
-          init: function(){this.dt = this.def},
-          guiDesc: function(){return lng.getVal('JRAS_GUI_PCBHIDESHAREBUTOONS')}
+        pcbHideShareButoons: { dt: null,
+          propData: function(){return { def: false, type: 'checkbox'}}
         },
-        stCorrectStyle: {
-          dt: null, def: false, type: 'checkbox',
-          init: function(){this.dt = this.def},
-          guiDesc: function(){return lng.getVal('JRAS_GUI_STCORRECTSTYLE')}
+        stCorrectStyle: { dt: null,
+          propData: function(){return { def: false, type: 'checkbox'}}
         },
-        stHideSideBar: {
-          dt: null, def: true, type: 'checkbox',
-          init: function(){this.dt = this.def},
-          guiDesc: function(){return lng.getVal('JRAS_GUI_STHIDESIDEBAR')}
+        stHideSideBar: { dt: null,
+          propData: function(){return { def: true, type: 'checkbox'}}
         },
-        stStretchContent: {
-          dt: null, def: true, type: 'checkbox',
-          init: function(){this.dt = this.def},
-          guiDesc: function(){return lng.getVal('JRAS_GUI_STSTRETCHCONTENT')}
+        stStretchContent: { dt: null,
+          propData: function(){return { def: true, type: 'checkbox'}}
         },
-        stStretchSize: {
-          dt: null, def: 90, type: 'number', min: 60, max: 100,
-          init: function(){this.dt = this.def},
-          validator: function(val){return $.isNumeric(val) && val >= this.min && val <= this.max},
-          guiDesc: function(){return lng.getVal('JRAS_GUI_STSTRETCHSIZE')}
+        stStretchSize: { dt: null,
+          propData: function(){return { def: 90, type: 'number', min: 60, max: 100}}
         },
-        stSideBarSizeToPage: {
-          dt: null, def: true, type: 'checkbox',
-          init: function(){this.dt = this.def},
-          guiDesc: function(){return lng.getVal('JRAS_GUI_STSIDEBARSIZETOPAGE')}
+        stSideBarSizeToPage: { dt: null,
+          propData: function(){return { def: true, type: 'checkbox'}}
         },
-        stShowSideBarOnHideContent: {
-          dt: null, def: true, type: 'checkbox',
-          init: function(){this.dt = this.def},
-          guiDesc: function(){return lng.getVal('JRAS_GUI_STSHOWSIDEBARONHIDECONTENT')}
+        stShowSideBarOnHideContent: { dt: null,
+          propData: function(){return { def: true, type: 'checkbox'}}
         },
-        stUseDynStyleChanges: {
-          dt: null, def: false, type: 'checkbox',
-          init: function(){this.dt = this.def},
-          guiDesc: function(){return lng.getVal('JRAS_GUI_STUSEDYNSTYLECHANGES')}
+        stUseDynStyleChanges: { dt: null,
+          propData: function(){return { def: false, type: 'checkbox'}}
         },
-        stCenterContent: {
-          dt: null, def: true, type: 'checkbox',
-          init: function(){this.dt = this.def},
-          guiDesc: function(){return lng.getVal('JRAS_GUI_STCENTERCONTENT')}
+        stCenterContent: { dt: null,
+          propData: function(){return { def: true, type: 'checkbox'}}
         },
         lazyLoadFeed: {
           dt: null, def: false, type: 'checkbox',
@@ -629,42 +503,45 @@ const JRAS_CurrVersion = '1.9.1';
           init: function(){this.dt = this.def},
           guiDesc: function(){return lng.getVal('JRAS_GUI_LAZYLOADFEEDCHANGEWINURL')}
         },
+
         BlockUsers: [],
-        BlockTags: []
+        BlockTags: [],
+
+        init: function(prop){ if (!this[prop]){return} this[prop].dt = this[prop].propData().def },
+        validator: function(prop, val){ if (!this[prop]){return}return (this[prop]['validator'])?this[prop].validator():$.isNumeric(val) && val >= this.min && val <= this.max },
+        guiDesc: function(prop){if (!this[prop]){return}
+          return lng.getVal('JRAS_GUI_' + prop.toUpperCase())}
       },
 
       each: function(func){
         if (func === undefined){return}
         for(let dItm in this.data){
-          if((dItm == undefined) || (dItm == 'BlockUsers') || (dItm == 'BlockTags')){continue}
-          func(dItm, this.data[dItm]);
+          if((dItm == undefined) || typeof(this.data[dItm]) == 'function'|| (dItm == 'BlockUsers') || (dItm == 'BlockTags')){continue}
+          func(this.data, dItm, this.data[dItm]);
         }
       },
 
       val: function(option, value){
         if(this.data[option]){
-          if(value === undefined){
-            return this.data[option].dt
-          }else{
-            if (this.data[option]['validator']){
-              if (this.data[option].validator(value)){
-                this.data[option].dt = value;
-              }else{
-                this.data[option].init();
+          if(value === undefined){return this.data[option].dt}
+          else{
+            if (this.data[option].propData().type == 'number'){
+              if (this.data.validator(option, value)){
+                this.data[option].dt = value
               }
             }else{
-              this.data[option].dt = value;
+              this.data[option].dt = value
             }
           }
         }
       },
 
       getGuiDesc: function(option){
-        return (this.data[option]) ? this.data[option].guiDesc() : option;
+        return (this.data[option]) ? this.data.guiDesc(option) : option;
       },
 
       setDef: function(){
-        this.each(function(optName, opt){ opt.init() });
+        this.each(function(thd, optName){ thd.init(optName) });
         this.data.BlockUsers = [];
         this.data.BlockTags = [];
       },
@@ -693,7 +570,7 @@ const JRAS_CurrVersion = '1.9.1';
         forUser = this.correctForRegexp(forUser);
         this.removeSavedUserData(forUser);
         const pref = forUser + '_';
-        this.each(function(optName, opt){
+        this.each(function(thd, optName, opt){
           GMsetValue(pref + optName, opt.dt);
         });
         for(let i = 0; i < this.data.BlockUsers.length; i++){
@@ -737,14 +614,9 @@ const JRAS_CurrVersion = '1.9.1';
       },
 
       loadUserData: function(forUser){
-        if(this.loadUserDataFrom(forUser + '_')){
-          return
-        }
-        if(this.loadUserDataFrom(forUser)){
-          this.saveUserData(forUser);
-        }
+        if(this.loadUserDataFrom(forUser + '_')){ return }
+        if(this.loadUserDataFrom(forUser)){ this.saveUserData(forUser) }
       }
-
     };
 
     retVal.setDef();
@@ -3085,9 +2957,10 @@ const JRAS_CurrVersion = '1.9.1';
       const propObj = userOptions.data[prop];
       if (propObj === undefined){return}
       const propID = getPropID(prop);
-      switch(propObj.type) {
+      const propData = propObj.propData();
+      switch(propData.type) {
         case 'checkbox':
-          retVal = `<input id="${propID}Val" type="${propObj.type}" style="vertical-align: middle;"/>
+          retVal = `<input id="${propID}Val" type="${propData.type}" style="vertical-align: middle;"/>
                     <label id="${propID}Caption" for="${prop}" style="cursor: pointer;vertical-align: middle;"/>`;
           break;
         case 'combobox':
@@ -3099,7 +2972,7 @@ const JRAS_CurrVersion = '1.9.1';
           break;
         case 'number':
           retVal = `<span id="${propID}Caption" style="vertical-align: middle;margin-left: 3px;line-height: 28px;"/>
-                    <input id="${propID}Val" type="${propObj.type}" min="${propObj.min}" max="${propObj.max}" style="width: 50px; vertical-align: middle;"/>`;
+                    <input id="${propID}Val" type="${propData.type}" min="${propData.min}" max="${propData.max}" style="width: 50px; vertical-align: middle;"/>`;
           break;
       }
       if (styleFor !== undefined){ $(retVal).find('#' + propID + styleFor).css(style) }
@@ -3115,8 +2988,8 @@ const JRAS_CurrVersion = '1.9.1';
         <label id="navcontainer" class="lang_select" for="modal-1"
           style="cursor: pointer; right: 39px; padding: 1px 2px 2px;
           font-size: 9px; border-radius: 0 0 5px 5px; height: 17px;
-          background: transparent url('../images/mainmenu_active_bg1.png') repeat-x scroll 0 0;">
-          JRAS
+          ${(!page.isSchemeLight) ? "background: transparent url('../images/mainmenu_active_bg1.png') repeat-x scroll 0 0;" : 'background-position-x: -4px; background-position-y: -2px;'}
+          > JRAS
         </label>
       `);
       $('div#header:first div.lang_select + label').click(openProp);
@@ -3144,7 +3017,7 @@ const JRAS_CurrVersion = '1.9.1';
                 </ul>
                 <div id="jras-prop-gui-tab-1" class="jras-tabs-panel">
                   <div class="jras-tabs-panel-content">
-                    <section class="jras-prop-gui-section"> ${getHTMLProp('currentLng', 'Val', {'width': '30%'})} </section>
+                    <section class="jras-prop-gui-section"> ${getHTMLProp('language', 'Val', {'width': '30%'})} </section>
                     <section class="jras-prop-gui-section"> ${getHTMLProp('removeShareButtons')} </section>
                     <section class="jras-prop-gui-section"> ${getHTMLProp('fixedTopbar')} </section>
                     <section class="jras-prop-gui-section" style="margin-left: 20px; margin-top: -10px;"> ${getHTMLProp('hideFixedTopbar')} </section>
@@ -3276,8 +3149,8 @@ const JRAS_CurrVersion = '1.9.1';
 
   function openProp(){
     const $propDialog = $('#jras-prop-gui-dialog');
-    userOptions.each(function(optName, opt){
-      switch(opt.type) {
+    userOptions.each(function(thd, optName, opt){
+      switch(opt.propData().type) {
         case 'checkbox':
           $propDialog.find('#' + getPropID(optName) + 'Val').prop('checked', userOptions.val(optName));
           break;
@@ -3308,7 +3181,7 @@ const JRAS_CurrVersion = '1.9.1';
     $propDialog.find('#jras-guiBlockUserListCaption').text(lng.getVal('JRAS_GUI_BLOCKUSERLIST'));
     $propDialog.find('#jras-guiBlockTagListCaption').text(lng.getVal('JRAS_GUI_BLOCKTAGLIST'));
 
-    userOptions.each(function(optName){
+    userOptions.each(function(thd, optName){
       $propDialog.find('#' + getPropID(optName) + 'Caption').text(userOptions.getGuiDesc(optName));
     });
   }
@@ -3344,8 +3217,8 @@ const JRAS_CurrVersion = '1.9.1';
     });
     $propDialog.find('#jras-gui-SaveSettings').click(function(){
       const $propDialog = $('#jras-prop-gui-dialog');
-      userOptions.each(function(optName, opt){
-        switch(opt.type) {
+      userOptions.each(function(thd, optName, opt){
+        switch(opt.propData().type) {
           case 'checkbox':
             userOptions.val(optName, $propDialog.find('#' + getPropID(optName) + 'Val').prop('checked'));
             break;
@@ -3441,7 +3314,7 @@ const JRAS_CurrVersion = '1.9.1';
 
     this.getVal = function(val){
       if (this[val] === undefined){return val}
-      const cl = userOptions.val('currentLng');
+      const cl = userOptions.val('language');
       if(!this[val][cl]){
         return this[val]['ru'];
       }
@@ -3475,7 +3348,7 @@ const JRAS_CurrVersion = '1.9.1';
     this.JRAS_COMMBLOCKBYUSER = {
       ru: 'Комментарий заблокированного пользователя: '
     };
-    this.JRAS_GUI_SELECTLANGUAGE = {
+    this.JRAS_GUI_LANGUAGE = {
       ru: 'Язык интерфейса: '
     };
     this.JRAS_GUI_MAKEAVATARONOLDDESIGN = {
