@@ -481,29 +481,18 @@ const JRAS_CurrVersion = '1.9.1';
         stCenterContent: { dt: null,
           propData: function(){return { def: true, type: 'checkbox'}}
         },
-        lazyLoadFeed: {
-          dt: null, def: false, type: 'checkbox',
-          init: function(){this.dt = this.def},
-          guiDesc: function(){return lng.getVal('JRAS_GUI_LAZYLOADFEED')}
+        lazyLoadFeed: { dt: null,
+          propData: function(){return { def: false, type: 'checkbox'}}
         },
-        lazyLoadFeedDelay: {
-          dt: null, def: 2, type: 'number', min: 1, max: 5,
-          init: function(){this.dt = this.def},
-          validator: function(val){return $.isNumeric(val) && val >= this.min && val <= this.max},
-          guiDesc: function(){return lng.getVal('JRAS_GUI_LAZYLOADFEEDDELAY')}
+        lazyLoadFeedDelay: { dt: null,
+          propData: function(){return { def: 2, type: 'number', min: 1, max: 5}}
         },
-        lazyLoadFeedStoredPage: {
-          dt: null, def: 2, type: 'number', min: 1, max: 10,
-          init: function(){this.dt = this.def},
-          validator: function(val){return $.isNumeric(val) && val >= this.min && val <= this.max},
-          guiDesc: function(){return lng.getVal('JRAS_GUI_LAZYLOADFEEDSTOREDPAGE')}
+        lazyLoadFeedStoredPage: { dt: null,
+          propData: function(){return { def: 2, type: 'number', min: 1, max: 10}}
         },
-        lazyLoadFeedChangeWinUrl: {
-          dt: null, def: true, type: 'checkbox',
-          init: function(){this.dt = this.def},
-          guiDesc: function(){return lng.getVal('JRAS_GUI_LAZYLOADFEEDCHANGEWINURL')}
+        lazyLoadFeedChangeWinUrl: { dt: null,
+          propData: function(){return { def: true, type: 'checkbox'}}
         },
-
         BlockUsers: [],
         BlockTags: [],
 
