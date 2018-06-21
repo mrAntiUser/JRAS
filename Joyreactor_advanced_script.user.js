@@ -31,6 +31,9 @@
 const JRAS_CurrVersion = '1.9.1';
 
 /* RELEASE NOTES
+ -----
+   + переработка механизма сохранения настроек (Issue-59)
+   + импорт/экспорт настроек (Issue-59)
  1.9.1
    * Поддержка нового движка FireFox и нового GreaseMonkey (Issue-51)
  1.9.0
@@ -291,7 +294,7 @@ const JRAS_CurrVersion = '1.9.1';
     ActivateLazyLoad();
 
   }catch(err){
-    win.console.log("~~JRAS_ERROR: " + err + ' (line ' + (err.lineNumber || '') + ')')
+    win.console.log("~~JRAS_ERROR: " + err + '\n' + err.stack)
   }
 
   win.console.log(' ================ end JRAS');
@@ -535,29 +538,29 @@ const JRAS_CurrVersion = '1.9.1';
         this.data.BlockTags = [];
       },
 
-      removeAllSavedData: function(){
-        this.removeSavedUserData();
+      removeAllSavedData_old: function(){
+        this.removeSavedUserData_old();
       },
 
-      correctForRegexp: function(str){
+      correctUserName_old: function(str){
         return str.replace(/[.*\W[\]\\]/g, '_');
       },
 
-      removeSavedUserData: function(user){
-        user = this.correctForRegexp(user);
+      removeSavedUserData_old: function (user) {
+        user = this.correctUserName_old(user);
         let pref = (user === undefined) ? '' : user + '_';
         let keys = GMlistValues();
-        for(let i = 0; i < keys.length; i++){
+        for (let i = 0; i < keys.length; i++) {
           let key = keys[i];
-          if(key.match(new RegExp(pref + '.*'))){
+          if (key.match(new RegExp(pref + '.*'))) {
             GMdeleteValue(key);
           }
         }
       },
 
-      saveUserData: function(forUser){
-        forUser = this.correctForRegexp(forUser);
-        this.removeSavedUserData(forUser);
+      saveUserData_old: function(forUser){
+        forUser = this.correctUserName_old(forUser);
+        this.removeSavedUserData_old(forUser);
         const pref = forUser + '_';
         this.each(function(thd, optName, opt){
           GMsetValue(pref + optName, opt.dt);
@@ -570,8 +573,8 @@ const JRAS_CurrVersion = '1.9.1';
         }
       },
 
-      loadUserDataFrom: function(prefix){
-        prefix = this.correctForRegexp(prefix);
+      loadUserDataFrom_old: function(prefix){
+        prefix = this.correctUserName_old(prefix);
         let retVal = false;
         const posf = '.*';
         let keys = GMlistValues();
@@ -602,9 +605,98 @@ const JRAS_CurrVersion = '1.9.1';
         return retVal;
       },
 
+      correctUserName: function (str) {
+        return 'user_' + b64encode(str);
+      },
+
+      loadOpt: function () {
+        return JSON.parse(win.localStorage.getItem('jras_options'));
+      },
+
+      saveOpt: function (jrasOptions) {
+        if (!jrasOptions) {return}
+        win.localStorage.setItem('jras_options', JSON.stringify(jrasOptions));
+      },
+
+      removeAllSavedData: function () {
+        this.removeSavedUserData();
+        this.removeAllSavedData_old();
+      },
+
+      removeSavedUserData: function (user, jrasOpt) {
+        user = this.correctUserName(user);
+        if (!user) {
+          win.localStorage.clear();
+        } else {
+          const jrasOptions = (jrasOpt) ? jrasOpt : this.loadOpt();
+          if (!jrasOptions && !jrasOptions[user]) {
+            return
+          }
+          delete jrasOptions[user];
+          if (jrasOpt) {
+            return jrasOptions;
+          } else {
+            this.saveOpt(jrasOptions);
+          }
+        }
+      },
+
+      setUserDataFrom: function (jrasOptUser) {
+        if (!jrasOptUser) { return }
+        for (const prop of Object.keys(jrasOptUser)) {
+          if (this.data[prop]) {
+            if (Array.isArray(this.data[prop])) {
+              this.data[prop] = jrasOptUser[prop];
+            } else {
+              this.data[prop].dt = jrasOptUser[prop].dt;
+            }
+          }
+        }
+      },
+
+      saveUserData: function (forUser) {
+        forUser = this.correctUserName(forUser);
+        const jrasOptions = this.loadOpt() || {};
+        jrasOptions[forUser] = this.data;
+        this.saveOpt(jrasOptions);
+      },
+
+      loadUserDataFrom: function (forUser) {
+        const user = this.correctUserName(forUser);
+        const jrasOptions = this.loadOpt();
+        if (!jrasOptions || !jrasOptions[user]){
+          forUser = this.correctUserName_old(forUser);
+          if (!this.loadUserDataFrom_old(forUser + '_')){
+            if (!this.loadUserDataFrom_old(forUser)){
+              return;
+            }
+          }
+          this.removeSavedUserData_old(forUser);
+          this.saveUserData(forUser);
+          return;
+        }
+        this.setUserDataFrom(jrasOptions[user]);
+      },
+
       loadUserData: function(forUser){
-        if(this.loadUserDataFrom(forUser + '_')){ return }
-        if(this.loadUserDataFrom(forUser)){ this.saveUserData(forUser) }
+        this.loadUserDataFrom(forUser);
+      },
+
+      exportUserData: function (forUser) {
+        const user = this.correctUserName(forUser);
+        const jrasOptions = this.loadOpt();
+        if (!jrasOptions || !jrasOptions[user]) { return }
+        return b64encode(JSON.stringify(jrasOptions[user]));
+      },
+
+      importUserData: function (forUser, impData) {
+        const user = this.correctUserName(forUser);
+        const jrasOptions = this.loadOpt();
+        if (!jrasOptions) { return false}
+        jrasOptions[user] = JSON.parse(b64decode(impData));
+        this.saveOpt(jrasOptions);
+        this.setUserDataFrom(jrasOptions[user]);
+        return true;
       }
     };
 
@@ -634,7 +726,14 @@ const JRAS_CurrVersion = '1.9.1';
     });
   }
 
-  function removeShareButtons($srcElm){
+  function b64encode(str){
+    return btoa(unescape(encodeURIComponent(str)));
+  };
+  function b64decode(str){
+    return decodeURIComponent(escape(atob(str)));
+  };
+
+  function removeShareButtons(){
     if(!userOptions.val('removeShareButtons')){
       return;
     }
@@ -2195,7 +2294,7 @@ const JRAS_CurrVersion = '1.9.1';
       }
       .video_gif_holder:hover .video_gif_source{
         display: block;
-      } 
+      }
 
      /* для старого дизайна */
       .treeCross-old{
@@ -2230,12 +2329,12 @@ const JRAS_CurrVersion = '1.9.1';
         margin-left: -37px;
         margin-top: 6px;
       }
-      
+
       table img {
         width: 100%;
         height: 100%;
       }
-      
+
       table video {
         width: 100%;
         height: 100%;
@@ -2357,7 +2456,7 @@ const JRAS_CurrVersion = '1.9.1';
       }
       .jras-tooltip-favtag-img {
         background: transparent url("data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAYAAAAf8/9hAAACOUlEQVQ4T6WTu4oaURiAz5kzXmaxUUgR8AKivoGVRcSIQjqJ40SCiqKMRSTISiJGLDRVQFALHRPICAEtBLt0EgttUqdZQt5AXS/MrNHoTJhhV5TVbJFT/9/3Xw8E//ngQ3w+n3eLohgHADw7jOU47geGYe5/CrLZrBvDsB5JkoTFYsEPBblc7s9ms6mcFWQyGTdC6AhuNBq/FQqFGI/HiWKxyPM8f3VSkE6n3RBCGbZarXLm5XIJyuWyaDabV5FI5KJYLHLr9fr6niCVSt2DJcFwOASr1Qp4PB65k1KpxG23W+5IkEgk3DiO9wKBwD7zXd/tdhvY7XZgtVqlaoRKpfITQvh4L4jFYvLATsGShGEYQFEUQAgJLMuu5vN5QaVSFWRBOByWyz4HSzG1Wg0Eg0Gh3W6vFotFYb1eV3U63RQGAgF52hRFETab7WhVh2urVqtgt9txi8Ui3+12q9Fo9JFSqfwO/X7/8iF4NpsJnU4HG4/Hb3u93gdJnEwmXYIgvIY+n28ZCoUuTCYTOnWV0+lUaLVaNxqNZovjuL1er/+6FbwTBOEaer3e50qlkpV2azAYjiQSzLLsDcdxb4xG4xMI4VeGYb6QJIm0Wu0VAOCpPESXy0USBPE5HA4Ter1elkwmkz3c7/cbNE1Toii+lyAMw0KiKBqbzSa9X6PT6XyhVqs/RSIRQqVSwdvMl4PB4ONdazRNlwEArwAA3xBCZL1ePz4kh8PxkiAIBiEEeJ6/HI1Ge/jcr/0L5NPyr4kFGRcAAAAASUVORK5CYII=") no-repeat scroll 0 0;
-      }  
+      }
       .jras-tooltip-blockuser-img {
         background: transparent url("data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAYAAAAf8/9hAAADEUlEQVQ4T2WTW08USRTH/1U91TUXdAoV54Ibh8tu4sZkmOyD8cFFgzEaHzaExMBb9zfAT6B8Anj3oTvx2YyYrGtMNsL6xG42uMZkBGYDYZhpEMRiYKB7ZrrbdCeMRCo5D5VT53cu9T8E352iEELhXPOAYRAiQrfvS5/SeXBujq6tyZMh5OTlRSo1qQrxKHvjhogkkwidrgu32UTr8BBbCwvySMqpUcuaOY7rAJ5fvGj0FArahUIBslSC22ig5TjwPQ8RRQHxfZzp78fnchm7q6vmWK2mB5AQEGQ+PzQ0fXZgAAfLy7D397FnWSal9D8KoO15+WgyqSXicRBKsVOrBVU9HLOsGRL0HEulVn+4d0/UP3yA327Ds2041ao+UqmYx6UWe3uHunK5N8muLlFfW4Pc35eKqvaRF+m0dun2baNVr6OxsQFVVQFC4DsOmtvbpyDZkZFFlEqwNjfhep5Ogt77x8a0g5UVfFpeNs/4/jw7d87wDg7QlhLEtvWRRqNTye/XrhmXMhmtMjcHO5EwyfN0+s1PExM3dxYX4arq1K3Xrx//wZhGFcVQFAWhUar/KmUIKQ4OTv58//70xtOn+BKPz4WAHx88uPlpYQHo7p669erV4+Dhn4lECAl+gEUiYIqi/7K5aQaA/Pj4dO3JE1iMhQDj8t27Wm12FnYs1vmeAPKXEJrKmMEYQ2iRiP5/T8/w1Xxeq758CQswSTGd1lKFgvHl7Vu0olH4nBdGq9V3x9P/N53WGOeGylg4YO/OHbD371Eul/HZ93VSzOUEV9XVrnhc1JeW4GYy7zzH0U9CSgMDGufciHIOns3isFLB31JKSmlfKKRiJjMp+vqmnY8fwYVA5MoV1Hd2zKNabTbwR3t7fxvM57ULS0tQWy38s7WF7Wbz4fj6+kxHys+yWcNvtzV1bw9JIdB9/TpIMgmFc8RcF6RcBt3dxcrRURBsjq+vf5Pycb/PMplJz/MeEdsWcQAxRQFXVRDG4BCCXUA2gakg86ll6kg2lxNeq6X5hAwDEH6wzYRIQsh8hNJT6/wV5lBT8JU2J8oAAAAASUVORK5CYII=") no-repeat scroll 0 0;
       }
@@ -2389,25 +2488,25 @@ const JRAS_CurrVersion = '1.9.1';
       }
       .jras-pcInfo-img {
         background: transparent url("data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAgAAAAQCAYAAAArij59AAAAlUlEQVQoU72Q3Q3CMAyEfdkBxCYgZmjtwg6IlTpGnMyABKOUHairVv0LIuobfrEsf76zDRqD+XIl+tRtSwa4e4ze9y0sAL+J3G6smxD8IQGKghvn3D4LlGVVAVQPU7CbqsZEYbL6zvMOWYC5sl/NEPwwjE2gp0TkaIbnWmlWWP6QWv0bEJGzGR7rJQE7qeore+YEbwId8bxC57bEHC0AAAAASUVORK5CYII=") no-repeat scroll 8px 4px;
-      }    
+      }
       .jras-pcShare-img {
         background: transparent url("data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAYAAAAf8/9hAAABUklEQVQ4T51TsUoDURCc3eMuWCgSFPELBD/DInCQt0mMacUmKf0EC1ttrEQrLdQixSV3nxBB/ALBWoLGQs4qBPJWTj1JTpFcXrszs292dgk5n0htG9AzwKqq06ScfIhUXwGsJDxr7SC3QLksfWZe/278kkvAmNqW6viGGSOAXSKd3UJKJnLqURTcptZn+kFKdhza6Xa7vcm5kTHmnpnHnuf57XY79n2/4LqFYwC7X0CNAC0RUT1LTqokUrkDaE3VFonQU2UlgsmkcxmGnb2/EvuxICKLqlwmwlUiPAlWtXEUhcv/CqRFkWoMYCkDfgvDTnEmAWMqJ0S0Pw22T47jlIIgeMiK/Eqh0Wh4w+HoSJU+h8iMCwCPAA4BHIRh53QqhVlXWUQ2AL5Wxbuq3WQG5b6FVqvl9vvPMTMvzH0LIjIAeHWuW0hIxtQqquNz5mRftPkB0mGAPwDQKeIAAAAASUVORK5CYII=") no-repeat scroll 4px 4px;
-      } 
+      }
       .jras-pcRating-img {
         background: transparent url("data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAYAAAAf8/9hAAABcklEQVQ4T52TTUoDQRCFX3WbjaLukiuIezGoG92a7pngHcQT6Bn0CjmCyGR+IBtxmyhxL57An4UIEQKhq6RJIpmJmYiz66pXX1W/riGUfNaGDyJO0jTdXSSjMkCjEfa0Fo7jeG9GN60RH/sB+G7M4Cxr15dM9SgCTtP2Tg6woNscy9qgy0y+0X4OMKsMgmCbGVdEdAhARHAH6PM0vXkqEuc88MUi1AWwMSsW4U+gUi9CPCBnijFBRkTHAEVa42w4XJFKZdQCEDBTkmVRMAsma8OcKdaGXwBWtaZaFEVvXtxsNqvOySszD7IsWfcxa8M+ACZvCgCXJPHBJDEAsDYaVaqdzvX7OGZrgHrJA8Z1cx4YEyZEMABirenUOUciquVjRGjHcbuZu0LRVWNOtoBRj0htFnIfWlM9iqLnUoBPeogIXwLuyJ+1VrdK0cWkeOEm9kWcK9v7iUe/b6Ix5l4p5Qp7/79NnFb5p1o2Venf+JepvgFKmMR2kcNRhAAAAABJRU5ErkJggg==") no-repeat scroll 4px 4px;
-      } 
+      }
       .jras-pcLinks-img {
         background: transparent url("data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAYAAAAf8/9hAAACEUlEQVQ4T52TvWtUQRTFz53Z1T8hH2h6BcHGUlFTiJt98zYLtlqJ2OqC2ugGK4topYilNoLI+xgWQcVEsBBWEoloqWlElIhW62bz3hyZ7Nu4LImgU87M/d0z95wR/MeqVE6Na73xlERH/lZvjJkE9AzAcRF+0Vq3sixzJBdE9D4Sb3YCiDG1OQBXAJQGTZxzPUB9VQp7AVkhs+ntAGKMuQ2o8865XGsVk/hA4rAIjhawT1rLoSiKvo8CtooBdABXTdN0of/m7gsvuwCsay1TURR9GwYMd/6lFGZ8cbPZVO3223daY39fNn6K8IgIzyRJcn8LEAThnIhcBdgVQZAkyXPfzQOWlpbfA9Ih8xNKlRokL5G8bG1yYxNQr9f39HrZRwBaRFWtjZ+MuOPv0e8FQa0lggqJ09bGDzYBYRieI+UuIFGaRvWdrA3DcJaUx865rginrLVrmwBjate8WgDXs6x8p1zuPXNO1qyNjw1gxhjjHB4ppXYBaKRpPO/PCsDsWYD3SCwC+VgRksUBYKR4Pk3jxgA8mMFEr5etFnQ4h2VyY7rVav3wsvOcD4uzm2kaXxx+YqHAjDmn2v2E+eVekvIKwEERqXilpNyyNrowOh8ZDkmeY1VrTADY/eciuySa3rLthitBUFsRwQEfEq1xfH29VC6VsgrASRF+Vkq1fOJ2ckaq1dprEWggP+lt+dff/Rtc5vxxeU5FtQAAAABJRU5ErkJggg==") no-repeat scroll 4px 4px;
       }
       .jras-pcShareFAV-img {
         background: transparent url("data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAACAAAAAgCAYAAABzenr0AAADGUlEQVRYR8WXW08TQRTH/zPb7hYoUC5CEIgxXqDBN4PcxAfUJwEjKvHF2yfwTb6CiC++m2jig1HACNWYKCFRICIYXxQBI4lRBI0CFWhpt7szZreB0LR0usvFSZpuds7ld87MObNDACDc/tirE/0GJ7SBAG7j3XYNBhakhPRLOr2utLWME8O5xtkwkUjWdjlNZJfrfNFBaDUJ3uzsAaHNO+l8zReHjwQ6upe2O+0bBccYAiTY0c3tRk+LcgCNgf3+a9cENgUgt9QCmg619+3OA9BCD5SLDabj8L0+sD+LtiBsZ0A+UwNpX5HpVJ/8AdVnLwu2AGiBB8qlaPSrw24WbAHIp6shHdgdA6BPTEN9OmJ5GSwD0PwsKFdOJHQUuvsSfG7JEoQ1AEIgNx2BdLA4oRMzC89GAZ56ZccDEALidoHkuEE9bvPffM7JAPG4AYkmj1DTwfwBcP8y+EL0xxYC0efllTjdGACSmwnlwjGQdMVSGlMV5oEQwg9em3CrIy4DtDgPytk6QHakajclOR6OQO0aApudj5FPuAdoUS7kc3UgijMl4yIhHopA7RwA++VPvgTrZ41OJ58/CuKSRfaTzvMVFeqjgQ3Pi6RVQHdlQ26tB0mzB8GD4ajzJG1aWIZG3ZsQFjemueEeDoDPJ+8LQgAjv5K3FPKpSktLofpGoE9OC3VSAnBUlcFZXyE0tl4g8uojtNHPQp2UAOTGSkjlpUJj6wX0sW9Qn78T6qQEoFw+DmNDWhlGyYXv9wtVxACUIu1ac+IWrOkAIRvOrdzuFZ4LQgCSlwnX1ZOxkTAO7cNXaG8mAErgrCmHdGhPFGbdCN15EdN2E6VDCCCVFUNuqlrT1ce/IzI0HmfYOEecdV5IZSVrsuqTYehfZpIugxDAWeuFo9YLfeontMEx4Rew8bXkqK+AtLcQkcFP0IYnNgfgOLwfbHYBbGZOuKFiWnlJPmhBNrT3U8kBljs6AxQ03ZL1LRKOXkxudfnASeMW2bRohvf8t8spGPNT8GqzbqLXc97OOBooRYbFMCyJG2mnlPdRxtpcba2T/wCSWmgLitIWxgAAAABJRU5ErkJggg==") no-repeat scroll 0px 0px;
-      } 
+      }
       .jras-pcShareFAV-exists-img {
         background: transparent url("data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAACAAAAAgCAYAAABzenr0AAAAGXRFWHRTb2Z0d2FyZQBBZG9iZSBJbWFnZVJlYWR5ccllPAAAAyZpVFh0WE1MOmNvbS5hZG9iZS54bXAAAAAAADw/eHBhY2tldCBiZWdpbj0i77u/IiBpZD0iVzVNME1wQ2VoaUh6cmVTek5UY3prYzlkIj8+IDx4OnhtcG1ldGEgeG1sbnM6eD0iYWRvYmU6bnM6bWV0YS8iIHg6eG1wdGs9IkFkb2JlIFhNUCBDb3JlIDUuNi1jMDE0IDc5LjE1Njc5NywgMjAxNC8wOC8yMC0wOTo1MzowMiAgICAgICAgIj4gPHJkZjpSREYgeG1sbnM6cmRmPSJodHRwOi8vd3d3LnczLm9yZy8xOTk5LzAyLzIyLXJkZi1zeW50YXgtbnMjIj4gPHJkZjpEZXNjcmlwdGlvbiByZGY6YWJvdXQ9IiIgeG1sbnM6eG1wPSJodHRwOi8vbnMuYWRvYmUuY29tL3hhcC8xLjAvIiB4bWxuczp4bXBNTT0iaHR0cDovL25zLmFkb2JlLmNvbS94YXAvMS4wL21tLyIgeG1sbnM6c3RSZWY9Imh0dHA6Ly9ucy5hZG9iZS5jb20veGFwLzEuMC9zVHlwZS9SZXNvdXJjZVJlZiMiIHhtcDpDcmVhdG9yVG9vbD0iQWRvYmUgUGhvdG9zaG9wIENDIDIwMTQgKFdpbmRvd3MpIiB4bXBNTTpJbnN0YW5jZUlEPSJ4bXAuaWlkOjM0OUVGMUYyQTAzNjExRTc4QUMyODg0QUZGQUI2RTc0IiB4bXBNTTpEb2N1bWVudElEPSJ4bXAuZGlkOjM0OUVGMUYzQTAzNjExRTc4QUMyODg0QUZGQUI2RTc0Ij4gPHhtcE1NOkRlcml2ZWRGcm9tIHN0UmVmOmluc3RhbmNlSUQ9InhtcC5paWQ6MzQ5RUYxRjBBMDM2MTFFNzhBQzI4ODRBRkZBQjZFNzQiIHN0UmVmOmRvY3VtZW50SUQ9InhtcC5kaWQ6MzQ5RUYxRjFBMDM2MTFFNzhBQzI4ODRBRkZBQjZFNzQiLz4gPC9yZGY6RGVzY3JpcHRpb24+IDwvcmRmOlJERj4gPC94OnhtcG1ldGE+IDw/eHBhY2tldCBlbmQ9InIiPz5H7LYwAAAD6klEQVR42sRX70+TVxR+7mlLu3aUX90maBSMOBmy8WFLzDZjJEHjB4dxGuZm1OAX/wJhkizLkm0sfF7CkiVjZmEfiJjFaDAQ4o8lLmaZZhkDGW7CHALjRwFbLPa9d+e+L5Ph20J5m8FN2t63vT3Pc55z7jn3CvB41NBWIslokKAKEngW/+OQkFGC6CKDTvvqDvYIDW4I+YMgEcQqDiXVtEvRDtKerza4HhpTCvUZadmxRkMCFZROzCk/B/RclmMCRAi4HUu48TbE7m85mBkQV96GGix3RsIxgQ2T/BZmC6MQ+VPOVXDsfXHHwvOLXeZ3q0dgvfZ+/D9Whh2rQM6877J/71CFlRPQnnLc7ZZYhRdmVkzAnarX1kSwp53J15V0QoxyTVPKqnYp7AwRbTynFgFpkOxZiFzO8CDH2j8GZDxYHPOUam0eMJcPREPAVB7URBAq7OPq44K6X5ZYAS2hKP1mxeVMjMWhnn9KTE3Yq188z+HHQn5pXj8fYwJJQqBGMiGeOQxsbl0e+JGCuyMC6o1ZPArciL+3dFVU/dVQY4HkSahjJu+FzIVLxm3SgKc5bIGTCygoBw3FOf7x5OB977D9XFte2HaBXmAu5D8kBB8z4P56CmKGtX/pLaDuHhDaMk9MJgbvfZdlz0mYlAl3gfjNA/fd70HtEmpzFLLMC7nJw2Flz89ychq86NUTwMEmoOUI8Mt5KD9BbbCbUz0M/iAr6Y6w/YNi3Zw7n84/GBDd/NEzDWOXH/RrzAJ/rQY49CXQWmOBBwjx41nm5yLw7qNmXi21HW0hoLk+a7L3DFB/F9jzAVtyw3U1CvE3oxe+wZ5/AXR9DPzYDOURiB8J2sAxsm9Z8IQKyIyt1uTyJ8AsV70DjcD6l1lqzokMPjoc5R3y+1Wg40NzmVHFIDkuu2V/OKVCZCfgLUUs730rDNc+BwLZQGU9cPIyEJ9lw7lA2yleaMB4xQdZ5Els2T9kFrblSCTsBRaJunklPrI8LnoTKK4EbrcA4/1mUhp7AsktuwbSa0bSux2PM6ush0u1Cz/caLJ+L/Gm0EREes0onnkYLs910J83gd6LQG4RwHMVckFuK4X6aSe7ICG2X2NLf9jxQw+hBtLshmrLOuDWEPDV/n/NQvrKIK9XPomvmPBbfYS7oW7LCwTG01PAlPp17mqZDHCf7zMjfgbfhLnYaWBQPFU9GVD3Ej4tia3t1nkxOJI+ARUphsGlVka4pc4sndFPiPzFx/UiPrTkDS+fJg8bWyME8q/JxUQiQvqiuFY3IyLVSfqWqi+Ka+B+mKRRS/qKrG+pfLK5oCVZDdk5W74jyB2+2uo7/wgwAKrre9ew1tbOAAAAAElFTkSuQmCC") no-repeat scroll 0px 0px;
-      }          
+      }
       .jras-pcShareTEL-img {
         background: transparent url("data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAACAAAAAgCAYAAABzenr0AAAD5klEQVRYR8VXW0yTZxh+vq8HeuZYTqWyAroz06ATQp1KjDHZYpYtWeaF0TASLjaywwWYJSbOKzfjsiW7WbLsYsui7igBzXBGjBrnBcuC2SZgPQCjMCpSCm2hlP9b3p8UWlp6EApf0ov+//u+z/O87/u93/czAGg40/e0YPyEkFDHOQz0LF1LkiQfFOwyl0TzV29uus0InDF+UwCmdIHGissAjxBSNXvrrKOVAfvXEnwRi7Wx+tOOyXSnfXlxzMsazjrE+qifR10zAllaJTRKhpHJ2Qi9aSWg5AwvFOthLzPi2QIdBASOtA9g3B9cIJEWApZMNew2E6pLDTBkKCIUf3hhAK6pxSysGgGtimOb1QB7mQm2nIyYbeULSHjv3H2EN92KCWw0a2S1W60GqBVsAXhqZg5d/3qxq3xxvPw94sNnV4dX3gOZGgVqnjDKwAVGVZTaGw8m8VufGw3bC0DlCK3z/4zj3F+PHo8AZwyVxTrYbUY8X6QD/V+6Rqdm8W2XC25/EO/vLEaOThlh8sX1EXQ7vakRIIWklBST8lhrThL4tceN87fHsSErA007iqBX8yjTD1ofYHJmLjGBDCVHVYkeO8pMqMjTxJ1TjofTsmqnJyBnqLGmMKIXQs5jviCOtPdHxYpoQkrra5U52FlugkYZrSDc2z8r4adbY7h61yN3NZXm4FZzzNKQX9fgFL78/b/4BLK1ShzdWwLjkr271IuCnfnzISam59P58jPZePW5nLiZ+qF7DBd73fEJ0FuaXk/la7HZopd/4XV/5Aviuz9cuDXsm5/jDDiwJQ+7KzLjgtPLTzqHcMc1nZhAuAX1uS1Xgy0WPXZXmNDc1g/frCSbENGG6nxUlSS+v0gCaPr5HgJz0ede0oPoHXshOh0e0DChqfd2bSGezNcmVE4Gg+4Ajl8cjGmbNAHahhvzNPimyyUPmO2liZWHEK/d88h+sVbSBHQqjo/2WdHS3o/mOgvKc+Nvz3AwAicSKyJAzu++VISOHjcObTMjTz8/gqmu4WdALJBjHYMYmgisnAANJmuWGrU2kwxK2/DTK05YstQ4WGWWe2PpmglKaPrlPsQy966kS0CB6Ww/vs8qzwma96euOBduOGaDCo01BSjNjjyK+1x+nOx0LtusKREIlcGsV+Hza8MRF4vQ1ny9Mhd7Ni3OhY5eN37sHls9AsnsO7qGHX7RDINaIWepZ9S/tgQIjfqBjuPlmi/EKOUSJJOBVGxY/ek+L+dcl4rT6tkyL6v//k4bF+yV1QuafCTB0LpuH6cQklviymr5YkdfyGCKjwHUAUKfvIbHsWRewcQlAd7y9Rtlvf8DpDx2AbcgTJgAAAAASUVORK5CYII=") no-repeat scroll 0px 0px;
-      }   
+      }
       .jras-pcShareVK-img {
         background: transparent url("data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAACAAAAAgCAYAAABzenr0AAADo0lEQVRYR+1Xe0yNYRj/vd93zqmOIpHk0hWbFGYulTsZqzOTzV0mlsuykGs2xtwSYWQ2k402WaOcYrTcRqxIYrbchjT3ojpOdY5zvs/ej856+77SSszW8+fz/t7n+T2X93m+jwBA2PpT/YkoxosiJhDCOVJdW4lgRTVHxGsij/UXExYUk1/O8wCuY1s5VbYrVImEBBLdupN6gJv6d53/9CYAWSRs7UlDW6e9ieCMRLcuRfwX0df5bCfwf2bASWsHRweNVMZaswVfDTUtbiMmAx5uzgj07wWe48ARAkKAe8Vv8fRNmeSgg4MGu5dNgrd7Z8Zh6adKxBy4CItVsOm7OmsxbrA3yC87IJBs3npYgrefq2w4hkDIUF+snBnEGC+vrMbi3RmwCj8fi5uLI5JidbDXqBhcVPx5fPjyzaaLnR2M8UN8ZJlJOpeH7PwXygQ0Kh7Jm8Lh7GjPXNx/5g6uF7606XYuCcHAPt0ZTOSudJRVVEs6l44OSI4Lh4rnGEzlt1pE7dGjxvRdmQDVTh/rh8iwIczFd2UGRCdm2VIct2AMgv09GMz8bWdRaayVdMvDhyM0qJ8s+sTU27jx4BWjl70CO7UKx+OmybJw4sJ9ZNwsli5vmDcaowZ5Mobmbk2DodoML/fOOLgyFDxHmPObRa+x93SujJTiM6TsaRT1hXY7bbT35QZsj5qIwX3dZQRqTBYkrpgCn54uzBltutWHLjGprwMoEqDsD8fq0LtbJ8ZQyYcKHM24i80Lx0kvor4cyyyAv3c3BAewpTF/t0rO33yskEVPFY0OItpktNlaK2lXHyMlu6hRM01OwpgZQZg0zLdVHK4XvsL+M7dbRkBrr5Yayr2LU6tI6G89QfKFAogKe/e3u8CruzMSoifDwU7dJAmzxYoqowldO2kVcZfznuNIen7zXkFDVICvG7ZEjpdNv/o4OuGuFrzExogxGOHXS5FEas4jnM551PQcaCxMuifWzBkJnx7sHqjDL03Qgw4sjZrHjiUh6O/pKjNFS7A26RKelZbbzn5bgvpW6GIZOdADdGf4ebnaykIH0KJd6dJmpNLBXo1Vs4IROKA3Q4Luk32puch9WNIyAg1Dok1KSZnMFmYT1uGctBqoVby0yARBgMlsBe0VJqj2b8L2DITGphg5HsrTo1Xzr1mXjUS35lQWOKJrFvwPg0QQ/T/7ORWAChVBoPTZQv+QRZHs4YAJdI784UAbmjOKIFd4Im7ITIh4+gOHIWRqYeEoEAAAAABJRU5ErkJggg==") no-repeat scroll 0px 0px;
       }
@@ -2422,7 +2521,7 @@ const JRAS_CurrVersion = '1.9.1';
       }
       .jras-pcVotePlus-img {
         background: transparent url("data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABQAAAAUCAYAAACNiR0NAAAABGdBTUEAALGPC/xhBQAAACBjSFJNAAB6JgAAgIQAAPoAAACA6AAAdTAAAOpgAAA6mAAAF3CculE8AAAABmJLR0QAAAAAAAD5Q7t/AAAACXBIWXMAAAsSAAALEgHS3X78AAAD+klEQVQ4y32VTWwbRRTHfzO7Xu9ubCe2yUfrpFWaRC1CoajQD7USCKQGJBBRe+GABBVICKlSj6VUSMAFWgSXqkg5ABLiwoV+XEClqFBEoQ1wCFUbRL6aJlZpIOvEsb3eXe8OB7uWWgwzl9Gbef95b97//UfQYoxdG4j7YWlUqXBECm0niFx9Ry1EKhwXQjtvaImzrz4w493rK+41fHg194IfVo6krf77e5M7yLYNYcXSoKBSc3DK0yyujVNw5yYNzX734HD+s/8EPDHRdTymtx0e7nqOwcxe2mQXigiBrMfXWJejJaad81xd+pygVjl+aOvSkX8BnpjoOm4ZmcOPbnidPnsXHqsEVFokoYhhE6edhcpPfH/zGK7vNEFFI819Uhinnhh4m43mHtbIo4havUgTVCBJkmO++gMXZt4iUv7+g8P509rYtYGkFxRPbcsdSG9JPUOJW0TUiGFhkibEIyICQKJhk0UBIR4BJTr1LYRawMLK5e37DuU+kX5YejJj928aTO+lShFFhI5FMcgzuXIaL1pDI4ZEpxZVmVw5S8GfRcdEoahSZDA9Qtru3+SHpaekUuForn0HtuzEp4xAEifF4uoVvvzjDQruDQwSxLAp+bc5N3WUOecCBgkEEp8ybbKT3vbtKBWO6lLoD2WtoUYFBQqFxyp9Hbt5dsv7ZKx+fNZQQDLew9ObP6DD3NCw3fGJyFpDSKFv1YFeK5ZpUgOghkdC7yaTGqDKKiE1BKCJOIOpEQLKBLhNH4HEimUBevVW1ZPECPFxcRoOosnDuk2hYaCIUIR3IUhg0Q2cRvgagXKpKR+DBKBaUiZOiiAq40clBFr9omAZYFFGqjax7E4hGlNTBvMrl1j2pkiyHoMEOiY6FgYJkqxn2ZtirnARTRkIJALJsjtNpGoTuhDamfzqz89XOv/GkAl0aZI2N/JL/iPus4bozzyOpacBqNYKzDrfseReZ1vPi1haBxEhlegv8qvjCKGd1Q0tcc6pzMxNF873b8seYI0/6bEe5OF1L/HrrY+ZnfkWQ0sA4IclkvEeHln3Mt32MFWKJOnmeuE0TmVu1jIy5+603n4pjC/qrbebInniJAkJuF35jYJ7AyEk7fE+utuG0THxKJIix3z1Ry7MvNlsvXvEIXv4sQ1H6bV3UGWFiBAD+66SBFQQaJh0sFi5wsWb7+D6znuHti69BqDdOfjVWPmbva9I+2bx0p5IhHSYfVgi3aCN1uScjokXrXB9+RSX8yfxgmITrKXAnryaOxDUBXZzX2onWXsIM5YBFG7g4JSnWKgL7O+GZh87OJz/9H8VG2Ds2oDp10qjinBECn0XiPUNTuYjVbsihPa1oSXOtPoC/gE20blbeN5SvAAAAABJRU5ErkJggg==") no-repeat scroll 0px 0px;
-      }   
+      }
       .jras-pcVoteMinus-img {
         background: transparent url("data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABQAAAAUCAYAAACNiR0NAAAABGdBTUEAALGPC/xhBQAAACBjSFJNAAB6JgAAgIQAAPoAAACA6AAAdTAAAOpgAAA6mAAAF3CculE8AAAABmJLR0QAAAAAAAD5Q7t/AAAACXBIWXMAAAsSAAALEgHS3X78AAAD2klEQVQ4y32VS2hUZxiGn3OZxGacXCbeEiNpJJrEJFYtJelQqpZiC1kEJVIotHRjkS5LC3ZRuqzR7grGRRuwtmgVtFlqrBTTCnUhiEJUTGJ0wtiYmZPJxMzlXN4ujtZGox8c/sN3+J7/fJf//Q2WMCfRVK5crhff24Vld2EYawGQ7uN7V7DsYSMWG6q5PFF8NtZ41pHZVvex5ucO2M1tbZHEDuzWTswVq0AQzEzj3bqOe/kPvDujo8byym/jV1PHeZGlO+L9Tlej8kf6FUyOSYUFaWE+XP/3HkyOKX+kX05Xo9Id8YMvhu1olXvpvKRAmk1LybvS1OTiJ3k3/KZA7qVzcra3LIIaj9PcbZSVnYkd/gHrrXchlYTAB8NYOhUJLAvWNOCPDJP7ch9yS3viV1NnLSfRFNNs5kzF/i9qIns+ggdJ8FyoiEJ8JRQL4HshyLJhxWoQUMhDfh6zfQuG61K6NPzGVy1rB03Nz71nNbetL+/pg9kM+D68UkFwf4LSyUGUnYVIOdgRVFigdPoY/p3RcMMggFmH8p4+rOaW9Zqfe9/E83rLEjthVR0s5MA0oaoGd+R3svv244/fglglRKMEqSRzn31K6dwQLK8E0wpjVtdRlngHPK/Xxo5ssds6w7pghGvWIbJ9F9XH12I1t0EuCxJW/TqqBn/CatoQ+oLgvxi7tQPsyGs2htFg1q5a3IBCHrO+AbOlHZwMuG7oL19GpGcvPMrBwqMwGwDD4DGjwV6yi6YJxSIYOYjXhjVUEIKcmbDOT2DPmI2UDNLT1Zb0dCTsCNTE0fhtSmd/IZi6h1ERJbK1C6vr7XCk5rJPoRJBehqkpI3nXfNu3uiI9PSFsLIyWFZBcfB78scHwLQwTBMMg8KpY1ibNhP9+jvM1fWQdcJJNgy8WzfAc68Zmc21fea6ptNVA6egqhokiid+xB25QNnuD7E7X8esroFSCW9yjOLQCTSXpeLzbzBXrgn/Mpclu/8DguTEXpxEUyy9MTpeGDgkSfKvXVHx56PSgynJdyVnRppOSQ8fhGfZd1UaOqnSr4NS5qEkqTDQr/TG6JiTaIo9UZg9Tver8v68IHmeNPNPCFjqLKfuS86MgonbUuDL++uCnO5GZbbV7X5eHLa3yr18UZKkzMxLxCEjSXJHhp+IQ//SitMe73e6G5U/eljBvfEXyFdewb0x5QcOyeluVLp9Mex5gd265hM9yh2wN2xqiSR2Yrd1YtauDAU2/RDv5nXcvy7i3Rm9aSyvPBi/mjr2UiCA82bTMs3P9eL7u7DtbgyjHoBAU/je31jWeSNW+dtSV8C/Gxd0zlRsvhIAAAAASUVORK5CYII=") no-repeat scroll 0px 0px;
       }
@@ -2438,11 +2537,11 @@ const JRAS_CurrVersion = '1.9.1';
         display: inline-block;
         background: transparent url("data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABgAAAAYCAYAAADgdz34AAAA6ElEQVRIS+3TIU4EQRBG4W8xSBwOuRdAoBAEi+ECbELwBAkOFDgugAa9CZYEgSFcgQvguACBdFIknQV6qknWTasRVe/1/FU9seQzWTLfKBhMuDei7SA+DZKjoFfwGH07o6AksIkjHOMjIlmMaAXXuMXzb7G1ZnBSNc9CUgsK/AaHOMNVr6DUn+ISdzjAQ0B2K/gFzv8aemaLaskGPvEaN2/CizQjqP+kfBdB6RuE9wgWJSl4r+Bbshq3T721VkRTrKUovMdcfpS3BPfYSwrm2O9d0y2sJwVveOkVJNntsuya/ls2Cgaj+wJTFiUZUSeJ8gAAAABJRU5ErkJggg==") no-repeat scroll 3px -3px;
       }
-      .jras-pcLinksSepAfter:after{ 
+      .jras-pcLinksSepAfter:after{
         color: #535353;
         content: " | ";
       }
-      .jras-pcLinksSepBefore:before{ 
+      .jras-pcLinksSepBefore:before{
         color: #535353;
         content: " | ";
       }
@@ -2481,7 +2580,7 @@ const JRAS_CurrVersion = '1.9.1';
         -webkit-transform: scale(2, 2);
         transform: scale(2, 2);
         box-shadow: 0 0 4px 1px rgba(128, 128, 128, 0.53);
-      }   
+      }
       #jras-PostControlBlock{
         position: absolute;
         right: 0;
@@ -2784,8 +2883,8 @@ const JRAS_CurrVersion = '1.9.1';
       div#showCreatePost { width: 100%; }
       div#add_post_holder { width: 100%; }
       div[id^=postContainer]{ box-shadow: 10px 0px 20px -10px rgba(0, 0, 0, 0.4); }
-      div#navcontainer { background-size: 100%; }   
-      div#searchBar { background-size: 100%; } 
+      div#navcontainer { background-size: 100%; }
+      div#searchBar { background-size: 100%; }
       div.blogs a img { width: 100%; }
       div#searchBar{ display: flex; }
       form#searchform{ float: right; }
@@ -2977,8 +3076,8 @@ const JRAS_CurrVersion = '1.9.1';
         <label id="navcontainer" class="lang_select" for="modal-1"
           style="cursor: pointer; right: 39px; padding: 1px 2px 2px;
           font-size: 9px; border-radius: 0 0 5px 5px; height: 17px;
-          ${(!page.isSchemeLight) ? "background: transparent url('../images/mainmenu_active_bg1.png') repeat-x scroll 0 0;" : 'background-position-x: -4px; background-position-y: -2px;'}
-          > JRAS
+          ${ (!page.isSchemeLight()) ? "background: transparent url('../images/mainmenu_active_bg1.png') repeat-x scroll 0 0;" : 'background-position-x: -4px; background-position-y: -2px;'}">
+          JRAS
         </label>
       `);
       $('div#header:first div.lang_select + label').click(openProp);
@@ -3003,6 +3102,7 @@ const JRAS_CurrVersion = '1.9.1';
                   <li id="jras-tabs-nav-2"><a href="#jras-prop-gui-tab-3"></a></li>
                   <li id="jras-tabs-nav-3"><a href="#jras-prop-gui-tab-4"></a></li>
                   <li id="jras-tabs-nav-4"><a href="#jras-prop-gui-tab-5"></a></li>
+                  <li id="jras-tabs-nav-5"><a href="#jras-prop-gui-tab-6"></a></li>
                 </ul>
                 <div id="jras-prop-gui-tab-1" class="jras-tabs-panel">
                   <div class="jras-tabs-panel-content">
@@ -3013,7 +3113,7 @@ const JRAS_CurrVersion = '1.9.1';
                     <section class="jras-prop-gui-section"> ${getHTMLProp('correctRedirectLink')} </section>
                     <section class="jras-prop-gui-section"> ${getHTMLProp('showHiddenComments')} </section>
                     <section class="jras-prop-gui-section" style="margin-left: 20px; margin-top: -10px;"> ${getHTMLProp('showHiddenCommentsMark')} </section>
-                    <section class="jras-prop-gui-section""> ${getHTMLProp('pcbShowPostControl')} </section>     
+                    <section class="jras-prop-gui-section""> ${getHTMLProp('pcbShowPostControl')} </section>
                     <section class="jras-prop-gui-section" style="margin-left: 20px; margin-top: -10px;">
                       ${getHTMLProp('pcbShowInFullPost')} <br>
                       ${getHTMLProp('pcbHideShareButoons')} <br>
@@ -3061,13 +3161,13 @@ const JRAS_CurrVersion = '1.9.1';
                       ${getHTMLProp('minShowUserAwards', 'Val', {'width': '60px'})} <br>
                       ${getHTMLProp('chatlaneToPacaki')} <br>
                       ${getHTMLProp('showUTOnTopComments')} </section>
-                    <section class="jras-prop-gui-section" style="margin-top: -10px;"> ${getHTMLProp('isToBeLoadingTagData')} </section>     
+                    <section class="jras-prop-gui-section" style="margin-top: -10px;"> ${getHTMLProp('isToBeLoadingTagData')} </section>
                     <section class="jras-prop-gui-section" style="margin-left: 20px; margin-top: -10px;">
                       ${getHTMLProp('showTTOnLine')} <br>
                       ${getHTMLProp('showTTFullPost')} <br>
                       ${getHTMLProp('showTTOnTrends')} <br>
                       ${getHTMLProp('showTTOnLikeTags')} <br>
-                      ${getHTMLProp('showTTOnInteresting')} </section>  
+                      ${getHTMLProp('showTTOnInteresting')} </section>
                   </div>
                 </div>
                 <div id="jras-prop-gui-tab-4" class="jras-tabs-panel">
@@ -3096,10 +3196,10 @@ const JRAS_CurrVersion = '1.9.1';
                       ${getHTMLProp('stStretchContent')} <br>
                       ${getHTMLProp('stCenterContent')} <br>
                       ${getHTMLProp('stStretchSize')}
-                    </section> 
+                    </section>
                     <section class="jras-prop-gui-section"> ${getHTMLProp('stUseDynStyleChanges')} </section>
                     <section class="jras-prop-gui-section"> ${getHTMLProp('stSideBarSizeToPage')}
-                    <section class="jras-prop-gui-section" style="margin-left: 20px;">${getHTMLProp('stShowSideBarOnHideContent')} </section> 
+                    <section class="jras-prop-gui-section" style="margin-left: 20px;">${getHTMLProp('stShowSideBarOnHideContent')} </section>
                     </section>
                     <div style="opacity: .7; line-height: 12px; font-size: 80%; padding: 15px; border-top: 1px dashed; width: 90%;">
                       * JRAS style так же можно найти в виде стилей для Stylish и подобных. Мне кажется что использовать их отдельно от скрипта удобнее, хотя и настроить сложно.<br>
@@ -3110,10 +3210,17 @@ const JRAS_CurrVersion = '1.9.1';
                     </div>
                   </div>
                 </div>
+                <div id="jras-prop-gui-tab-6" class="jras-tabs-panel">
+                  <div class="jras-tabs-panel-content">
+                    <span id="jras-gui-ExpImpCaption"></span>
+                    <textarea id="jras-gui-ExpImpData" needClick="true" style="width: 98%; border: 1px solid rgb(216, 216, 216); height: 30vh; margin-top: 5px;"></textarea>
+                    <input id="jras-gui-Import" needClick="true" style="padding-left: 20px;padding-right: 20px;height: 22px;right: 0px;padding-right: 20px;margin-right: 5px;" value="Импорт" type="button">
+                  </div>
+                </div>
               </div>
             </div>
             <div  id="jras-prop-gui-bottomCcontent" class="jras-prop-gui-contentBottom">
-              <input id="jras-gui-SaveSettings" style="padding-left: 20px; padding-right: 20px; height: 22px;" class="jras-prop-gui-button-right" value="" type="button">
+              <input id="jras-gui-SaveSettings" needClick="true" style="padding-left: 20px; padding-right: 20px; height: 22px;" class="jras-prop-gui-button-right" value="" type="button">
             </div>
           </div>
         </div>
@@ -3125,15 +3232,62 @@ const JRAS_CurrVersion = '1.9.1';
     });
 
     const $propDialog = $('#jras-prop-gui-dialog');
-    $propDialog.find('[id*=jras-tabs-nav-]').click(function(){
-      $propDialog.find('#jras-prop-gui-tabs').tabs({active: $(this).attr('id').replace('jras-tabs-nav-', '')});
-    });
+
     if(page.isSchemeLight()){$propDialog.find('[id*=jras-prop-gui-tab]').css('color', '#686868');
     }else{$propDialog.find('[id*=jras-prop-gui-tab]').css('color', '#BBBBBB');}
     if(!page.isNewDesign){$propDialog.find('ul.jras-tabs-nav li a').css('padding-top', '11px');}
 
     makeServiceGUIButton();
     updateGuiLocalize();
+
+    propDlgTabsClick($propDialog);
+    propDlgItemsNeedClick($propDialog);
+  }
+
+  function propDlgTabsClick($propDialog){
+    $propDialog.find('[id*=jras-tabs-nav-]').click(function () {
+      const currTabNum = $(this).attr('id').replace('jras-tabs-nav-', '');
+      switch (currTabNum) {
+        case '5':
+          updateUserOptions();
+          $propDialog.find('#jras-gui-ExpImpData').val(userOptions.exportUserData(page.currentUser));
+          break;
+      }
+      $propDialog.find('#jras-prop-gui-tabs').tabs({ active: currTabNum });
+    });
+  }
+
+  function propDlgItemsNeedClick($propDialog) {
+    $propDialog.find('[needClick="true"]').click(function () {
+      switch ($(this).attr('id')) {
+        case 'jras-gui-ExpImpData':
+          $(this).focus();
+          $(this).select();
+          break;
+        case 'jras-gui-Import':
+          userOptions.importUserData(page.currentUser, $(this).val());
+          closeSettingDialog();
+          break;
+        case 'jras-gui-SaveSettings':
+          updateUserOptions();
+          userOptions.saveUserData(page.currentUser);
+          updateGuiLocalize();
+          closeSettingDialog()
+          break;
+        case 'jras-gui-sendPMforMe':
+          closeSettingDialog();
+          sendPM('AntiUser');
+          break;
+        case 'jras-gui-DeleteAllSavedSettings':
+          closeSettingDialog();
+          userOptions.removeAllSavedData();
+          break;
+        case 'jras-gui-ResetSettings':
+          closeSettingDialog();
+          userOptions.setDef();
+          break;
+      }
+    });
   }
 
   function openProp(){
@@ -3158,6 +3312,7 @@ const JRAS_CurrVersion = '1.9.1';
 
   function updateGuiLocalize(){
     const $propDialog = $('#jras-prop-gui-dialog');
+    $propDialog.find('#jras-gui-Import').attr('value', lng.getVal('JRAS_GUI_BTNIMPORT'));
     $propDialog.find('#jras-gui-SaveSettings').attr('value', lng.getVal('JRAS_GUI_BTNSAVE'));
     $propDialog.find('#jras-gui-sendPMforMe').attr('title', lng.getVal('JRAS_GUI_BTNSENDPMME'));
     $propDialog.find('#jras-gui-DeleteAllSavedSettings').attr('title', lng.getVal('JRAS_GUI_BTNDELETESETT'));
@@ -3167,8 +3322,10 @@ const JRAS_CurrVersion = '1.9.1';
     $propDialog.find('#jras-tabs-nav-2 a').text(lng.getVal('JRAS_GUI_TABTOOLTIP'));
     $propDialog.find('#jras-tabs-nav-3 a').text(lng.getVal('JRAS_GUI_TABCOMMENTS'));
     $propDialog.find('#jras-tabs-nav-4 a').text(lng.getVal('JRAS_GUI_TABSTYLE'));
+    $propDialog.find('#jras-tabs-nav-5 a').text(lng.getVal('JRAS_GUI_TABEXPIMP'));
     $propDialog.find('#jras-guiBlockUserListCaption').text(lng.getVal('JRAS_GUI_BLOCKUSERLIST'));
     $propDialog.find('#jras-guiBlockTagListCaption').text(lng.getVal('JRAS_GUI_BLOCKTAGLIST'));
+    $propDialog.find('#jras-gui-ExpImpCaption').text(lng.getVal('JRAS_GUI_EXPIMP'));
 
     userOptions.each(function(thd, optName){
       $propDialog.find('#' + getPropID(optName) + 'Caption').text(userOptions.getGuiDesc(optName));
@@ -3180,50 +3337,34 @@ const JRAS_CurrVersion = '1.9.1';
     if(page.isNewDesign){
       $propDialog.find('#jras-gui-SaveSettings').css('border-radius', '3px');
       $propDialog.find('#jras-prop-gui-bottomCcontent').prepend(`
-      <div id="jras-gui-sendPMforMe" class="big_button jras-gui-btn-newdesign jras-prop-gui-button-left jras-gui-btn-pmme" title=""> </div>
-      <div id="jras-gui-DeleteAllSavedSettings" class="big_button jras-gui-btn-newdesign jras-prop-gui-button-left jras-gui-btn-deleteall" title="" > </div>
-      <div id="jras-gui-ResetSettings" class="big_button jras-gui-btn-newdesign jras-prop-gui-button-left jras-gui-btn-resetdef" title="" > </div>
+      <div id="jras-gui-sendPMforMe" needClick="true" class="big_button jras-gui-btn-newdesign jras-prop-gui-button-left jras-gui-btn-pmme" title=""> </div>
+      <div id="jras-gui-DeleteAllSavedSettings" needClick="true" class="big_button jras-gui-btn-newdesign jras-prop-gui-button-left jras-gui-btn-deleteall" title="" > </div>
+      <div id="jras-gui-ResetSettings" needClick="true" class="big_button jras-gui-btn-newdesign jras-prop-gui-button-left jras-gui-btn-resetdef" title="" > </div>
      `);
     }else{
       $propDialog.find('#jras-prop-gui-bottomCcontent').prepend(`
-      <input id="jras-gui-sendPMforMe" style="padding-left: 3px;padding-right: 3px;width: 24px;height: 22px;" class="jras-prop-gui-button-left jras-gui-btn-pmme" title="" value="" type="button">
-      <input id="jras-gui-DeleteAllSavedSettings" style="padding-left: 3px; padding-right: 3px; width: 24px; height: 22px;" class="jras-prop-gui-button-left jras-gui-btn-deleteall" title="" value="" type="button">
-      <input id="jras-gui-ResetSettings" style="padding-left: 3px; padding-right: 3px; width: 24px; height: 22px;" class="jras-prop-gui-button-left jras-gui-btn-resetdef" title="" value="" type="button">
+      <input id="jras-gui-sendPMforMe" needClick="true" style="padding-left: 3px;padding-right: 3px;width: 24px;height: 22px;" class="jras-prop-gui-button-left jras-gui-btn-pmme" title="" value="" type="button">
+      <input id="jras-gui-DeleteAllSavedSettings" needClick="true" style="padding-left: 3px; padding-right: 3px; width: 24px; height: 22px;" class="jras-prop-gui-button-left jras-gui-btn-deleteall" title="" value="" type="button">
+      <input id="jras-gui-ResetSettings" needClick="true" style="padding-left: 3px; padding-right: 3px; width: 24px; height: 22px;" class="jras-prop-gui-button-left jras-gui-btn-resetdef" title="" value="" type="button">
      `);
     }
+  }
 
-    $propDialog.find('#jras-gui-sendPMforMe').click(function(){
-      closeSettingDialog();
-      sendPM('AntiUser')
+  function updateUserOptions() {
+    const $propDialog = $('#jras-prop-gui-dialog');
+    userOptions.each(function(thd, optName, opt){
+      switch(opt.propData().type) {
+        case 'checkbox':
+          userOptions.val(optName, $propDialog.find('#' + getPropID(optName) + 'Val').prop('checked'));
+          break;
+        case 'combobox':
+        case 'number':
+          userOptions.val(optName, $propDialog.find('#' + getPropID(optName) + 'Val').val());
+          break;
+      }
     });
-    $propDialog.find('#jras-gui-DeleteAllSavedSettings').click(function(){
-      closeSettingDialog();
-      userOptions.removeAllSavedData();
-    });
-    $propDialog.find('#jras-gui-ResetSettings').click(function(){
-      closeSettingDialog();
-      userOptions.setDef();
-    });
-    $propDialog.find('#jras-gui-SaveSettings').click(function(){
-      const $propDialog = $('#jras-prop-gui-dialog');
-      userOptions.each(function(thd, optName, opt){
-        switch(opt.propData().type) {
-          case 'checkbox':
-            userOptions.val(optName, $propDialog.find('#' + getPropID(optName) + 'Val').prop('checked'));
-            break;
-          case 'combobox':
-          case 'number':
-            userOptions.val(optName, $propDialog.find('#' + getPropID(optName) + 'Val').val());
-            break;
-        }
-      });
-
-      userOptions.data.BlockUsers = $propDialog.find('#jras-guiBlockUserList').val().split('\n');
-      userOptions.data.BlockTags = $propDialog.find('#jras-guiBlockTagList').val().split('\n');
-      updateGuiLocalize();
-      userOptions.saveUserData(page.currentUser);
-      closeSettingDialog()
-    });
+    userOptions.data.BlockUsers = $propDialog.find('#jras-guiBlockUserList').val().split('\n');
+    userOptions.data.BlockTags = $propDialog.find('#jras-guiBlockTagList').val().split('\n');
   }
 
   function PageData(){
@@ -3490,6 +3631,9 @@ const JRAS_CurrVersion = '1.9.1';
     this.JRAS_GUI_TABSTYLE = {
       ru: 'Стиль'
     };
+    this.JRAS_GUI_TABEXPIMP = {
+      ru: 'Экспорт/Импорт'
+    };
     this.JRAS_LOADINGUSERDATA = {
       ru: 'Загрузка данных...'
     };
@@ -3627,6 +3771,12 @@ const JRAS_CurrVersion = '1.9.1';
     };
     this.JRAS_GUI_STCENTERCONTENT = {
       ru: 'Центровать контент'
+    };
+    this.JRAS_GUI_EXPIMP = {
+      ru: 'Данные экпорта/импорта'
+    };
+    this.JRAS_GUI_BTNIMPORT = {
+      ru: 'Импортировать данные'
     };
     this.JRAS_GUI_LAZYLOADFEED = {
       ru: 'Включить подгрузку следующей страницы'
