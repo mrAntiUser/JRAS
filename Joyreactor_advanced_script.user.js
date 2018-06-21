@@ -733,7 +733,7 @@ const JRAS_CurrVersion = '1.9.1';
     return decodeURIComponent(escape(atob(str)));
   };
 
-  function removeShareButtons(){
+  function removeShareButtons($srcElm){
     if(!userOptions.val('removeShareButtons')){
       return;
     }
@@ -1532,7 +1532,7 @@ const JRAS_CurrVersion = '1.9.1';
                                     <ellipse cx="35" cy="35" rx="30" ry="30" style="fill:none; stroke-width:1; stroke:blue"></ellipse>
                                     <line x1="35" y1="5" x2="35" y2="35" style="stroke:rgb(255,0,0);stroke-width:2"></line>
                                     <animateTransform attributeName="transform" attributeType="XML" type="rotate" from="0 35 35" to="360 35 35" dur="${delay}s" repeatCount="indefinite"></animateTransform>
-                                  </g>  
+                                  </g>
                                 </svg>
                               </div>
                             </div>`;
@@ -2443,8 +2443,8 @@ const JRAS_CurrVersion = '1.9.1';
         height: 100%;
       }
       .jras-progress-lazyLoad {
-        -webkit-animation-fill-mode:both; 
-        -moz-animation-fill-mode:both; 
+        -webkit-animation-fill-mode:both;
+        -moz-animation-fill-mode:both;
       }
       @-webkit-keyframes jras-progress-lazyLoad {
         0% { width: 0; }
@@ -3123,12 +3123,12 @@ const JRAS_CurrVersion = '1.9.1';
                       ${getHTMLProp('pcbAnimateMoveSpeed')}<br>
                       ${getHTMLProp('pcbTopScreenPos')} <br>
                       ${getHTMLProp('pcbTopBorder')} <br>
-                      ${getHTMLProp('pcbBottomBorder')} </section>  
-                    <section class="jras-prop-gui-section""> ${getHTMLProp('lazyLoadFeed')} </section>   
+                      ${getHTMLProp('pcbBottomBorder')} </section>
+                    <section class="jras-prop-gui-section""> ${getHTMLProp('lazyLoadFeed')} </section>
                     <section class="jras-prop-gui-section" style="margin-left: 20px; margin-top: -10px;">
                       ${getHTMLProp('lazyLoadFeedChangeWinUrl')} <br>
                       ${getHTMLProp('lazyLoadFeedDelay')} <br>
-                      ${getHTMLProp('lazyLoadFeedStoredPage')} </section>  
+                      ${getHTMLProp('lazyLoadFeedStoredPage')} </section>
                   </div>
                 </div>
                 <div id="jras-prop-gui-tab-2" class="jras-tabs-panel">
