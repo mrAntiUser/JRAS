@@ -500,9 +500,8 @@ const JRAS_CurrVersion = '1.9.1';
         BlockTags: [],
 
         init: function(prop){ if (!this[prop]){return} this[prop].dt = this[prop].propData().def },
-        validator: function(prop, val){ if (!this[prop]){return}return (this[prop]['validator'])?this[prop].validator():$.isNumeric(val) && val >= this.min && val <= this.max },
-        guiDesc: function(prop){if (!this[prop]){return}
-          return lng.getVal('JRAS_GUI_' + prop.toUpperCase())}
+        validator: function (prop, val) { if (!this[prop]) { return } return (this[prop]['validator']) ? this[prop].validator() : $.isNumeric(val) && val >= this[prop].propData().min && val <= this[prop].propData().max },
+        guiDesc: function (prop) { if (!this[prop]) { return } return lng.getVal('JRAS_GUI_' + prop.toUpperCase()) }
       },
 
       each: function(func){
