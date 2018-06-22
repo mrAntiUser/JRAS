@@ -294,7 +294,7 @@ const JRAS_CurrVersion = '1.9.1';
     ActivateLazyLoad();
 
   }catch(err){
-    win.console.log("~~JRAS_ERROR: " + err + '\n' + err.stack)
+    win.console.log("~~JRAS_ERROR: " + err + '\n' + err.stack);
   }
 
   win.console.log(' ================ end JRAS');
@@ -488,10 +488,10 @@ const JRAS_CurrVersion = '1.9.1';
           propData: function(){return { def: false, type: 'checkbox'}}
         },
         lazyLoadFeedDelay: { dt: null,
-          propData: function(){return { def: 2, type: 'number', min: 1, max: 5}}
+          propData: function(){return { def: 1, type: 'number', min: 0, max: 5}}
         },
         lazyLoadFeedStoredPage: { dt: null,
-          propData: function(){return { def: 2, type: 'number', min: 1, max: 10}}
+          propData: function(){return { def: 2, type: 'number', min: 1, max: 5}}
         },
         lazyLoadFeedChangeWinUrl: { dt: null,
           propData: function(){return { def: true, type: 'checkbox'}}
@@ -501,7 +501,7 @@ const JRAS_CurrVersion = '1.9.1';
 
         init: function(prop){ if (!this[prop]){return} this[prop].dt = this[prop].propData().def },
         validator: function (prop, val) { if (!this[prop]) { return } return (this[prop]['validator']) ? this[prop].validator() : $.isNumeric(val) && val >= this[prop].propData().min && val <= this[prop].propData().max },
-        guiDesc: function (prop) { if (!this[prop]) { return } return lng.getVal('JRAS_GUI_' + prop.toUpperCase()) }
+        guiDesc: function(prop){if (!this[prop]){return} return lng.getVal('JRAS_GUI_' + prop.toUpperCase())}
       },
 
       each: function(func){
@@ -1578,19 +1578,23 @@ const JRAS_CurrVersion = '1.9.1';
                   .not('form#add_post, div#add_post_uploading, div#add_post_duplicate, div#showCreatePost, div#add_post_holder'));
                 if (lazyLoadQueue.length > userOptions.val('lazyLoadFeedStoredPage')){
                   lazyLoadQueue.shift().remove();
-                }
+                };
 
                 setTimeout(function(){
 
                   const doc = document.implementation.createHTMLDocument("");
+
+                  // doc.documentElement.innerHTML = e.target.response;
+                  // const a = $(doc).find('body').find('div#Pagination.pagination:last').parent();
+                  // a.children().replaceWith($.parseHTML(a.get(0).innerHTML, null, true));
+                  // $contentinner.append($(doc).find('body').find('div#Pagination.pagination:last').parent().children().slice(1).clone(true, true));
+                  // $('body').trigger("DOMUpdate");
+
                   doc.documentElement.innerHTML = e.target.response;
                   $contentinner.append($(doc).find('body').find('div#Pagination.pagination:last').parent().children().slice(1).clone(true, true));
 
                   runScripts(document.querySelectorAll('head script'));
                   $('body').trigger("DOMUpdate");
-                  // const a = $('div#Pagination.pagination:last').parent();
-                  // a.children().replaceWith($.parseHTML(a.get(0).innerHTML));
-                  // $('body').trigger("DOMUpdate");
 
                   const $srcElmts = $('div#post_list:last, div#Pagination.pagination:last');
                   try{
@@ -1626,12 +1630,12 @@ const JRAS_CurrVersion = '1.9.1';
 
                     needSetTimerAgain = true;
                   }catch(err){
-                    let errStr = err + ' (line ' + (err.lineNumber || '') + ')';
+                    let errStr = err + '\n' + err.stack;
                     win.console.log("~~JRAS_ERROR in lazyLoadFeed: " + errStr);
                     $lazyLoadLoadingLabel.find('tl').text('lazyLoadFeed error: ' + errStr);
                   }
                   win.console.log(' ================ end JRAS lazyLoadFeed');
-                },100);
+                },10);
 
               }
             };
