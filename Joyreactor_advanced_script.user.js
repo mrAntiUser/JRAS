@@ -34,6 +34,7 @@ const JRAS_CurrVersion = '1.9.1';
  -----
    + переработка механизма сохранения настроек (Issue-59)
    + импорт/экспорт настроек (Issue-59)
+   + корректировка размера страницы после окончательной ее загрузки (Issue-55)
  1.9.1
    * Поддержка нового движка FireFox и нового GreaseMonkey (Issue-51)
  1.9.0
@@ -3576,5 +3577,9 @@ const JRAS_CurrVersion = '1.9.1';
       ru: 'Импортировать данные'
     };
   }
+  
+  $(window).on('load', function () {
+    correctPageHeight();
+  });
 
 }(typeof unsafeWindow != undefined ? unsafeWindow : window));
