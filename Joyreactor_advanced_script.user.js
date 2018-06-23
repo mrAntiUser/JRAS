@@ -1,4 +1,4 @@
-// ==UserScript==
+﻿// ==UserScript==
 // @name        Joyreactor advanced script
 // @namespace   http://joyreactor.cc/tag/jras
 // @description comment tree collapse, remove/hide posts/comments by username/tag, remove share buttons and more on http://joyreactor.cc/tag/jras
@@ -495,6 +495,9 @@ const JRAS_CurrVersion = '1.9.1';
           propData: function(){return { def: 2, type: 'number', min: 1, max: 5}}
         },
         lazyLoadFeedChangeWinUrl: { dt: null,
+          propData: function(){return { def: true, type: 'checkbox'}}
+        },
+        lazyLoadFeedDelPagination: { dt: null,
           propData: function(){return { def: true, type: 'checkbox'}}
         },
         BlockUsers: [],
@@ -1610,7 +1613,9 @@ const JRAS_CurrVersion = '1.9.1';
                     subscribeShowComment($srcElmts);
                     ActivateLazyLoad($srcElmts);
 
-                    $pag.remove();
+                    if (userOptions.val('lazyLoadFeedDelPagination')){
+                      $pag.remove();
+                    }
                     $lazyLoadLoadingLabel.find('re').remove();
                     $lazyLoadLoadingLabel.css({'background-color': `${!page.isSchemeLight() ? '#383838': '#e4c465'}`});
 
@@ -3138,6 +3143,7 @@ const JRAS_CurrVersion = '1.9.1';
                     <section class="jras-prop-gui-section""> ${getHTMLProp('lazyLoadFeed')} </section>
                     <section class="jras-prop-gui-section" style="margin-left: 20px; margin-top: -10px;">
                       ${getHTMLProp('lazyLoadFeedChangeWinUrl')} <br>
+                      ${getHTMLProp('lazyLoadFeedDelPagination')} <br>
                       ${getHTMLProp('lazyLoadFeedDelay')} <br>
                       ${getHTMLProp('lazyLoadFeedStoredPage')} </section>
                   </div>
@@ -3894,6 +3900,9 @@ const JRAS_CurrVersion = '1.9.1';
     };
     this.JRAS_GUI_LAZYLOADFEEDCHANGEWINURL = {
       ru: 'Менять строку браузера на текущую страницу'
+    };
+    this.JRAS_GUI_LAZYLOADFEEDDELPAGINATION = {
+      ru: 'Удалять блок перехода по страницам'
     };
   }
   
