@@ -743,6 +743,7 @@ const JRAS_CurrVersion = '1.9.1';
     }
     const selector = 'a[href*="joyreactor"]:contains("old.reactor")';
     const $selElmts = (!$srcElm) ? $(selector) : $srcElm.find(selector);
+    if ($selElmts.length == 0){return};
     $selElmts.attr("href", $selElmts.attr("href").replace(/joyreactor/, "old.reactor"));
   }
 
@@ -1379,45 +1380,50 @@ const JRAS_CurrVersion = '1.9.1';
         postControlSlider($pcInfoUser, itmHeight + $infoUserA.width() + $infoUserDate.width(), itmHeight);
 
         const $favA = $postBlock.find('a#jras-pcbShareFAV');
-        new MutationObserver(function(){
-          const favData = getFavData($postContainer);
-          $favA.removeClass();
-          $favA.addClass(favData.Img);
-          $favA.attr('title', favData.Title);
-        }).observe($postContainer.find('div.uhead_share span.favorite_link').get(0), {attributes: true});
+        const $favLink = $postContainer.find('div.uhead_share span.favorite_link');
+        if (!$favLink.length == 0){
+          new MutationObserver(function(){
+            const favData = getFavData($postContainer);
+            $favA.removeClass();
+            $favA.addClass(favData.Img);
+            $favA.attr('title', favData.Title);
+          }).observe($postContainer.find('div.uhead_share span.favorite_link').get(0), {attributes: true});
+        };
 
         postControlSlider($postContainer.find('sitm#jras-PostControlShare'), (pcbShareButtons == '') ? 40 : 132, itmHeight);
         $favA.click(function(){ $postContainer.find('span.favorite_link').get(0).click(); return false; });
 
-        const $Rating = $postContainer.find('div.ufoot span.post_rating');
-        $Rating.find('div.vote-plus, div.vote-minus').removeClass('abyss');
-        const ratingStyle = function(){
-          const $pcRating = $postContainer.find('sitm#jras-PostControlRating');
-          $pcRating.children().remove();
-          $pcRating.append(`<span style="margin-left: ${itmContentPos}px;">`);
-          $pcRating.append($Rating.clone(true));
-          const $pcRatingPost = $pcRating.find('span.post_rating');
-          $pcRatingPost.css('display', '');
-          // $pcRatingPost.css('right', 'unset');
-          const $pcRatingPostPlus = $pcRatingPost.find('div.vote-plus');
-          $pcRatingPostPlus.removeClass('vote-plus').addClass('jras-PostControlRatingVote').click(function(){
-            $Rating.find('div.vote-plus').get(0).click()});
-          const $pcRatingPostMinus =$pcRatingPost.find('div.vote-minus');
-          $pcRatingPostMinus.removeClass('vote-minus').addClass('jras-PostControlRatingVote').click(function(){
-            $Rating.find('div.vote-minus').get(0).click()});
-          if (page.isNewDesign){
-            $pcRatingPost.find('span:first').css({'font-size': '18px', 'top': '-9px', 'display': 'initial','position': 'relative'});
-            $pcRatingPostPlus.addClass('jras-PostControlRatingVote-new').css({'background-position-y': '1px'});
-            $pcRatingPostMinus.addClass('jras-PostControlRatingVote-new').css({'background-position': '-22px 1px', 'margin': '7px 0 0'});
-          }else{
-            $pcRatingPostPlus.addClass('jras-pcVotePlus-img').css({'top': '5px', 'position': 'relative'});
-            $pcRatingPostMinus.addClass('jras-pcVoteMinus-img').css({'top': '5px', 'position': 'relative'});
-          }
-          postControlSlider($pcRating, itmHeight + 130, itmHeight);
+        if (page.isUserLogon){
+          const $Rating = $postContainer.find('div.ufoot span.post_rating');
+          $Rating.find('div.vote-plus, div.vote-minus').removeClass('abyss');
+          const ratingStyle = function(){
+            const $pcRating = $postContainer.find('sitm#jras-PostControlRating');
+            $pcRating.children().remove();
+            $pcRating.append(`<span style="margin-left: ${itmContentPos}px;">`);
+            $pcRating.append($Rating.clone(true));
+            const $pcRatingPost = $pcRating.find('span.post_rating');
+            $pcRatingPost.css('display', '');
+            // $pcRatingPost.css('right', 'unset');
+            const $pcRatingPostPlus = $pcRatingPost.find('div.vote-plus');
+            $pcRatingPostPlus.removeClass('vote-plus').addClass('jras-PostControlRatingVote').click(function(){
+              $Rating.find('div.vote-plus').get(0).click()});
+            const $pcRatingPostMinus =$pcRatingPost.find('div.vote-minus');
+            $pcRatingPostMinus.removeClass('vote-minus').addClass('jras-PostControlRatingVote').click(function(){
+              $Rating.find('div.vote-minus').get(0).click()});
+            if (page.isNewDesign){
+              $pcRatingPost.find('span:first').css({'font-size': '18px', 'top': '-9px', 'display': 'initial','position': 'relative'});
+              $pcRatingPostPlus.addClass('jras-PostControlRatingVote-new').css({'background-position-y': '1px'});
+              $pcRatingPostMinus.addClass('jras-PostControlRatingVote-new').css({'background-position': '-22px 1px', 'margin': '7px 0 0'});
+            }else{
+              $pcRatingPostPlus.addClass('jras-pcVotePlus-img').css({'top': '5px', 'position': 'relative'});
+              $pcRatingPostMinus.addClass('jras-pcVoteMinus-img').css({'top': '5px', 'position': 'relative'});
+            }
+            postControlSlider($pcRating, itmHeight + 130, itmHeight);
+          };
+          ratingStyle();
+          new MutationObserver(function(){ ratingStyle()})
+            .observe($Rating.get(0), {subtree: true, attributes: true, childList: true});
         };
-        ratingStyle();
-        new MutationObserver(function(){ ratingStyle()})
-          .observe($Rating.get(0), {subtree: true, attributes: true, childList: true});
 
         let $Links = $postContainer.find('div.ufoot span.manage');
         const makeLinks = function(){
