@@ -35,6 +35,7 @@ const JRAS_CurrVersion = '1.9.1';
    + переработка механизма сохранения настроек (Issue-59)
    + импорт/экспорт настроек (Issue-59)
    + корректировка размера страницы после окончательной ее загрузки (Issue-55)
+   + корректировка ссылок на old (Issue-64)
  1.9.1
    * Поддержка нового движка FireFox и нового GreaseMonkey (Issue-51)
  1.9.0
@@ -277,6 +278,7 @@ const JRAS_CurrVersion = '1.9.1';
     procTopbar();
     removeRedirectLink();
     removeShareButtons();
+    correctOldReactorLink();
 
     if (page.pageIs('post') || page.pageIs('discussion')){
       showHiddenComments();
@@ -483,6 +485,9 @@ const JRAS_CurrVersion = '1.9.1';
           propData: function(){return { def: false, type: 'checkbox'}}
         },
         stCenterContent: { dt: null,
+          propData: function(){return { def: true, type: 'checkbox'}}
+        },
+        correctOldReactorLink: { dt: null,
           propData: function(){return { def: true, type: 'checkbox'}}
         },
         lazyLoadFeed: { dt: null,
@@ -707,16 +712,19 @@ const JRAS_CurrVersion = '1.9.1';
     return retVal;
   }
 
+  function b64encode(str){
+    return btoa(unescape(encodeURIComponent(str)));
+  };
+  function b64decode(str){
+    return decodeURIComponent(escape(atob(str)));
+  };
+
   function removeRedirectLink($srcElm){
     if(!userOptions.val('correctRedirectLink')){
       return;
     }
-    let $selElmts;
-    if ($srcElm === undefined){
-      $selElmts = $('body').find('a[href*="redirect?"]')
-    } else{
-      $selElmts = $srcElm.find('a[href*="redirect?"]');
-    }
+    const selector = 'a[href*="redirect?"]'
+    const $selElmts = (!$srcElm) ? $(selector) : $srcElm.find(selector);
     $selElmts.each(function(){
       const $currA = $(this);
       const matches = /(?:\?|\&)([\w]+)(?:\=|\&?)([^&#]*)/g.exec($currA.attr('href'));
@@ -729,12 +737,14 @@ const JRAS_CurrVersion = '1.9.1';
     });
   }
 
-  function b64encode(str){
-    return btoa(unescape(encodeURIComponent(str)));
-  };
-  function b64decode(str){
-    return decodeURIComponent(escape(atob(str)));
-  };
+  function correctOldReactorLink($srcElm) {
+    if (!userOptions.val('correctOldReactorLink')) {
+      return;
+    }
+    const selector = 'a[href*="joyreactor"]:contains("old.reactor")';
+    const $selElmts = (!$srcElm) ? $(selector) : $srcElm.find(selector);
+    $selElmts.attr("href", $selElmts.attr("href").replace(/joyreactor/, "old.reactor"));
+  }
 
   function removeShareButtons($srcElm){
     if(!userOptions.val('removeShareButtons')){
@@ -1034,6 +1044,7 @@ const JRAS_CurrVersion = '1.9.1';
 
               removeRedirectLink($(itm));
               showHiddenComments($(itm));
+              correctOldReactorLink($(itm));
 
               if (userOptions.val('collapseComments')
                 && !userOptions.val('collapseCommentsOnlyFullPost')
@@ -3127,6 +3138,7 @@ const JRAS_CurrVersion = '1.9.1';
                     <section class="jras-prop-gui-section"> ${getHTMLProp('fixedTopbar')} </section>
                     <section class="jras-prop-gui-section" style="margin-left: 20px; margin-top: -10px;"> ${getHTMLProp('hideFixedTopbar')} </section>
                     <section class="jras-prop-gui-section"> ${getHTMLProp('correctRedirectLink')} </section>
+                    <section class="jras-prop-gui-section"> ${getHTMLProp('correctOldReactorLink')} </section>
                     <section class="jras-prop-gui-section"> ${getHTMLProp('showHiddenComments')} </section>
                     <section class="jras-prop-gui-section" style="margin-left: 20px; margin-top: -10px;"> ${getHTMLProp('showHiddenCommentsMark')} </section>
                     <section class="jras-prop-gui-section""> ${getHTMLProp('pcbShowPostControl')} </section>
@@ -3888,6 +3900,9 @@ const JRAS_CurrVersion = '1.9.1';
     };
     this.JRAS_GUI_BTNIMPORT = {
       ru: 'Импортировать данные'
+    };
+    this.JRAS_GUI_CORRECTOLDREACTORLINK = {
+      ru: 'Поправить ссылки на old.reactor'
     };
     this.JRAS_GUI_LAZYLOADFEED = {
       ru: 'Включить подгрузку следующей страницы'
