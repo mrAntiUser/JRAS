@@ -1612,23 +1612,23 @@ const JRAS_CurrVersion = '1.9.1';
                   // $('body').trigger("DOMUpdate");
 
                   doc.documentElement.innerHTML = e.target.response;
-                  $contentinner.append($(doc).find('body').find('div#Pagination.pagination:last').parent().children().slice(1).clone(true, true));
+                  const $newCont = $contentinner.append($(doc).find('body').find('div#Pagination.pagination:last').parent().children().slice(1).clone(true, true));
+                  const $newPostList = $newCont.find('div#post_list');
 
                   runScripts(document.querySelectorAll('head script'));
-                  $('body').trigger("DOMUpdate");
+                  $newPostList.trigger("DOMUpdate");
 
-                  const $srcElmts = $('div#post_list:last, div#Pagination.pagination:last');
                   try{
-                    correctPostDate($srcElmts);
-                    makeAllUserTooltip($srcElmts);
-                    makeAllTagTooltip($srcElmts);
-                    makePostControls($srcElmts);
-                    removeRedirectLink($srcElmts);
-                    removeShareButtons($srcElmts);
-                    userRemove($srcElmts, userOptions.data.BlockUsers);
-                    tagRemove($srcElmts, userOptions.data.BlockTags, true);
-                    subscribeShowComment($srcElmts);
-                    ActivateLazyLoad($srcElmts);
+                    correctPostDate($newPostList);
+                    makeAllUserTooltip($newPostList);
+                    makeAllTagTooltip($newPostList);
+                    makePostControls($newPostList);
+                    removeRedirectLink($newPostList);
+                    removeShareButtons($newPostList);
+                    userRemove($newPostList, userOptions.data.BlockUsers);
+                    tagRemove($newPostList, userOptions.data.BlockTags, true);
+                    subscribeShowComment($newPostList);
+                    ActivateLazyLoad($newPostList);
 
                     if (userOptions.val('lazyLoadFeedDelPagination')){
                       $pag.remove();
@@ -3926,7 +3926,7 @@ const JRAS_CurrVersion = '1.9.1';
       ru: 'Удалять блок перехода по страницам'
     };
   }
-  
+
   $(window).on('load', function () {
     correctPageHeight();
   });
