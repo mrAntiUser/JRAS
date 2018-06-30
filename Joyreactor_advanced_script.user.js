@@ -259,6 +259,7 @@ const JRAS_CurrVersion = '1.9.1';
   const defLoadTooltipSize = 212;
   const defUserTooltipSize = 212;
   const defTagTooltipSize = 270;
+  const defPreviewTooltipSize = 350;
 
   const lng = new LanguageData();
   const page = new PageData();
@@ -274,6 +275,7 @@ const JRAS_CurrVersion = '1.9.1';
     makeAllUserTooltip();
     makeAllTagTooltip();
     makePostControls();
+    previewReactorLink();
     procTopbar();
     removeRedirectLink();
     removeShareButtons();
@@ -735,6 +737,16 @@ const JRAS_CurrVersion = '1.9.1';
       return;
     }
     removeElementsByClass('a', ['share_vk', 'share_fb', 'share_twitter', 'share_mail']);
+  }
+
+  function previewReactorLink($srcElm) {
+    // if (!userOptions.val('previewReactorLink')) {
+    //   return;
+    // }
+    const selector = 'a[href*="reactor.cc/"]';
+    const $selElmts = (!$srcElm) ? $(selector) : $srcElm.find(selector);
+    if ($selElmts.length == 0) { return };
+    makeAllPreviewTooltip($selElmts);
   }
 
   function makeAllTagTooltip(){
@@ -1563,6 +1575,50 @@ const JRAS_CurrVersion = '1.9.1';
     if (left !== undefined){
       $tooltip.offset({ left: left});
     }
+  }
+
+  function makeAllPreviewTooltip(selector) {
+    makeTooltips(selector, function (event, ui) {
+      const $item = $(event.target);
+      const prevLink = $item.attr('href');
+      const $tooltip = $(ui.tooltip);
+      $('div.ui-tooltip').not('#' + $tooltip.attr('id')).remove();
+      $tooltip.css({
+        'border-radius': '5px',
+        'z-index': '500',
+        'border': '1px solid rgb(102, 102, 102)',
+        '-webkit-box-shadow': '6px 6px 8px 0px rgba(0, 0, 0, 0.5)',
+        '-moz-box-shadow': '6px 6px 8px 0px rgba(0, 0, 0, 0.5)',
+        'box-shadow': '6px 6px 8px 0px rgba(0, 0, 0, 0.5)',
+        'word-break': 'break-all'
+      });
+      getPreviewData(prevLink, $tooltip, $tooltip.find('div#jras-tooltipcontainer'));
+    });
+  }
+
+  function getPreviewData(previewLink, $tooltip, $outContainer) {
+    setTooltipBounds($tooltip, { width: defLoadTooltipSize });
+    HttpRequest(previewLink, function (e) {
+      if (e.target.status != 200) {
+        $outContainer.text('Loading error: ' + e.target.status);
+      } else {
+        const doc = document.implementation.createHTMLDocument("");
+        doc.documentElement.innerHTML = e.target.response;
+
+        clearContainer($outContainer);
+
+        let tmpW = win.innerWidth;
+        const w = defPreviewTooltipSize;//tmpW / 2 - 30;
+        if ($tooltip.position().left + w > tmpW) {
+          tmpW = tmpW - w - 30;
+        } else {
+          tmpW = null;
+        }
+        setTooltipBounds($tooltip, { left: tmpW, width: w });
+
+
+      }
+    });
   }
 
   function makeTagTooltips(selector){
