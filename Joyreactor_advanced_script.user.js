@@ -275,11 +275,11 @@ const JRAS_CurrVersion = '1.9.1';
     makeAllUserTooltip();
     makeAllTagTooltip();
     makePostControls();
-    previewReactorLink();
     procTopbar();
     removeRedirectLink();
     removeShareButtons();
     correctOldReactorLink();
+    previewReactorLink();
 
     if (page.pageIs('post') || page.pageIs('discussion')){
       showHiddenComments();
@@ -743,9 +743,11 @@ const JRAS_CurrVersion = '1.9.1';
     // if (!userOptions.val('previewReactorLink')) {
     //   return;
     // }
-    const selector = 'a[href*="reactor.cc/"]';
-    const $selElmts = (!$srcElm) ? $(selector) : $srcElm.find(selector);
-    if ($selElmts.length == 0) { return };
+    const selector = 'a[href*="reactor.cc/post/"]:not(a[href*="redirect?"], div.image>a)';
+    const $selElmts = (!$srcElm)
+      ? $(`.post_content ${selector}, .post_comment_list div.txt ${selector}`)
+      : $srcElm.find(selector);
+    if ($selElmts.length == 0) { return }
     makeAllPreviewTooltip($selElmts);
   }
 
@@ -1029,6 +1031,7 @@ const JRAS_CurrVersion = '1.9.1';
                 removeRedirectLink($(itm));
                 showHiddenComments($(itm));
                 correctOldReactorLink($(itm));
+                previewReactorLink($(itm));
 
                 if (userOptions.val('collapseComments')
                   && !userOptions.val('collapseCommentsOnlyFullPost')
@@ -1507,10 +1510,13 @@ const JRAS_CurrVersion = '1.9.1';
     $PostCrtlsBlock.css({'top': newTop});
   }
 
-  function HttpRequest(link, onload){
+  function HttpRequest(link, readyState, onload){
     const xhr = new XMLHttpRequest();
-    xhr.onload = onload;
     xhr.open("GET", link, true);
+    xhr.onreadystatechange = function(e){
+      if (this.readyState != readyState){return}
+      onload(e);
+    };
     xhr.send();
   }
 
@@ -1519,7 +1525,7 @@ const JRAS_CurrVersion = '1.9.1';
       const t = eventObject.data.updateContainer.find('#' + buttonTxtID);
       const ct = t.text();
       t.text(ct + ' : wait');
-      HttpRequest(eventObject.data.clickLink, function(e){
+      HttpRequest(eventObject.data.clickLink, 4, function(e){
         if(e.target.status != 200){
           t.text(ct + ' : error: ' + e.target.status);
         }else{
@@ -1598,7 +1604,7 @@ const JRAS_CurrVersion = '1.9.1';
 
   function getPreviewData(previewLink, $tooltip, $outContainer) {
     setTooltipBounds($tooltip, { width: defLoadTooltipSize });
-    HttpRequest(previewLink, function (e) {
+    HttpRequest(previewLink, 4, function (e) {
       if (e.target.status != 200) {
         $outContainer.text('Loading error: ' + e.target.status);
       } else {
@@ -1608,7 +1614,7 @@ const JRAS_CurrVersion = '1.9.1';
         clearContainer($outContainer);
 
         let tmpW = win.innerWidth;
-        const w = defPreviewTooltipSize;//tmpW / 2 - 30;
+        const w = tmpW / 2 - 30;
         if ($tooltip.position().left + w > tmpW) {
           tmpW = tmpW - w - 30;
         } else {
@@ -1643,7 +1649,7 @@ const JRAS_CurrVersion = '1.9.1';
 
   function getTagData(tagName, tagLink, $tooltip, $outContainer){
     setTooltipBounds($tooltip, {width: defLoadTooltipSize});
-    HttpRequest(tagLink, function(e){
+    HttpRequest(tagLink, 4, function(e){
       if(e.target.status != 200){
         $outContainer.text('Loading error: ' + e.target.status);
       }else{
@@ -1829,7 +1835,7 @@ const JRAS_CurrVersion = '1.9.1';
 
     if(userOptions.val('isToBeLoadingUserData')){
       setTooltipBounds($tooltip, {width: defLoadTooltipSize});
-      HttpRequest(userLink, function(e){
+      HttpRequest(userLink, 4, function(e){
         //win.console.log('Loading user data from "' + userLink + '" - ' + response.status);
 
         if(e.target.status != 200){
