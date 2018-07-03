@@ -728,8 +728,10 @@ const JRAS_CurrVersion = '1.9.1';
     }
     const selector = 'a[href*="joyreactor"]:contains("old.reactor")';
     const $selElmts = (!$inElm) ? $(selector) : $inElm.find(selector);
-    if ($selElmts.length == 0){return};
-    $selElmts.attr("href", $selElmts.attr("href").replace(/joyreactor/, "old.reactor"));
+    if ($selElmts.length == 0){return}
+    $selElmts.each(function(){
+      $(this).attr("href", $(this).attr("href").replace(/joyreactor/, "old.reactor"));
+    });
   }
 
   function removeShareButtons(){
@@ -1512,6 +1514,7 @@ const JRAS_CurrVersion = '1.9.1';
 
   function HttpRequest(link, readyState, onload){
     const xhr = new XMLHttpRequest();
+    // xhr.withCredentials = true;
     xhr.open("GET", link, true);
     xhr.onreadystatechange = function(e){
       if (this.readyState != readyState){return}
@@ -1586,7 +1589,13 @@ const JRAS_CurrVersion = '1.9.1';
   function makeAllPreviewTooltip(selector) {
     makeTooltips(selector, function (event, ui) {
       const $item = $(event.target);
-      const prevLink = $item.attr('href');
+      let prevLink = $item.attr('href');
+      win.console.log(prevLink);
+      let a = getDomain(prevLink, true);
+      if (a != 'old.reactor.cc'){
+        a = getDomain(prevLink, false);
+      }
+      prevLink = prevLink.replace(a, location.host);
       const $tooltip = $(ui.tooltip);
       $('div.ui-tooltip').not('#' + $tooltip.attr('id')).remove();
       $tooltip.css({
@@ -3313,6 +3322,19 @@ const JRAS_CurrVersion = '1.9.1';
       }
       return retVal;
     }
+  }
+
+  function getDomain(url, subdomain) {
+    subdomain = subdomain || false;
+    url = url.replace(/(https?:\/\/)?(www.)?/i, '');
+    if (!subdomain) {
+      url = url.split('.');
+      url = url.slice(url.length - 2).join('.');
+    }
+    if (url.indexOf('/') !== -1) {
+      return url.split('/')[0];
+    }
+    return url;
   }
 
   function LanguageData(){
