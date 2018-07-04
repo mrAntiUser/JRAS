@@ -259,7 +259,8 @@ const JRAS_CurrVersion = '1.9.1';
   const defLoadTooltipSize = 212;
   const defUserTooltipSize = 212;
   const defTagTooltipSize = 270;
-  const defPreviewTooltipSize = 350;
+  const defPreviewTooltipSizeX = 40;  // процентов от размера окна
+  const defPreviewTooltipSizeY = 30;  // процентов от размера окна
 
   const lng = new LanguageData();
   const page = new PageData();
@@ -1590,7 +1591,6 @@ const JRAS_CurrVersion = '1.9.1';
     makeTooltips(selector, function (event, ui) {
       const $item = $(event.target);
       let prevLink = $item.attr('href');
-      win.console.log(prevLink);
       let a = getDomain(prevLink, true);
       if (a != 'old.reactor.cc'){
         a = getDomain(prevLink, false);
@@ -1623,7 +1623,7 @@ const JRAS_CurrVersion = '1.9.1';
         clearContainer($outContainer);
 
         let tmpW = win.innerWidth;
-        const w = tmpW / 2 - 30;
+        const w = tmpW / 100 * defPreviewTooltipSizeX;
         if ($tooltip.position().left + w > tmpW) {
           tmpW = tmpW - w - 30;
         } else {
