@@ -260,7 +260,7 @@ const JRAS_CurrVersion = '1.9.1';
   const defUserTooltipSize = 212;
   const defTagTooltipSize = 270;
   const defPreviewTooltipSizeX = 40;  // процентов от размера окна
-  const defPreviewTooltipSizeY = 30;  // процентов от размера окна
+  const defPreviewTooltipSizeY = 20;  // процентов от размера окна
 
   const lng = new LanguageData();
   const page = new PageData();
@@ -1560,9 +1560,9 @@ const JRAS_CurrVersion = '1.9.1';
         ui.tooltip.hover(function(){
           $(this).stop(true).fadeTo(400, 1);
         }, function(){
-          $(this).fadeOut('400', function(){
-            $(this).remove();
-          });
+          // $(this).fadeOut('400', function(){
+          //   $(this).remove();
+          // });
         });
       }
     });
@@ -1578,11 +1578,14 @@ const JRAS_CurrVersion = '1.9.1';
     });
   }
 
-  function setTooltipBounds($tooltip, {left, width}){
-    if (width !== undefined){
+  function setTooltipBounds($tooltip, {left, width, height}){
+    if (width){
       $tooltip.width(width + 'px');
     }
-    if (left !== undefined){
+    if (height){
+      $tooltip.height(height + 'px');
+    }
+    if (left){
       $tooltip.offset({ left: left});
     }
   }
@@ -1624,13 +1627,31 @@ const JRAS_CurrVersion = '1.9.1';
 
         let tmpW = win.innerWidth;
         const w = tmpW / 100 * defPreviewTooltipSizeX;
+        const h = win.innerHeight / 100 * defPreviewTooltipSizeY;
         if ($tooltip.position().left + w > tmpW) {
           tmpW = tmpW - w - 30;
         } else {
           tmpW = null;
         }
-        setTooltipBounds($tooltip, { left: tmpW, width: w });
+        setTooltipBounds($tooltip, { left: tmpW, width: w});//, height: h});
+        $tooltip.css({'max-height': h});
 
+        $outContainer.append(`<div id="jras-preview-tooltip-container"></div>`);
+        const $jrasTTCont = $outContainer.find('div#jras-preview-tooltip-container')
+          .css({'width': '100%',
+                'overflow-y': 'auto',
+                'max-height': h - ($outContainer.css('margin-top').replace('px', '') * 2) + 'px'});
+
+        let commID = previewLink.match(/comment\d+$/g);
+        if (commID[0]){
+          // is comment
+          commID = commID[0];
+          const $commPar = $(doc).find(`div#${commID}`).parent().prev();
+          $commPar.clone().appendTo($jrasTTCont);
+          // $jrasTTCont.css({'transform': 'translate(-50%, -50%) ' + 'scale(' + $commPar.size.width / $jrasTTCont.innerWidth() + ')'});
+        }else{
+          // is post
+        }
 
       }
     });
