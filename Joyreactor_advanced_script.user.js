@@ -36,6 +36,7 @@ const JRAS_CurrVersion = '1.9.1';
    + импорт/экспорт настроек (Issue-59)
    + корректировка размера страницы после окончательной ее загрузки (Issue-55)
    + корректировка ссылок на old (Issue-64)
+   + превью внутренних ссылок реактора. Только ссылки на пост или комент (Issue-58)
  1.9.1
    * Поддержка нового движка FireFox и нового GreaseMonkey (Issue-51)
  1.9.0
@@ -259,8 +260,6 @@ const JRAS_CurrVersion = '1.9.1';
   const defLoadTooltipSize = 212;
   const defUserTooltipSize = 212;
   const defTagTooltipSize = 270;
-  const defPreviewTooltipSizeX = 40;  // процентов от размера окна
-  const defPreviewTooltipSizeY = 20;  // процентов от размера окна
 
   const lng = new LanguageData();
   const page = new PageData();
@@ -490,6 +489,15 @@ const JRAS_CurrVersion = '1.9.1';
         correctOldReactorLink: { dt: null,
           propData: function(){return { def: true, type: 'checkbox'}}
         },
+        previewReactorLink: { dt: null,
+          propData: function(){return { def: true, type: 'checkbox'}}
+        },
+        previewSizeX: { dt: null,
+          propData: function(){return { def: 50, type: 'number', min: 20, max: 80}}
+        },
+        previewSizeY: { dt: null,
+          propData: function(){return { def: 50, type: 'number', min: 20, max: 80}}
+        },
 
         BlockUsers: [],
         BlockTags: [],
@@ -679,7 +687,12 @@ const JRAS_CurrVersion = '1.9.1';
       exportUserData: function (forUser) {
         const user = this.correctUserName(forUser);
         const jrasOptions = this.loadOpt();
-        if (!jrasOptions || !jrasOptions[user]) { return }
+        if (!jrasOptions || !jrasOptions[user]) {
+          this.saveUserData(forUser);
+          let a = this.exportUserData(forUser);
+          if (!a){ a = 'no saved data'}
+          return a;
+        }
         return b64encode(JSON.stringify(jrasOptions[user]));
       },
 
@@ -700,10 +713,10 @@ const JRAS_CurrVersion = '1.9.1';
 
   function b64encode(str){
     return btoa(unescape(encodeURIComponent(str)));
-  };
+  }
   function b64decode(str){
     return decodeURIComponent(escape(atob(str)));
-  };
+  }
 
   function removeRedirectLink($inElm){
     if(!userOptions.val('correctRedirectLink')){
@@ -735,17 +748,18 @@ const JRAS_CurrVersion = '1.9.1';
     });
   }
 
-  function removeShareButtons(){
+  function removeShareButtons($inElm){
     if(!userOptions.val('removeShareButtons')){
       return;
     }
-    removeElementsByClass('a', ['share_vk', 'share_fb', 'share_twitter', 'share_mail']);
+    const $selElmts = (!$inElm) ? $('body') : $inElm;
+    $selElmts.find('a.share_vk, a.share_fb, a.share_twitter, a.share_mail').remove();
   }
 
   function previewReactorLink($srcElm) {
-    // if (!userOptions.val('previewReactorLink')) {
-    //   return;
-    // }
+    if (!userOptions.val('previewReactorLink')) {
+      return;
+    }
     const selector = 'a[href*="reactor.cc/post/"]:not(a[href*="redirect?"], div.image>a)';
     const $selElmts = (!$srcElm)
       ? $(`.post_content ${selector}, .post_comment_list div.txt ${selector}`)
@@ -810,17 +824,6 @@ const JRAS_CurrVersion = '1.9.1';
     }
     if(sel.length != 0){
       makeUserTooltips(sel.join(', '));
-    }
-  }
-
-  function removeElementsByClass(elm, removeClassArr){
-    if(removeClassArr == null){
-      return
-    }
-    for(let i = 0; i < removeClassArr.length; i++){
-      $(elm + '.' + removeClassArr[i]).each(function(){
-        $(this).remove();
-      })
     }
   }
 
@@ -1272,8 +1275,9 @@ const JRAS_CurrVersion = '1.9.1';
     }
   }
 
-  function correctPostDate(){
-    const $spanDate = $('body').find('div#contentinner div.article.post-normal div.ufoot span.date');
+  function correctPostDate($srcElm){
+    const $src = ($srcElm) ? $srcElm : $('body');
+    const $spanDate = $src.find('div.article.post-normal div.ufoot span.date');
     const reconnect = function($th, observe){
       observe.observe($th.get(0), {subtree: true, attributes: true, childList: true});
     };
@@ -1377,7 +1381,7 @@ const JRAS_CurrVersion = '1.9.1';
             $favA.addClass(favData.Img);
             $favA.attr('title', favData.Title);
           }).observe($postContainer.find('div.uhead_share span.favorite_link').get(0), {attributes: true});
-        };
+        }
 
         postControlSlider($postContainer.find('sitm#jras-PostControlShare'), (pcbShareButtons == '') ? 40 : 132, itmHeight);
         $favA.click(function(){ $postContainer.find('span.favorite_link').get(0).click(); return false; });
@@ -1395,14 +1399,24 @@ const JRAS_CurrVersion = '1.9.1';
             // $pcRatingPost.css('right', 'unset');
             const $pcRatingPostPlus = $pcRatingPost.find('div.vote-plus');
             $pcRatingPostPlus.removeClass('vote-plus').addClass('jras-PostControlRatingVote').click(function(){
-              $Rating.find('div.vote-plus').get(0).click()});
-            const $pcRatingPostMinus =$pcRatingPost.find('div.vote-minus');
+              $Rating.find('div.vote-plus').get(0).click()
+            });
+            const $pcRatingPostMinus = $pcRatingPost.find('div.vote-minus');
             $pcRatingPostMinus.removeClass('vote-minus').addClass('jras-PostControlRatingVote').click(function(){
-              $Rating.find('div.vote-minus').get(0).click()});
+              $Rating.find('div.vote-minus').get(0).click()
+            });
             if (page.isNewDesign){
-              $pcRatingPost.find('span:first').css({'font-size': '18px', 'top': '-9px', 'display': 'initial','position': 'relative'});
+              $pcRatingPost.find('span:first').css({
+                'font-size': '18px',
+                'top': '-9px',
+                'display': 'initial',
+                'position': 'relative'
+              });
               $pcRatingPostPlus.addClass('jras-PostControlRatingVote-new').css({'background-position-y': '1px'});
-              $pcRatingPostMinus.addClass('jras-PostControlRatingVote-new').css({'background-position': '-22px 1px', 'margin': '7px 0 0'});
+              $pcRatingPostMinus.addClass('jras-PostControlRatingVote-new').css({
+                'background-position': '-22px 1px',
+                'margin': '7px 0 0'
+              });
             }else{
               $pcRatingPostPlus.addClass('jras-pcVotePlus-img').css({'top': '5px', 'position': 'relative'});
               $pcRatingPostMinus.addClass('jras-pcVoteMinus-img').css({'top': '5px', 'position': 'relative'});
@@ -1410,9 +1424,11 @@ const JRAS_CurrVersion = '1.9.1';
             postControlSlider($pcRating, itmHeight + 130, itmHeight);
           };
           ratingStyle();
-          new MutationObserver(function(){ ratingStyle()})
+          new MutationObserver(function(){
+            ratingStyle()
+          })
             .observe($Rating.get(0), {subtree: true, attributes: true, childList: true});
-        };
+        }
 
         let $Links = $postContainer.find('div.ufoot span.manage');
         const makeLinks = function(){
@@ -1420,11 +1436,11 @@ const JRAS_CurrVersion = '1.9.1';
           const $pcLinks = $postContainer.find('sitm#jras-PostControlLinks');
           $pcLinks.children().remove();
           $pcLinks.append(`<span style="margin-left: ${itmContentPos}px;">`);
-          $pcLinks.append(`<s><div class="jras-pcToTop" ${(page.isNewDesign)?'style="margin-top: 2px;"':''}></div></s>`);
+          $pcLinks.append(`<s><div class="jras-pcToTop" ${(page.isNewDesign)?'style="margin-top: 2px; cursor: pointer;"':''}></div></s>`);
           $pcLinks.find('div.jras-pcToTop').click(function(){
             $('html, body').animate({ scrollTop: $postContainer.offset().top - 50}, 500);
           });
-          $pcLinks.append(`<s><div class="jras-pcToDown" ${(page.isNewDesign)?'style="margin-top: 2px;"':''}></div></s>`);
+          $pcLinks.append(`<s><div class="jras-pcToDown" ${(page.isNewDesign)?'style="margin-top: 2px; cursor: pointer;"':''}></div></s>`);
           $pcLinks.find('div.jras-pcToDown').click(function(){
             $('html, body').animate({ scrollTop: $postContainer.offset().top + $postContainer.height() - win.innerHeight + 50}, 500);
           });
@@ -1560,9 +1576,9 @@ const JRAS_CurrVersion = '1.9.1';
         ui.tooltip.hover(function(){
           $(this).stop(true).fadeTo(400, 1);
         }, function(){
-          // $(this).fadeOut('400', function(){
-          //   $(this).remove();
-          // });
+          $(this).fadeOut('400', function(){
+            $(this).remove();
+          });
         });
       }
     });
@@ -1594,11 +1610,7 @@ const JRAS_CurrVersion = '1.9.1';
     makeTooltips(selector, function (event, ui) {
       const $item = $(event.target);
       let prevLink = $item.attr('href');
-      let a = getDomain(prevLink, true);
-      if (a != 'old.reactor.cc'){
-        a = getDomain(prevLink, false);
-      }
-      prevLink = prevLink.replace(a, location.host);
+      prevLink = prevLink.replace(getDomain(prevLink, true), location.host);
       const $tooltip = $(ui.tooltip);
       $('div.ui-tooltip').not('#' + $tooltip.attr('id')).remove();
       $tooltip.css({
@@ -1626,14 +1638,14 @@ const JRAS_CurrVersion = '1.9.1';
         clearContainer($outContainer);
 
         let tmpW = win.innerWidth;
-        const w = tmpW / 100 * defPreviewTooltipSizeX;
-        const h = win.innerHeight / 100 * defPreviewTooltipSizeY;
+        const w = tmpW / 100 * userOptions.val('previewSizeX');
+        const h = win.innerHeight / 100 * userOptions.val('previewSizeY');
         if ($tooltip.position().left + w > tmpW) {
           tmpW = tmpW - w - 30;
         } else {
           tmpW = null;
         }
-        setTooltipBounds($tooltip, { left: tmpW, width: w});//, height: h});
+        setTooltipBounds($tooltip, { left: tmpW, width: w});
         $tooltip.css({'max-height': h});
 
         $outContainer.append(`<div id="jras-preview-tooltip-container"></div>`);
@@ -1642,17 +1654,38 @@ const JRAS_CurrVersion = '1.9.1';
                 'overflow-y': 'auto',
                 'max-height': h - ($outContainer.css('margin-top').replace('px', '') * 2) + 'px'});
 
-        let commID = previewLink.match(/comment\d+$/g);
-        if (commID[0]){
+        const commID = previewLink.match(/comment\d+$/g);
+        if (commID && commID[0]){
           // is comment
-          commID = commID[0];
-          const $commPar = $(doc).find(`div#${commID}`).parent().prev();
-          $commPar.clone().appendTo($jrasTTCont);
-          // $jrasTTCont.css({'transform': 'translate(-50%, -50%) ' + 'scale(' + $commPar.size.width / $jrasTTCont.innerWidth() + ')'});
+          const $arr = [];
+          const divCom = 'div#' + commID[0];
+          const $inCom = $(doc).find(divCom);
+          $arr.push($inCom.parent().prev().clone().appendTo($jrasTTCont).css({opacity: 0.5}));
+          $inCom.parent().clone().appendTo($jrasTTCont).children().not(divCom).remove();
+          $arr.push($jrasTTCont.find(divCom));
+          $inCom.next().clone().appendTo($arr[$arr.length - 1].parent())
+            .css({opacity: 0.5}).children().remove('div.comment_list')
+            .each(function(){$arr.push($(this))});
+          $jrasTTCont.find('div.image img').css({'max-width': $jrasTTCont.innerWidth()});
+          $arr.forEach(function(elm){
+            removeRedirectLink(elm);
+            showHiddenComments(elm);
+            correctOldReactorLink(elm);
+            makeAvatarOnOldDesign(elm);
+          });
         }else{
           // is post
+          let postID = previewLink.match(/post\/\d+$/g);
+          if (postID && postID[0]){
+            postID = postID[0].replace('post/', '');
+            const $post = $(doc).find('div#postContainer' + postID).clone().appendTo($jrasTTCont);
+            $post.find('div.post_comment_list').remove();
+            $post.find('div.image img').css({'max-width': $jrasTTCont.innerWidth()});
+            correctPostDate($post);
+            removeRedirectLink($post);
+            removeShareButtons($post);
+          }
         }
-
       }
     });
   }
@@ -3080,6 +3113,10 @@ const JRAS_CurrVersion = '1.9.1';
                       ${getHTMLProp('showTTOnTrends')} <br>
                       ${getHTMLProp('showTTOnLikeTags')} <br>
                       ${getHTMLProp('showTTOnInteresting')} </section>
+                    <section class="jras-prop-gui-section" style="margin-top: -10px;"> ${getHTMLProp('previewReactorLink')} </section>  
+                    <section class="jras-prop-gui-section" style="margin-left: 20px; margin-top: -10px;">
+                      ${getHTMLProp('previewSizeX')} <br>
+                      ${getHTMLProp('previewSizeY')} </section> 
                   </div>
                 </div>
                 <div id="jras-prop-gui-tab-4" class="jras-tabs-panel">
@@ -3177,14 +3214,14 @@ const JRAS_CurrVersion = '1.9.1';
           $(this).select();
           break;
         case 'jras-gui-Import':
-          userOptions.importUserData(page.currentUser, $(this).val());
+          userOptions.importUserData(page.currentUser, $propDialog.find('textarea#jras-gui-ExpImpData').val());
           closeSettingDialog();
           break;
         case 'jras-gui-SaveSettings':
           updateUserOptions();
           userOptions.saveUserData(page.currentUser);
           updateGuiLocalize();
-          closeSettingDialog()
+          closeSettingDialog();
           break;
         case 'jras-gui-sendPMforMe':
           closeSettingDialog();
@@ -3698,6 +3735,15 @@ const JRAS_CurrVersion = '1.9.1';
     };
     this.JRAS_GUI_CORRECTOLDREACTORLINK = {
       ru: 'Поправить ссылки на old.reactor'
+    };
+    this.JRAS_GUI_PREVIEWREACTORLINK = {
+      ru: 'Превью для внутренних ссылок на посты и коменты'
+    };
+    this.JRAS_GUI_PREVIEWSIZEX = {
+      ru: 'Размер тултипа превью по горизонтали. % от окна страницы'
+    };
+    this.JRAS_GUI_PREVIEWSIZEY = {
+      ru: 'Размер тултипа превью по ветрикали. % от окна страницы'
     };
   }
 
