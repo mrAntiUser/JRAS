@@ -13,7 +13,7 @@
 // @include     *jr-proxy.com*
 // @require     http://ajax.googleapis.com/ajax/libs/jquery/2.2.0/jquery.min.js
 // @require     https://code.jquery.com/ui/1.11.4/jquery-ui.min.js
-// @version     1.9.1
+// @version     2.2.0
 // @grant       GM.getValue
 // @grant       GM.setValue
 // @grant       GM.listValues
@@ -28,10 +28,10 @@
 // @run-at      document-end
 // ==/UserScript==
 
-const JRAS_CurrVersion = '1.9.1';
+const JRAS_CurrVersion = '2.2.0';
 
 /* RELEASE NOTES
- -----
+ 2.2.0
    + переработка механизма сохранения настроек (Issue-59)
    + импорт/экспорт настроек (Issue-59)
    + корректировка размера страницы после окончательной ее загрузки (Issue-55)
