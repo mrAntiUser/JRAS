@@ -498,6 +498,9 @@ const JRAS_CurrVersion = '2.2.0';
         previewSizeY: { dt: null,
           propData: function(){return { def: 50, type: 'number', min: 20, max: 80}}
         },
+        useLocalStorage: { dt: null,
+          propData: function(){return { def: true, type: 'checkbox'}}
+        },
 
         BlockUsers: [],
         BlockTags: [],
@@ -657,27 +660,41 @@ const JRAS_CurrVersion = '2.2.0';
       },
 
       saveUserData: function (forUser) {
-        forUser = this.correctUserName(forUser);
-        const jrasOptions = this.loadOpt() || {};
-        jrasOptions[forUser] = this.data;
-        this.saveOpt(jrasOptions);
+        if(!userOptions.val('useLocalStorage')){
+          this.saveUserData_old(forUser);
+        } else {
+          forUser = this.correctUserName(forUser);
+          const jrasOptions = this.loadOpt() || {};
+          jrasOptions[forUser] = this.data;
+          this.saveOpt(jrasOptions);
+        }
       },
 
       loadUserDataFrom: function (forUser) {
-        const user = this.correctUserName(forUser);
-        const jrasOptions = this.loadOpt();
-        if (!jrasOptions || !jrasOptions[user]){
-          forUser = this.correctUserName_old(forUser);
-          if (!this.loadUserDataFrom_old(forUser + '_')){
-            if (!this.loadUserDataFrom_old(forUser)){
-              return;
-            }
+        if(!userOptions.val('useLocalStorage')){
+          // механизм загрузки из GMStorage
+          if(this.loadUserDataFrom_old(forUser + '_')){
+            return
           }
-          this.removeSavedUserData_old(forUser);
-          this.saveUserData(forUser);
-          return;
+          if(this.loadUserDataFrom_old(forUser)){
+            this.saveUserData_old(forUser);
+          }
+        } else {
+          // механизм загрузки из localStorage
+          const user = this.correctUserName(forUser);
+          const jrasOptions = this.loadOpt();
+          if (!jrasOptions || !jrasOptions[user]){
+            forUser = this.correctUserName_old(forUser);
+            if (!this.loadUserDataFrom_old(forUser + '_')){ // старый механизм
+              if (!this.loadUserDataFrom_old(forUser)){ // совсем старый механизм
+                return;
+              }
+            }
+            this.saveUserData(forUser);
+            return;
+          }
+          this.setUserDataFrom(jrasOptions[user]);
         }
-        this.setUserDataFrom(jrasOptions[user]);
       },
 
       loadUserData: function(forUser){
@@ -685,15 +702,20 @@ const JRAS_CurrVersion = '2.2.0';
       },
 
       exportUserData: function (forUser) {
-        const user = this.correctUserName(forUser);
-        const jrasOptions = this.loadOpt();
-        if (!jrasOptions || !jrasOptions[user]) {
-          this.saveUserData(forUser);
-          let a = this.exportUserData(forUser);
-          if (!a){ a = 'no saved data'}
-          return a;
+        if(!userOptions.val('useLocalStorage')){
+          this.saveUserData_old(forUser);
+          this.loadUserDataFrom_old(forUser);
+        } else {
+          const user = this.correctUserName(forUser);
+          const jrasOptions = this.loadOpt();
+          if (!jrasOptions || !jrasOptions[user]) {
+            this.saveUserData(forUser);
+            let a = this.exportUserData(forUser);
+            if (!a){ a = 'no saved data'}
+            return a;
+          }
+          return b64encode(JSON.stringify(jrasOptions[user]));
         }
-        return b64encode(JSON.stringify(jrasOptions[user]));
       },
 
       importUserData: function (forUser, impData) {
