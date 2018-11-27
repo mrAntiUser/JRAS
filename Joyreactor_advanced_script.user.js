@@ -31,6 +31,7 @@
 const JRAS_CurrVersion = '2.2.0';
 
 /* RELEASE NOTES
+   * заминусованные коменты теперь открываются с задержкой.
  2.2.0
    + переработка механизма сохранения настроек (Issue-59)
    + импорт/экспорт настроек (Issue-59)
@@ -414,7 +415,7 @@ const JRAS_CurrVersion = '2.2.0';
         showUserNameDelPost: { dt: null,
           propData: function(){return { def: true, type: 'checkbox'}}
         },
-        chatlaneToPacaki: { // Убирать цветовую отметку донатера dt: null,
+        chatlaneToPacaki: { dt: null,// Убирать цветовую отметку донатера
           propData: function(){return { def: false, type: 'checkbox'}}
         },
         collapseComments: { dt: null,
@@ -920,17 +921,19 @@ const JRAS_CurrVersion = '2.2.0';
         : $inElm.find('a.comment_show')
       ;
     $selElmts.each(function(idx, elm){
-      elm.click();
-      if (userOptions.val('showHiddenCommentsMark')){
-        let $parElm = $(elm).parent('div[id^=comment].txt');
-        if (page.isNewDesign && userOptions.val('collapseComments')){
-          $parElm = $(elm).parent().parent('div[id^=comment].txt');
-          if (userOptions.val('collapseCommentsOnlyFullPost') && !page.pageIs('post')){
-            $parElm = $(elm).parent('div[id^=comment].txt');
+      setTimeout(function(){
+        elm.click();
+        if (userOptions.val('showHiddenCommentsMark')){
+          let $parElm = $(elm).parent('div[id^=comment].txt');
+          if (page.isNewDesign && userOptions.val('collapseComments')){
+            $parElm = $(elm).parent().parent('div[id^=comment].txt');
+            if (userOptions.val('collapseCommentsOnlyFullPost') && !page.pageIs('post')){
+              $parElm = $(elm).parent('div[id^=comment].txt');
+            }
           }
+          $parElm.css({'color': 'rgb(255, 57, 57)'});
         }
-        $parElm.css({'color': 'rgb(255, 57, 57)'});
-      }
+      }, 500 * idx);
     })
   }
 
