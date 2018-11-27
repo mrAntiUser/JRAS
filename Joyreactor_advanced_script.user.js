@@ -13,7 +13,7 @@
 // @include     *jr-proxy.com*
 // @require     http://ajax.googleapis.com/ajax/libs/jquery/2.2.0/jquery.min.js
 // @require     https://code.jquery.com/ui/1.11.4/jquery-ui.min.js
-// @version     2.2.0
+// @version     2.2.2
 // @grant       GM.getValue
 // @grant       GM.setValue
 // @grant       GM.listValues
@@ -28,19 +28,21 @@
 // @run-at      document-end
 // ==/UserScript==
 
-const JRAS_CurrVersion = '2.2.0';
+const JRAS_CurrVersion = '2.2.2';
 
 /* RELEASE NOTES
+ 2.2.2
+   + в тултип юзера выведена инфа о последнем входе
    * заминусованные коменты теперь открываются с задержкой.
- 2.2.0
+ 2.2.0 - http://old.reactor.cc/post/3565867
    + переработка механизма сохранения настроек (Issue-59)
    + импорт/экспорт настроек (Issue-59)
    + корректировка размера страницы после окончательной ее загрузки (Issue-55)
    + корректировка ссылок на old (Issue-64)
    + превью внутренних ссылок реактора. Только ссылки на пост или комент (Issue-58)
- 1.9.1
+ 1.9.1 - http://old.reactor.cc/post/3533506
    * Поддержка нового движка FireFox и нового GreaseMonkey (Issue-51)
- 1.9.0
+ 1.9.0 - http://old.reactor.cc/post/3375590
    * кнопки перехода в начало и конец поста (Issue-48)
  1.8.9
    * перенос длинных ников в тултипе
@@ -53,7 +55,7 @@ const JRAS_CurrVersion = '2.2.0';
    * В свете длинных тегов поправлены стили. Не в скрипте, а в JRAS styles
  1.8.5
    * Мелкие фиксы
- 1.8.4
+ 1.8.4 - http://old.reactor.cc/post/3250349
    + Опция: мне нужны только динамические эффекты нового стиля [false]
    + Опции по поведению правого меню (Issue-39)
    + Устанавливать высоту страницы по высоте правого меню [true]
@@ -2059,7 +2061,7 @@ const JRAS_CurrVersion = '2.2.0';
       return
     }
 
-    const re = /(\d+)/gm;
+    let re = /(\d+)/gm;
     let m, arr = [];
 
     while ((m = re.exec($userPostsCont.find('>:first-child').text())) !== null) {
@@ -2069,15 +2071,18 @@ const JRAS_CurrVersion = '2.2.0';
       arr.push(m[0]);
     }
 
+    re = /([12]\d{3}-(0[1-9]|1[0-2])-(0[1-9]|[12]\d|3[01]))/gm;
+    const regDate = new Date(re.exec($userPostsCont.find('span[id^=usertime]').text())[0]);
+    const lastLogin = new Date(re.exec($userPostsCont.find('>:nth-child(4)').text())[0]);
+
     const $modBlock = $containerFor.append(`
       <div class="jras-tooltip-section-topborder" style="line-height: 16px; font-size: 10px;" id="jras-tooltip-posts-block">
         ${lng.getVal('JRAS_TOOLTIP_POSTS')}<b>${arr[0] + ' (' + arr[1] + ' / ' + arr[2] + ')'}</b><br>
         ${lng.getVal('JRAS_TOOLTIP_COMMENTS')}<b> ${arr[3]}</b><br>
-        ${lng.getVal('JRAS_TOOLTIP_REG')}<b><span id="jras-tooltip-posts-regdate"></b></span>
+        ${lng.getVal('JRAS_TOOLTIP_REG')}<b>${regDate.toLocaleDateString()}</b><br>
+        ${lng.getVal('JRAS_TOOLTIP_LASTLOGIN')}<b>${lastLogin.toLocaleDateString()}</b>
       </div>
     `).find('#jras-tooltip-posts-block');
-
-    $modBlock.find('#jras-tooltip-posts-regdate').append($userPostsCont.find('span[id^=usertime]').clone());
   }
 
   function makeSendPMElements(containerFoElements, userName){
@@ -3626,7 +3631,10 @@ const JRAS_CurrVersion = '2.2.0';
       ru: 'Комментариев:'
     };
     this.JRAS_TOOLTIP_REG = {
-      ru: 'Регистрация:'
+      ru: 'Регистрация: '
+    };
+    this.JRAS_TOOLTIP_LASTLOGIN = {
+      ru: 'Посл. раз был: '
     };
     this.JRAS_BLOCKUSER_JR = {
       ru: 'Блокировать юзера (JR)'
