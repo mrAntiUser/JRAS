@@ -13,7 +13,7 @@
 // @include     *jr-proxy.com*
 // @require     http://ajax.googleapis.com/ajax/libs/jquery/2.2.0/jquery.min.js
 // @require     https://code.jquery.com/ui/1.11.4/jquery-ui.min.js
-// @version     2.2.2
+// @version     2.2.3
 // @grant       GM.getValue
 // @grant       GM.setValue
 // @grant       GM.listValues
@@ -28,12 +28,15 @@
 // @run-at      document-end
 // ==/UserScript==
 
-const JRAS_CurrVersion = '2.2.2';
+const JRAS_CurrVersion = '2.2.3';
 
 /* RELEASE NOTES
+ 2.2.3
+   + При попытке найти дату последнего входа, если у юзера введен всякий шлак
+       типа интересов, дата не находилась. (Issue-76)
  2.2.2
-   + в тултип юзера выведена инфа о последнем входе
-   * заминусованные коменты теперь открываются с задержкой.
+   + в тултип юзера выведена инфа о последнем входе (Issue-74)
+   * заминусованные коменты теперь открываются с задержкой (Issue-72)
  2.2.0 - http://old.reactor.cc/post/3565867
    + переработка механизма сохранения настроек (Issue-59)
    + импорт/экспорт настроек (Issue-59)
@@ -2073,14 +2076,23 @@ const JRAS_CurrVersion = '2.2.2';
 
     re = /([12]\d{3}-(0[1-9]|1[0-2])-(0[1-9]|[12]\d|3[01]))/gm;
     const regDate = new Date(re.exec($userPostsCont.find('span[id^=usertime]').text())[0]);
-    const lastLogin = new Date(re.exec($userPostsCont.find('>:nth-child(4)').text())[0]);
+
+    let lastLogin = '';
+    let i = 4;
+    re = /^Последний раз заходил.+([12]\d{3}-(0[1-9]|1[0-2])-(0[1-9]|[12]\d|3[01]))/gm;
+    while ((m = re.exec($userPostsCont.find('>:nth-child(' + i + ')').text())) == null && i < 50) {
+      i++;
+    }
+    if (m !== null){
+      lastLogin = new Date(m[1]).toLocaleDateString();
+    }
 
     const $modBlock = $containerFor.append(`
       <div class="jras-tooltip-section-topborder" style="line-height: 16px; font-size: 10px;" id="jras-tooltip-posts-block">
         ${lng.getVal('JRAS_TOOLTIP_POSTS')}<b>${arr[0] + ' (' + arr[1] + ' / ' + arr[2] + ')'}</b><br>
         ${lng.getVal('JRAS_TOOLTIP_COMMENTS')}<b> ${arr[3]}</b><br>
         ${lng.getVal('JRAS_TOOLTIP_REG')}<b>${regDate.toLocaleDateString()}</b><br>
-        ${lng.getVal('JRAS_TOOLTIP_LASTLOGIN')}<b>${lastLogin.toLocaleDateString()}</b>
+        ${lng.getVal('JRAS_TOOLTIP_LASTLOGIN')}<b>${lastLogin}</b>
       </div>
     `).find('#jras-tooltip-posts-block');
   }
