@@ -13,7 +13,7 @@
 // @include     *jr-proxy.com*
 // @require     http://ajax.googleapis.com/ajax/libs/jquery/2.2.0/jquery.min.js
 // @require     https://code.jquery.com/ui/1.11.4/jquery-ui.min.js
-// @version     2.2.3
+// @version     2.2.4
 // @grant       GM.getValue
 // @grant       GM.setValue
 // @grant       GM.listValues
@@ -28,13 +28,15 @@
 // @run-at      document-end
 // ==/UserScript==
 
-const JRAS_CurrVersion = '2.2.3';
+const JRAS_CurrVersion = '2.2.4';
 
 /* RELEASE NOTES
+ 2.2.4
+   * Нет тултипа на фендомных тегах (Issue-78)
  2.2.3
-   + При попытке найти дату последнего входа, если у юзера введен всякий шлак
+   * При попытке найти дату последнего входа, если у юзера введен всякий шлак
        типа интересов, дата не находилась. (Issue-76)
- 2.2.2
+ 2.2.2 - http://old.reactor.cc/post/3732196
    + в тултип юзера выведена инфа о последнем входе (Issue-74)
    * заминусованные коменты теперь открываются с задержкой (Issue-72)
  2.2.0 - http://old.reactor.cc/post/3565867
@@ -258,10 +260,11 @@ const JRAS_CurrVersion = '2.2.3';
   const MutationObserver = window.MutationObserver || window.WebKitMutationObserver || window.MozMutationObserver;
 
   const gm3 = 'undefined' !== typeof GM_xmlhttpRequest;
-  const GMgetValue     = (gm3) ? GM_getValue : GM.getValue;
-  const GMsetValue     = (gm3) ? GM_setValue : GM.setValue;
-  const GMlistValues   = (gm3) ? GM_listValues : GM.listValues;
-  const GMdeleteValue  = (gm3) ? GM_deleteValue : GM.deleteValue;
+  const GMgetValue        = (gm3) ? GM_getValue : GM.getValue;
+  const GMsetValue        = (gm3) ? GM_setValue : GM.setValue;
+  const GMlistValues      = (gm3) ? GM_listValues : GM.listValues;
+  const GMdeleteValue     = (gm3) ? GM_deleteValue : GM.deleteValue;
+  const GMxmlhttpRequest  = (gm3) ? GM_xmlhttpRequest : GM.xmlhttpRequest;
 
   const defLoadTooltipSize = 212;
   const defUserTooltipSize = 212;
@@ -1537,15 +1540,15 @@ const JRAS_CurrVersion = '2.2.3';
     $PostCrtlsBlock.css({'top': newTop});
   }
 
-  function HttpRequest(link, readyState, onload){
-    const xhr = new XMLHttpRequest();
-    // xhr.withCredentials = true;
-    xhr.open("GET", link, true);
-    xhr.onreadystatechange = function(e){
-      if (this.readyState != readyState){return}
-      onload(e);
-    };
-    xhr.send();
+  function HttpRequest(link, readyState, fonload){
+    GMxmlhttpRequest({
+      method: 'GET',
+      url: link,
+      onload: function(response) {
+        if (response.readyState != readyState){return}
+        fonload(response);
+      }
+    });
   }
 
   function actionTooltipButton($button, link, buttonTxtID){
@@ -1637,11 +1640,11 @@ const JRAS_CurrVersion = '2.2.3';
   function getPreviewData(previewLink, $tooltip, $outContainer) {
     setTooltipBounds($tooltip, { width: defLoadTooltipSize });
     HttpRequest(previewLink, 4, function (e) {
-      if (e.target.status != 200) {
-        $outContainer.text('Loading error: ' + e.target.status);
+      if (e.status != 200) {
+        $outContainer.text('Loading error: ' + e.status);
       } else {
         const doc = document.implementation.createHTMLDocument("");
-        doc.documentElement.innerHTML = e.target.response;
+        doc.documentElement.innerHTML = e.response;
 
         clearContainer($outContainer);
 
@@ -1721,11 +1724,11 @@ const JRAS_CurrVersion = '2.2.3';
   function getTagData(tagName, tagLink, $tooltip, $outContainer){
     setTooltipBounds($tooltip, {width: defLoadTooltipSize});
     HttpRequest(tagLink, 4, function(e){
-      if(e.target.status != 200){
-        $outContainer.text('Loading error: ' + e.target.status);
+      if(e.status != 200){
+        $outContainer.text('Loading error: ' + e.status);
       }else{
         const doc = document.implementation.createHTMLDocument("");
-        doc.documentElement.innerHTML = e.target.response;
+        doc.documentElement.innerHTML = e.response;
 
         clearContainer($outContainer);
 
@@ -1909,12 +1912,12 @@ const JRAS_CurrVersion = '2.2.3';
       HttpRequest(userLink, 4, function(e){
         //win.console.log('Loading user data from "' + userLink + '" - ' + response.status);
 
-        if(e.target.status != 200){
-          $outContainer.text('Loading error: ' + e.target.status);
+        if(e.status != 200){
+          $outContainer.text('Loading error: ' + e.status);
           // win.console.log("Loading user data error:  - " + response.status);
         }else{
           const doc = document.implementation.createHTMLDocument("");
-          doc.documentElement.innerHTML = e.target.response;
+          doc.documentElement.innerHTML = e.response;
 
           clearContainer($outContainer);
           setTooltipBounds($tooltip, {width: defUserTooltipSize});
