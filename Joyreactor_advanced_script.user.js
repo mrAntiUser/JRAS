@@ -10,6 +10,7 @@
 // @supportURL  https://github.com/mrAntiUser/JRAS/issues
 // @include     *reactor.cc*
 // @include     *joyreactor.cc*
+// @include     *joyreactor.com*
 // @include     *jr-proxy.com*
 // @require     http://ajax.googleapis.com/ajax/libs/jquery/2.2.0/jquery.min.js
 // @require     https://code.jquery.com/ui/1.11.4/jquery-ui.min.js
@@ -3136,10 +3137,10 @@ const JRAS_CurrVersion = '2.2.4';
                       ${getHTMLProp('showTTOnTrends')} <br>
                       ${getHTMLProp('showTTOnLikeTags')} <br>
                       ${getHTMLProp('showTTOnInteresting')} </section>
-                    <section class="jras-prop-gui-section" style="margin-top: -10px;"> ${getHTMLProp('previewReactorLink')} </section>  
+                    <section class="jras-prop-gui-section" style="margin-top: -10px;"> ${getHTMLProp('previewReactorLink')} </section>
                     <section class="jras-prop-gui-section" style="margin-left: 20px; margin-top: -10px;">
                       ${getHTMLProp('previewSizeX')} <br>
-                      ${getHTMLProp('previewSizeY')} </section> 
+                      ${getHTMLProp('previewSizeY')} </section>
                   </div>
                 </div>
                 <div id="jras-prop-gui-tab-4" class="jras-tabs-panel">
