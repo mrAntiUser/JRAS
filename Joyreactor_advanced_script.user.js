@@ -2372,6 +2372,11 @@ const JRAS_CurrVersion = '2.2.5.2';
       .video_gif_holder {
         display: inline-block;
       }
+      
+      .video_holder{
+        display: inline-block;
+        position: relative;
+      }
 
      /* для старого дизайна */
       .treeCross-old{
