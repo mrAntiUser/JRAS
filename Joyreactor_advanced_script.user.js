@@ -13,12 +13,11 @@
 // @include     *jr-proxy.com*
 // @require     http://ajax.googleapis.com/ajax/libs/jquery/2.2.0/jquery.min.js
 // @require     https://code.jquery.com/ui/1.11.4/jquery-ui.min.js
-// @version     2.2.5
+// @version     2.2.5.1
 // @grant       GM.getValue
 // @grant       GM.setValue
 // @grant       GM.listValues
 // @grant       GM.deleteValue
-// @grant       GM.xmlhttpRequest
 // @grant       GM_getValue
 // @grant       GM_setValue
 // @grant       GM_listValues
@@ -28,9 +27,11 @@
 // @run-at      document-end
 // ==/UserScript==
 
-const JRAS_CurrVersion = '2.2.5';
+const JRAS_CurrVersion = '2.2.5.1';
 
 /* RELEASE NOTES
+ 2.2.5.1
+   * Баг ссылки на webm и mp4 вели на гифку
  2.2.5
    * Ссылки на гифку как в новом дизижине. В разных форматах webm, mp4 и gif (Issue-85)
  2.2.4
@@ -939,7 +940,7 @@ const JRAS_CurrVersion = '2.2.5';
                           </svg>
                         </span>
                         <span>${n}</span>
-                      </a>`).find(`a#${n}`).attr('href', $(e).attr('href').replace('.gif', '.' + n)).removeAttr('id');
+                      </a>`).find(`a#${n}`).attr('href', $(e).attr('href').replace('/pics/post/', `/pics/post/${(n==='gif')?'':n+'/'}`).replace('.gif', '.' + n)).removeAttr('id');
     }
     $('div.image span.video_gif_holder a.video_gif_source').each(function(idx, elm){
       baseDiv = $(elm).parent().append('<div class="gifbuttons"></div>').parent().find('div.gifbuttons');
