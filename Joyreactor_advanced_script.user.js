@@ -13,7 +13,7 @@
 // @include     *jr-proxy.com*
 // @require     http://ajax.googleapis.com/ajax/libs/jquery/2.2.0/jquery.min.js
 // @require     https://code.jquery.com/ui/1.11.4/jquery-ui.min.js
-// @version     2.2.4
+// @version     2.2.5
 // @grant       GM.getValue
 // @grant       GM.setValue
 // @grant       GM.listValues
