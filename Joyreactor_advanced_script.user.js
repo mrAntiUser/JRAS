@@ -28,9 +28,11 @@
 // @run-at      document-end
 // ==/UserScript==
 
-const JRAS_CurrVersion = '2.2.4';
+const JRAS_CurrVersion = '2.2.5';
 
 /* RELEASE NOTES
+ 2.2.5
+   * Ссылки на гифку как в новом дизижине. В разных форматах webm, mp4 и gif (Issue-85)
  2.2.4
    * Нет тултипа на фендомных тегах (Issue-78)
  2.2.3
@@ -289,6 +291,7 @@ const JRAS_CurrVersion = '2.2.4';
     removeShareButtons();
     correctOldReactorLink();
     previewReactorLink();
+    makeExtendedGifLinks();
 
     if (page.pageIs('post') || page.pageIs('discussion')){
       showHiddenComments();
@@ -506,6 +509,9 @@ const JRAS_CurrVersion = '2.2.4';
         },
         previewSizeY: { dt: null,
           propData: function(){return { def: 50, type: 'number', min: 20, max: 80}}
+        },
+        extendedGifLinks: { dt: null,
+          propData: function(){return { def: true, type: 'checkbox'}}
         },
 
         BlockUsers: [],
@@ -918,6 +924,30 @@ const JRAS_CurrVersion = '2.2.4';
         $(this).hide();
       }
     })
+  }
+
+  function makeExtendedGifLinks(){
+    if (!userOptions.val('extendedGifLinks')){
+      return;
+    }
+    let baseDiv;
+    const f = function(e,n){
+      baseDiv.append(`<a id="${n}" href="" class="ant-btn css-s2p5hg">
+                        <span role="img" aria-label="download" class="anticon anticon-download">
+                          <svg viewBox="64 64 896 896" focusable="false" data-icon="download" width="1em" height="1em" fill="currentColor" aria-hidden="true">
+                            <path d="M505.7 661a8 8 0 0012.6 0l112-141.7c4.1-5.2.4-12.9-6.3-12.9h-74.1V168c0-4.4-3.6-8-8-8h-60c-4.4 0-8 3.6-8 8v338.3H400c-6.7 0-10.4 7.7-6.3 12.9l112 141.8zM878 626h-60c-4.4 0-8 3.6-8 8v154H214V634c0-4.4-3.6-8-8-8h-60c-4.4 0-8 3.6-8 8v198c0 17.7 14.3 32 32 32h684c17.7 0 32-14.3 32-32V634c0-4.4-3.6-8-8-8z"></path>
+                          </svg>
+                        </span>
+                        <span>${n}</span>
+                      </a>`).find(`a#${n}`).attr('href', $(e).attr('href').replace('.gif', '.' + n)).removeAttr('id');
+    }
+    $('div.image span.video_gif_holder a.video_gif_source').each(function(idx, elm){
+      baseDiv = $(elm).parent().append('<div class="gifbuttons"></div>').parent().find('div.gifbuttons');
+      f(elm, 'webm');
+      f(elm, 'mp4');
+      f(elm, 'gif');
+      elm.remove();
+    });
   }
 
   function showHiddenComments($inElm){
@@ -2260,16 +2290,6 @@ const JRAS_CurrVersion = '2.2.4';
     $('#jras-prop-gui-dialog').find('label.modal__close').click();
   }
 
-  function themeDependentCSS(){
-    if (!page.isSchemeLight()){
-      newCssClass(`
-        .post_content table td {
-           border: 1px solid #474747;
-        }
-      `);
-    }
-  }
-
   function newCssClass(cssClass){
     const head = document.head || document.getElementsByTagName('head')[0];
     const style = document.createElement('style');
@@ -2283,19 +2303,65 @@ const JRAS_CurrVersion = '2.2.4';
     head.appendChild(style);
   }
 
+  function themeDependentCSS(){
+    if (!page.isSchemeLight()){
+      newCssClass(`
+        .post_content table td {
+           border: 1px solid #474747;
+        }
+      `);
+    }
+    if (userOptions.val('extendedGifLinks')){
+      newCssClass(`
+        .video_gif_holder:hover .gifbuttons{
+          display: block;
+        }
+        .gifbuttons {
+          position: absolute;
+          top: .1rem;
+          right: .1rem;
+          display: none;
+          background-color: hsla(0,0%,80%,.8);
+        }
+        :where(.css-s2p5hg).ant-btn {
+          padding: 2px 5px;
+        }
+        :where(.css-s2p5hg).ant-btn {
+          outline: none;
+          position: relative;
+          display: inline-block;
+          font-weight: 400;
+          white-space: nowrap;
+          text-align: center;
+          background-image: none;
+          background-color: transparent;
+          border: 0px solid transparent;
+          cursor: pointer;
+          transition: all 0.2s cubic-bezier(0.645, 0.045, 0.355, 1);
+          user-select: none;
+          touch-action: manipulation;
+          line-height: 1.5333333333333334;
+          color: unset;
+        }
+      `);
+    }else{
+      newCssClass(`
+        .video_gif_source{
+          top: 0;
+          right: 0;
+        }
+        .video_gif_holder:hover .video_gif_source{
+          display: block;
+        }
+      `);
+    }
+  }
+
   function addNewCSSClasses(){
     newCssClass(`
-
-    	.video_gif_source{
-        top: 0;
-        right: 0;
-      }
       .video_gif_holder {
         display: inline-block;
-      }
-      .video_gif_holder:hover .video_gif_source{
-        display: block;
-      }
+      }    
 
      /* для старого дизайна */
       .treeCross-old{
@@ -3086,6 +3152,7 @@ const JRAS_CurrVersion = '2.2.4';
                     <section class="jras-prop-gui-section"> ${getHTMLProp('correctOldReactorLink')} </section>
                     <section class="jras-prop-gui-section"> ${getHTMLProp('showHiddenComments')} </section>
                     <section class="jras-prop-gui-section" style="margin-left: 20px; margin-top: -10px;"> ${getHTMLProp('showHiddenCommentsMark')} </section>
+                    <section class="jras-prop-gui-section"> ${getHTMLProp('extendedGifLinks')} </section>
                     <section class="jras-prop-gui-section""> ${getHTMLProp('pcbShowPostControl')} </section>
                     <section class="jras-prop-gui-section" style="margin-left: 20px; margin-top: -10px;">
                       ${getHTMLProp('pcbShowInFullPost')} <br>
@@ -3524,6 +3591,9 @@ const JRAS_CurrVersion = '2.2.4';
     };
     this.JRAS_GUI_SHOWHIDDENCOMMENTSMARK = {
       ru: 'Отмечать загруженные коменты'
+    };
+    this.JRAS_GUI_EXTENDEDGIFLINKS = {
+      ru: 'Ссылка на гифку как в новом дизижине'
     };
     this.JRAS_GUI_SHOWUTONTOPCOMMENTS = {
       ru: ' Показывать в правом баре для лучших коментов'
