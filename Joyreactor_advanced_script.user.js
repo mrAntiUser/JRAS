@@ -948,15 +948,14 @@ const JRAS_CurrVersion = '2.2.5.2';
     $('div.image span').filter('.video_gif_holder, .video_holder').each(function(idx, elm){
       baseDiv = $(elm).append('<div class="gifbuttons"></div>').parent().find('div.gifbuttons');
 
+      $(elm).find('video source').each(function(videoId, videoElm) {
+        f($(videoElm).attr('src'));
+      });
       const gifSrc = $(elm).find('a.video_gif_source');
       if (gifSrc.length) {
         f(gifSrc.attr('href'));
         gifSrc.remove();
-      }
-
-      $(elm).find('video source').each(function(videoId, videoElm) {
-        f($(videoElm).attr('src'));
-      });
+      };
     });
   }
 
