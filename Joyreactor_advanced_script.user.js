@@ -13,7 +13,7 @@
 // @include     *jr-proxy.com*
 // @require     http://ajax.googleapis.com/ajax/libs/jquery/2.2.0/jquery.min.js
 // @require     https://code.jquery.com/ui/1.11.4/jquery-ui.min.js
-// @version     2.2.5.1
+// @version     2.2.5.2
 // @grant       GM.getValue
 // @grant       GM.setValue
 // @grant       GM.listValues
@@ -27,9 +27,11 @@
 // @run-at      document-end
 // ==/UserScript==
 
-const JRAS_CurrVersion = '2.2.5.1';
+const JRAS_CurrVersion = '2.2.5.2';
 
 /* RELEASE NOTES
+ 2.2.5.2
+   * Ссылки на видео в постах без гифок
  2.2.5.1
    * Баг ссылки на webm и mp4 вели на гифку
  2.2.5
