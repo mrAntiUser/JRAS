@@ -13,7 +13,7 @@
 // @include     *jr-proxy.com*
 // @require     http://ajax.googleapis.com/ajax/libs/jquery/2.2.0/jquery.min.js
 // @require     https://code.jquery.com/ui/1.11.4/jquery-ui.min.js
-// @version     2.2.5.1
+// @version     2.2.5.2
 // @grant       GM.getValue
 // @grant       GM.setValue
 // @grant       GM.listValues
@@ -27,9 +27,11 @@
 // @run-at      document-end
 // ==/UserScript==
 
-const JRAS_CurrVersion = '2.2.5.1';
+const JRAS_CurrVersion = '2.2.5.2';
 
 /* RELEASE NOTES
+ 2.2.5.2
+   * Ссылки на видео в постах без гифок
  2.2.5.1
    * Баг ссылки на webm и mp4 вели на гифку
  2.2.5
@@ -932,22 +934,28 @@ const JRAS_CurrVersion = '2.2.5.1';
       return;
     }
     let baseDiv;
-    const f = function(e,n){
-      baseDiv.append(`<a id="${n}" href="" class="ant-btn css-s2p5hg">
+    const f = function(url){
+      const ext = url.split('.').pop();
+      baseDiv.append(`<a href="${url}" class="ant-btn css-s2p5hg">
                         <span role="img" aria-label="download" class="anticon anticon-download">
                           <svg viewBox="64 64 896 896" focusable="false" data-icon="download" width="1em" height="1em" fill="currentColor" aria-hidden="true">
                             <path d="M505.7 661a8 8 0 0012.6 0l112-141.7c4.1-5.2.4-12.9-6.3-12.9h-74.1V168c0-4.4-3.6-8-8-8h-60c-4.4 0-8 3.6-8 8v338.3H400c-6.7 0-10.4 7.7-6.3 12.9l112 141.8zM878 626h-60c-4.4 0-8 3.6-8 8v154H214V634c0-4.4-3.6-8-8-8h-60c-4.4 0-8 3.6-8 8v198c0 17.7 14.3 32 32 32h684c17.7 0 32-14.3 32-32V634c0-4.4-3.6-8-8-8z"></path>
                           </svg>
                         </span>
-                        <span>${n}</span>
-                      </a>`).find(`a#${n}`).attr('href', $(e).attr('href').replace('/pics/post/', `/pics/post/${(n==='gif')?'':n+'/'}`).replace('.gif', '.' + n)).removeAttr('id');
+                        <span>${ext}</span>
+                      </a>`);
     }
-    $('div.image span.video_gif_holder a.video_gif_source').each(function(idx, elm){
-      baseDiv = $(elm).parent().append('<div class="gifbuttons"></div>').parent().find('div.gifbuttons');
-      f(elm, 'webm');
-      f(elm, 'mp4');
-      f(elm, 'gif');
-      elm.remove();
+    $('div.image span').filter('.video_gif_holder, .video_holder').each(function(idx, elm){
+      baseDiv = $(elm).append('<div class="gifbuttons"></div>').parent().find('div.gifbuttons');
+
+      $(elm).find('video source').each(function(videoId, videoElm) {
+        f($(videoElm).attr('src'));
+      });
+      const gifSrc = $(elm).find('a.video_gif_source');
+      if (gifSrc.length) {
+        f(gifSrc.attr('href'));
+        gifSrc.remove();
+      };
     });
   }
 
@@ -2314,7 +2322,7 @@ const JRAS_CurrVersion = '2.2.5.1';
     }
     if (userOptions.val('extendedGifLinks')){
       newCssClass(`
-        .video_gif_holder:hover .gifbuttons{
+        .video_gif_holder:hover .gifbuttons, .video_holder:hover .gifbuttons{
           display: block;
         }
         .gifbuttons {
@@ -2362,7 +2370,12 @@ const JRAS_CurrVersion = '2.2.5.1';
     newCssClass(`
       .video_gif_holder {
         display: inline-block;
-      }    
+      }
+      
+      .video_holder{
+        display: inline-block;
+        position: relative;
+      }
 
      /* для старого дизайна */
       .treeCross-old{
@@ -3204,10 +3217,10 @@ const JRAS_CurrVersion = '2.2.5.1';
                       ${getHTMLProp('showTTOnTrends')} <br>
                       ${getHTMLProp('showTTOnLikeTags')} <br>
                       ${getHTMLProp('showTTOnInteresting')} </section>
-                    <section class="jras-prop-gui-section" style="margin-top: -10px;"> ${getHTMLProp('previewReactorLink')} </section>  
+                    <section class="jras-prop-gui-section" style="margin-top: -10px;"> ${getHTMLProp('previewReactorLink')} </section>
                     <section class="jras-prop-gui-section" style="margin-left: 20px; margin-top: -10px;">
                       ${getHTMLProp('previewSizeX')} <br>
-                      ${getHTMLProp('previewSizeY')} </section> 
+                      ${getHTMLProp('previewSizeY')} </section>
                   </div>
                 </div>
                 <div id="jras-prop-gui-tab-4" class="jras-tabs-panel">
