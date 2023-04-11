@@ -13,7 +13,7 @@
 // @include     *jr-proxy.com*
 // @require     http://ajax.googleapis.com/ajax/libs/jquery/2.2.0/jquery.min.js
 // @require     https://code.jquery.com/ui/1.11.4/jquery-ui.min.js
-// @version     2.2.5.3
+// @version     2.2.5.4
 // @grant       GM.getValue
 // @grant       GM.setValue
 // @grant       GM.listValues
@@ -27,9 +27,11 @@
 // @run-at      document-end
 // ==/UserScript==
 
-const JRAS_CurrVersion = '2.2.5.3';
+const JRAS_CurrVersion = '2.2.5.4';
 
 /* RELEASE NOTES
+ 2.2.5.4
+   * Баг определения элемента для добавленияя размера
  2.2.5.3
    + Размер в хинте для фалов webm, mp4 и gif
  2.2.5.2
