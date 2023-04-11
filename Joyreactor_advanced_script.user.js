@@ -13,7 +13,7 @@
 // @include     *jr-proxy.com*
 // @require     http://ajax.googleapis.com/ajax/libs/jquery/2.2.0/jquery.min.js
 // @require     https://code.jquery.com/ui/1.11.4/jquery-ui.min.js
-// @version     2.2.5.2
+// @version     2.2.5.3
 // @grant       GM.getValue
 // @grant       GM.setValue
 // @grant       GM.listValues
@@ -27,15 +27,17 @@
 // @run-at      document-end
 // ==/UserScript==
 
-const JRAS_CurrVersion = '2.2.5.2';
+const JRAS_CurrVersion = '2.2.5.3';
 
 /* RELEASE NOTES
+ 2.2.5.3
+   + Размер в хинте для фалов webm, mp4 и gif
  2.2.5.2
    * Ссылки на видео в постах без гифок
  2.2.5.1
    * Баг ссылки на webm и mp4 вели на гифку
  2.2.5
-   * Ссылки на гифку как в новом дизижине. В разных форматах webm, mp4 и gif (Issue-85)
+   + Ссылки на гифку как в новом дизижине. В разных форматах webm, mp4 и gif (Issue-85)
  2.2.4
    * Нет тултипа на фендомных тегах (Issue-78)
  2.2.3
@@ -944,6 +946,19 @@ const JRAS_CurrVersion = '2.2.5.2';
                         </span>
                         <span>${ext}</span>
                       </a>`);
+      GMxmlhttpRequest({
+        method: "HEAD",
+        url: url,
+        headers: {
+          'Referer': location.origin
+        },
+        onload: function(response) {
+          const tmp = response.responseHeaders.match(/Content-Length:\s?(\d+)/i);
+          if (tmp){
+            baseDiv.find(`a[href="${url}"]`).attr('title', lng.getVal('JRAS_EXTGIFTITLESIZESTR') + niceBytes(tmp[1]));
+          };
+        }
+      });
     }
     $('div.image span').filter('.video_gif_holder, .video_holder').each(function(idx, elm){
       baseDiv = $(elm).append('<div class="gifbuttons"></div>').parent().find('div.gifbuttons');
@@ -3486,6 +3501,8 @@ const JRAS_CurrVersion = '2.2.5.2';
     }
   }
 
+  function niceBytes(a){let b=0,c=parseInt(a,10)||0;for(;1024<=c&&++b;)c/=1024;return c.toFixed(10>c&&0<b?1:0)+" "+["bytes","KB","MB","GB","TB","PB","EB","ZB","YB"][b]}
+
   function getDomain(url, subdomain) {
     subdomain = subdomain || false;
     url = url.replace(/(https?:\/\/)?(www.)?/i, '');
@@ -3530,6 +3547,9 @@ const JRAS_CurrVersion = '2.2.5.2';
     };
     this.JRAS_TOGGLEBUTTONCAPTIONSHOW = {
       ru: 'Показать'
+    };
+    this.JRAS_EXTGIFTITLESIZESTR = {
+      ru: 'Размер: '
     };
     this.JRAS_POSTBLOCKBYTAG = {
       ru: 'Пост заблокированый по тегам: '
