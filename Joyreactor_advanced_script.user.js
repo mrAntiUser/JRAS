@@ -2408,7 +2408,7 @@ const JRAS_CurrVersion = '2.2.6';
         align-content: flex-start;
       }
       .jras-ext-gif-box {
-        margin: 2px;
+        margin: -2px 3px;
       }
 
      /* для старого дизайна */
