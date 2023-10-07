@@ -13,7 +13,7 @@
 // @include     *jr-proxy.com*
 // @require     http://ajax.googleapis.com/ajax/libs/jquery/2.2.0/jquery.min.js
 // @require     https://code.jquery.com/ui/1.11.4/jquery-ui.min.js
-// @version     2.2.6
+// @version     2.2.7
 // @grant       GM.getValue
 // @grant       GM.setValue
 // @grant       GM.listValues
@@ -27,9 +27,11 @@
 // @run-at      document-end
 // ==/UserScript==
 
-const JRAS_CurrVersion = '2.2.6';
+const JRAS_CurrVersion = '2.2.7';
 
 /* RELEASE NOTES
+ 2.2.7
+   * Исправлен предпросмотр постов и комментариев по наведению на ссылку
  2.2.6
    + Поменял отображение ссылок на скачивание гифок. Теперь выводятся с размерами (Issue-92)
  2.2.5.4
@@ -784,10 +786,14 @@ const JRAS_CurrVersion = '2.2.6';
     if (!userOptions.val('previewReactorLink')) {
       return;
     }
-    const selector = 'a[href*="reactor.cc/post/"]:not(a[href*="redirect?"], div.image>a)';
-    const $selElmts = (!$srcElm)
-      ? $(`.post_content ${selector}, .post_comment_list div.txt ${selector}`)
-      : $srcElm.find(selector);
+    const glob = !$srcElm;
+    const selectors = [
+      'a[href*="reactor.cc/post/"]:not(a[href*="redirect?"], div.image>a)',
+      'a[href^="/post/"]:not(a[href*="redirect?"], div.image>a, .csrfLink, .toggleComments, .link, [target="_blank"])',
+    ].map(s => glob ? `.post_content ${s}, .post_comment_list div.txt ${s}` : s).join(', ');
+    const $selElmts = glob
+      ? $(selectors)
+      : $srcElm.find(selectors);
     if ($selElmts.length == 0) { return }
     makeAllPreviewTooltip($selElmts);
   }
@@ -1684,7 +1690,9 @@ const JRAS_CurrVersion = '2.2.6';
     makeTooltips(selector, function (event, ui) {
       const $item = $(event.target);
       let prevLink = $item.attr('href');
-      prevLink = prevLink.replace(getDomain(prevLink, true), location.host);
+      const tempUrl = new URL(prevLink, location.href);
+      tempUrl.host = location.host;
+      prevLink = tempUrl.href;
       const $tooltip = $(ui.tooltip);
       $('div.ui-tooltip').not('#' + $tooltip.attr('id')).remove();
       $tooltip.css({
@@ -3521,19 +3529,6 @@ const JRAS_CurrVersion = '2.2.6';
   }
 
   function niceBytes(a){let b=0,c=parseInt(a,10)||0;for(;1024<=c&&++b;)c/=1024;return c.toFixed(10>c&&0<b?1:0)+" "+["bytes","KB","MB","GB","TB","PB","EB","ZB","YB"][b]}
-
-  function getDomain(url, subdomain) {
-    subdomain = subdomain || false;
-    url = url.replace(/(https?:\/\/)?(www.)?/i, '');
-    if (!subdomain) {
-      url = url.split('.');
-      url = url.slice(url.length - 2).join('.');
-    }
-    if (url.indexOf('/') !== -1) {
-      return url.split('/')[0];
-    }
-    return url;
-  }
 
   function LanguageData(){
 
