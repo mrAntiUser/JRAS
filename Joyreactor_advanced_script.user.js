@@ -13,7 +13,7 @@
 // @include     *jr-proxy.com*
 // @require     http://ajax.googleapis.com/ajax/libs/jquery/2.2.0/jquery.min.js
 // @require     https://code.jquery.com/ui/1.11.4/jquery-ui.min.js
-// @version     2.2.7
+// @version     2.2.8
 // @grant       GM.getValue
 // @grant       GM.setValue
 // @grant       GM.listValues
@@ -27,9 +27,11 @@
 // @run-at      document-end
 // ==/UserScript==
 
-const JRAS_CurrVersion = '2.2.7';
+const JRAS_CurrVersion = '2.2.8';
 
 /* RELEASE NOTES
+ 2.2.8
+   * Поправлен запрос размеров "гифок" для ссылок на...
  2.2.7
    * Исправлен предпросмотр постов и комментариев по наведению на ссылку
  2.2.6
@@ -962,7 +964,7 @@ const JRAS_CurrVersion = '2.2.7';
         </div>`).children().last();
       GMxmlhttpRequest({
         method: "HEAD",
-        url: url,
+        url: location.protocol + url,
         headers: {
           'Referer': location.origin
         },
