@@ -2011,7 +2011,6 @@ const JRAS_CurrVersion = '2.2.8';
 
           const $userStars = $userData.find('div.stars').clone().appendTo($outContainer);
           $userStars.css('width', '100%');
-          $userStars.find('div:not([class])').not('[style*="border: black solid 1px"]').remove();
           $userStars.find('div[class*="star-row-"]')
             .css({
               'height': '15px',
@@ -2019,9 +2018,9 @@ const JRAS_CurrVersion = '2.2.8';
               'transform': 'scale(0.7)'
             });
           let a = page.isNewDesign ? 'rgb(230, 230, 230)' : 'rgb(72, 72, 72)';
-          $userStars.find('[style*="border: black solid 1px"]')
+          $userStars.find('.progress_bar')
             .css({
-              'border': '',
+              'border': 0,
               'margin-top': '3px',
               'background-color': a,
               'height': '4px'
