@@ -793,7 +793,7 @@ const JRAS_CurrVersion = '2.2.9';
     const glob = !$srcElm;
     const selectors = [
       'a[href*="reactor.cc/post/"]:not(a[href*="redirect?"], div.image>a)',
-      'a[href^="/post/"]:not(a[href*="redirect?"], div.image>a, .csrfLink, .toggleComments, .link, [target="_blank"])',
+      'a[href^="/post/"]:not(a[href*="redirect?"], div.image>a, .csrfLink, .toggleComments, .link, [target="_blank"], span.reply-link>a)',
     ].map(s => glob ? `.post_content ${s}, .post_comment_list div.txt ${s}` : s).join(', ');
     const $selElmts = glob
       ? $(selectors)
