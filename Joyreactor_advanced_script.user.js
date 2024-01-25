@@ -13,7 +13,7 @@
 // @include     *jr-proxy.com*
 // @require     http://ajax.googleapis.com/ajax/libs/jquery/2.2.0/jquery.min.js
 // @require     https://code.jquery.com/ui/1.11.4/jquery-ui.min.js
-// @version     2.2.9
+// @version     2.2.10
 // @grant       GM.getValue
 // @grant       GM.setValue
 // @grant       GM.listValues
@@ -27,9 +27,11 @@
 // @run-at      document-end
 // ==/UserScript==
 
-const JRAS_CurrVersion = '2.2.9';
+const JRAS_CurrVersion = '2.2.10';
 
 /* RELEASE NOTES
+ 2.2.10
+   * убрал тултип комента на ссылке в блоке самого комента
  2.2.9
    * Поправлено отображения прогресса звезды в тултипе юзера (Issue-95)
  2.2.8
