@@ -13,7 +13,7 @@
 // @include     *jr-proxy.com*
 // @require     http://ajax.googleapis.com/ajax/libs/jquery/2.2.0/jquery.min.js
 // @require     https://code.jquery.com/ui/1.11.4/jquery-ui.min.js
-// @version     2.2.10
+// @version     2.2.11
 // @grant       GM.getValue
 // @grant       GM.setValue
 // @grant       GM.listValues
@@ -27,9 +27,11 @@
 // @run-at      document-end
 // ==/UserScript==
 
-const JRAS_CurrVersion = '2.2.10';
+const JRAS_CurrVersion = '2.2.11';
 
 /* RELEASE NOTES
+ 2.2.11
+   + Сделал выделение цитат в коментах, если срока начинается с ">" то вся считается цитатой
  2.2.10
    * убрал тултип комента на ссылке в блоке самого комента
  2.2.9
@@ -312,6 +314,7 @@ const JRAS_CurrVersion = '2.2.10';
 
     if (page.pageIs('post') || page.pageIs('discussion')){
       showHiddenComments();
+      makeQuotes();
       correctCommentSize();
       makeTreeComments();
       makeAvatarOnOldDesign();
@@ -1136,6 +1139,9 @@ const JRAS_CurrVersion = '2.2.10';
 
                 if ($(itm).is('div[id^=comment_list_post].comment_list_post')){
                   $(itm).find('div[id^=comment].comment').each(function(idx, elm){
+                    if (userOptions.val('makeTreeComments') && !userOptions.val('treeCommentsOnlyFullPost')) {
+                      makeQuotesNode(elm, elm.id.replace('comment', ''));
+                    }
                     if (userOptions.val('makeTreeComments') && !userOptions.val('treeCommentsOnlyFullPost')){
                       makeTreeCommentNode(elm, elm.id.replace('comment', ''));
                     }
@@ -1329,6 +1335,44 @@ const JRAS_CurrVersion = '2.2.10';
         }
       }
     }
+  }
+
+
+  function makeQuotes() {
+    // if (!userOptions.val('makeQuotesOnComments')) return;
+    $('div[id^=comment].comment:not(div[id^=comment].comment.quotes)').each(function (idx, elm) {
+      makeQuotesNode($(elm), elm.id.replace('comment', ''));
+    })
+  }
+  
+
+  function makeQuotesNode($elm, commentID) {
+    if ($elm.hasClass('quotes')) return;
+    const elmText = $elm.find('div.txt span').first().text();
+    if (!elmText) return;
+    const createQT = ($e) => {
+      $e.contents().each((i, e) => {
+        if (e.nodeType === 1) createQT($(e))
+        else if (e.nodeType === 3 && $(e).text().trim()[0] === '>') {
+          $(e)[0].nodeValue = $(e).text().trim().substring(1).trim();
+          $(e).wrap('<span class="jras-qt"><div></div></span>');
+        }
+      });
+    }
+    createQT($elm);
+    // const getText = ($e) => {
+    //   let retText = $e.text() ? '' : '\n';
+    //   $e.contents().each((i, e) => {
+    //     if (e.nodeType === 1) retText += getText($(e))
+    //     else retText += e.nodeType === 3 ? $(e).text() : '\n'
+    //   });
+    //   return retText;
+    // }
+    // const text = getText($elm.find('div.txt span').first()).trim();
+    // if (!text) return;
+    // [...text.matchAll(/>.+\n/gm)].forEach((e)=>{
+    //   console.log(`Found ${e[0]}`);
+    // })
   }
 
   function makeAvatarOnOldDesign(elm){
@@ -2841,6 +2885,31 @@ const JRAS_CurrVersion = '2.2.10';
        float: right;
        right: 0;
      }
+     .jras-qt {
+        opacity: 0.6;
+        font-style: italic;
+        font-size: 120%;
+        display: inline-block;
+        padding-bottom: 1.5em;
+        padding-left: 0.8em;
+      }
+      .jras-qt div{
+    /* padding-left: 1.2em; */
+    /* position: relative; */
+    /* top: -0.3em; */
+      }
+      .jras-qt div::before {
+        content: ',,';
+        font-size: 4.3em;
+        margin-left: -0.2em;
+        margin-right: 0.2em;
+        position: relative;
+        color: #9f9f9f;
+        font-family: times-new-roman;
+        letter-spacing: -0.07em;
+        font-style: normal;
+        top: -0.13em;
+      }
 
       /* Окно настроек  */
       .modal {
