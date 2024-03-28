@@ -1143,7 +1143,7 @@ const JRAS_CurrVersion = '2.2.11';
                 if ($(itm).is('div[id^=comment_list_post].comment_list_post')){
                   $(itm).find('div[id^=comment].comment').each(function(idx, elm){
                     if (userOptions.val('makeQuotesOnComments')) {
-                      makeQuotesNode(elm, elm.id.replace('comment', ''));
+                      makeQuotesNode($(elm), elm.id.replace('comment', ''));
                     }
                     if (userOptions.val('makeTreeComments') && !userOptions.val('treeCommentsOnlyFullPost')){
                       makeTreeCommentNode(elm, elm.id.replace('comment', ''));
@@ -1359,6 +1359,7 @@ const JRAS_CurrVersion = '2.2.11';
         else if (e.nodeType === 3 && $(e).text().trim()[0] === '>') {
           $(e)[0].nodeValue = $(e).text().trim().substring(1).trim();
           $(e).wrap('<div class="jras-qt"><div></div></div>');
+          $elm.addClass('quotes');
         }
       });
     }
