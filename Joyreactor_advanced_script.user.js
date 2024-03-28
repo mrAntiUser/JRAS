@@ -360,6 +360,9 @@ const JRAS_CurrVersion = '2.2.11';
         makeTreeComments: { dt: null,
           propData: function(){return { def: true, type: 'checkbox'}}
         },
+        makeQuotesOnComments: { dt: null,
+          propData: function(){return { def: true, type: 'checkbox'}}
+        },
         treeCommentsOnlyFullPost: { dt: null,
           propData: function(){return { def: false, type: 'checkbox'}}
         },
@@ -1139,7 +1142,7 @@ const JRAS_CurrVersion = '2.2.11';
 
                 if ($(itm).is('div[id^=comment_list_post].comment_list_post')){
                   $(itm).find('div[id^=comment].comment').each(function(idx, elm){
-                    if (userOptions.val('makeTreeComments') && !userOptions.val('treeCommentsOnlyFullPost')) {
+                    if (userOptions.val('makeQuotesOnComments')) {
                       makeQuotesNode(elm, elm.id.replace('comment', ''));
                     }
                     if (userOptions.val('makeTreeComments') && !userOptions.val('treeCommentsOnlyFullPost')){
@@ -1339,7 +1342,7 @@ const JRAS_CurrVersion = '2.2.11';
 
 
   function makeQuotes() {
-    // if (!userOptions.val('makeQuotesOnComments')) return;
+    if (!userOptions.val('makeQuotesOnComments')) return;
     $('div[id^=comment].comment:not(div[id^=comment].comment.quotes)').each(function (idx, elm) {
       makeQuotesNode($(elm), elm.id.replace('comment', ''));
     })
@@ -1355,11 +1358,12 @@ const JRAS_CurrVersion = '2.2.11';
         if (e.nodeType === 1) createQT($(e))
         else if (e.nodeType === 3 && $(e).text().trim()[0] === '>') {
           $(e)[0].nodeValue = $(e).text().trim().substring(1).trim();
-          $(e).wrap('<span class="jras-qt"><div></div></span>');
+          $(e).wrap('<div class="jras-qt"><div></div></div>');
         }
       });
     }
     createQT($elm);
+    // выдирание текста комента построчно
     // const getText = ($e) => {
     //   let retText = $e.text() ? '' : '\n';
     //   $e.contents().each((i, e) => {
@@ -2490,8 +2494,8 @@ const JRAS_CurrVersion = '2.2.11';
       .avatarForOldDesign{
         float: left;
         border-radius: 3px;
-        margin-left: -15px;
-        margin-right: 6px;
+        margin-left: -1.2em;
+        margin-right: 1em;
         height: 35px;
       }
       .treeCross-old-toparent {
@@ -2884,19 +2888,22 @@ const JRAS_CurrVersion = '2.2.11';
        position: absolute;
        float: right;
        right: 0;
+       width: 75%;
      }
      .jras-qt {
         opacity: 0.6;
         font-style: italic;
-        font-size: 120%;
-        display: inline-block;
-        padding-bottom: 1.5em;
+        font-size: 105%;
+     /*    display: inline-block; */
+        margin-bottom: -1em;
         padding-left: 0.8em;
       }
       .jras-qt div{
     /* padding-left: 1.2em; */
     /* position: relative; */
     /* top: -0.3em; */
+       margin-top: -0.8em;
+       margin-left: 1.8em;
       }
       .jras-qt div::before {
         content: ',,';
@@ -3355,6 +3362,7 @@ const JRAS_CurrVersion = '2.2.11';
                       ${getHTMLProp('collapseCommentsOnlyFullPost')} <br>
                       ${getHTMLProp('collapseCommentWhenSize')} <br>
                       ${getHTMLProp('collapseCommentToSize')} </section>
+                    <section class="jras-prop-gui-section"> ${getHTMLProp('makeQuotesOnComments')} </section>
                   </div>
                 </div>
                 <div id="jras-prop-gui-tab-5" class="jras-tabs-panel">
@@ -3962,6 +3970,9 @@ const JRAS_CurrVersion = '2.2.11';
     };
     this.JRAS_GUI_PREVIEWSIZEY = {
       ru: 'Размер тултипа превью по ветрикали. % от окна страницы'
+    };
+    this.JRAS_GUI_MAKEQUOTESONCOMMENTS = {
+      ru: 'Цитаты из строк начинающихся с символа ">"'
     };
   }
 
