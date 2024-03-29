@@ -293,6 +293,11 @@ const JRAS_CurrVersion = '2.2.11';
 
   const lng = new LanguageData();
   const page = new PageData();
+  
+  const quoteData = {
+    $commentContainer: undefined,
+    $popupQuote: undefined,
+    quoteInsertData: undefined };
 
   const userOptions = initOptions();
   userOptions.loadUserData(page.currentUser);
@@ -319,6 +324,8 @@ const JRAS_CurrVersion = '2.2.11';
       makeTreeComments();
       makeAvatarOnOldDesign();
     }
+
+    makePopuperQuote();
 
     userRemove(userOptions.data.BlockUsers);
     tagRemove(userOptions.data.BlockTags, true);
@@ -1353,11 +1360,19 @@ const JRAS_CurrVersion = '2.2.11';
     if ($elm.hasClass('quotes')) return;
     const elmText = $elm.find('div.txt span').first().text();
     if (!elmText) return;
-    const createQT = ($e) => {
+      const createQT = ($e) => {
       $e.contents().each((i, e) => {
         if (e.nodeType === 1) createQT($(e))
         else if (e.nodeType === 3 && $(e).text().trim()[0] === '>') {
-          $(e)[0].nodeValue = $(e).text().trim().substring(1).trim();
+          let
+            qText = $(e).text().trim().substring(1).trim(),
+            qUser, qCommId;
+          const a = [...qText.matchAll(/ ::: _\[(.+):(\d+)]_/gm)].forEach((e)=>{
+            qUser = e[1];
+            qCommId = e[2];
+            qText = qText.substring(0, e.index);
+          });
+          $(e)[0].nodeValue = qText;
           $(e).wrap('<div class="jras-qt"><div></div></div>');
           $elm.addClass('quotes');
         }
@@ -1378,6 +1393,81 @@ const JRAS_CurrVersion = '2.2.11';
     // [...text.matchAll(/>.+\n/gm)].forEach((e)=>{
     //   console.log(`Found ${e[0]}`);
     // })
+  }
+
+  function makePopuperQuote(){
+    const $baseContainer = $('div[id^=postContainer].single_post.postContainer');
+    makePopupQuote($baseContainer);
+    $baseContainer.mouseup(function (event) {
+      if (event.button !== 0) return;
+      const selected = getSelectedText();
+      const selText = selected.toString();
+      if (selText !== '') {
+        const $parDiv = $(selected.focusNode).parents('div.txt').parent();
+        const quoteUser = $parDiv.find('a.comment_username').text();
+        const commentId = $parDiv[0].id.replace('comment', '');
+        quoteData.$commentContainer = $parDiv;
+        // quoteData.quoteInsertData = '> ' + selText + `<font color=${page.commentBgColor()}> ::: _[${quoteUser}:${commentId}]_</font>`;
+        quoteData.quoteInsertData = '> ' + selText + ` ::: _[${quoteUser}:${commentId}]_`;
+        event.stopPropagation();
+        const x = $baseContainer.offset().left - 10;
+        const y = $parDiv.offset().top - $baseContainer.offset().top - 10;
+        quoteData.$popupQuote.css({ 'top': event.offsetY + y + 'px', 'left': event.clientX - x + 'px' });
+        popupQuoteVisible(true);
+      } else {
+        popupQuoteVisible(false);
+      }
+    });
+  }
+
+  function sendToCommentTextArea(text) {
+    const $textArea = quoteData.$commentContainer.find('div.addcomment textarea.comment_text');
+    if ($textArea.length === 0) return;
+    const caretPos = $textArea[0].selectionStart;
+    const textAreaTxt = $textArea.val();
+    // if (textAreaTxt !== '' && text === quoteData.quoteInsertData) { text = '\n' + text }
+    $textArea.val(textAreaTxt.substring(0, caretPos) + text + textAreaTxt.substring(caretPos));
+    $textArea[0].selectionStart = caretPos + text.length;
+    $textArea[0].selectionEnd = $textArea[0].selectionStart;
+    $textArea[0].focus();
+  }
+
+  function getSelectedText() {
+    if (window.getSelection) {
+      return window.getSelection();
+    } else if (document.getSelection) {
+      return document.getSelection();
+    } else if (document.selection) {
+      return document.selection.createRange().text;
+    }
+  }
+
+  function makePopupQuote($par) {
+    if (quoteData.$popupQuote) { return }
+    quoteData.$popupQuote = $(`<div id="jras-qt-popup" title="${lng.getVal('JRAS_GUI_QUOTEPOPUPERHINT')}"></div>`).click(function () {
+      popupQuoteVisible(false);
+      const $commentForm = quoteData.$commentContainer.find('div.addcomment');
+      if ($commentForm.length === 0 || !$commentForm.is(':visible')){
+        quoteData.$commentContainer.find('span.reply-link>a.response')[0].click();
+      }
+      sendToCommentTextArea(quoteData.quoteInsertData);
+    });
+    $par.append(quoteData.$popupQuote);
+  }
+
+  function popupQuoteVisible(value) {
+    if (!quoteData.$popupQuote) { return }
+    if (value === undefined) {
+      quoteData.$popupQuote.toggleClass('show hide');
+    } else {
+      if (value) {
+        quoteData.$popupQuote.removeClass('hide');
+        quoteData.$popupQuote.addClass('show');
+      } else {
+        quoteData.$popupQuote.removeClass('show');
+        quoteData.$popupQuote.addClass('hide');
+      }
+    }
   }
 
   function makeAvatarOnOldDesign(elm){
@@ -2918,6 +3008,33 @@ const JRAS_CurrVersion = '2.2.11';
         font-style: normal;
         top: -0.13em;
       }
+      #jras-qt-popup {
+        position: absolute;
+        top: -1000px;
+        left: -1000px;
+        height: 24px;
+        width: 28px;
+        z-index: 1;
+        -webkit-box-shadow: 3px 3px 3px 0px rgba(0,0,0,0.2);
+        -moz-box-shadow: 3px 3px 3px 0px rgba(0,0,0,0.2);
+        box-shadow: 3px 3px 3px 0px rgba(0,0,0,0.2);
+        border: 1px solid lightgray;
+        border-radius: 4px;
+        background: #3cff00 url("data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABgAAAAYCAYAAADgdz34AAAAAXNSR0IArs4c6QAAAARnQU1BAACxjwv8YQUAAAAJcEhZcwAADsMAAA7DAcdvqGQAAACISURBVEhL7ZVLDoAgDES5ndH7b/ydRdvEMaQFBUpgw0veYgp2dugGqSzkQV6PpeB73sU7X04ShzUK2J0HwLpYovY1L0DOFcgcvZArkFkPjPQvQE4xhDqTA+QUQ6izr8sl9C9AzhXIHL2QK5BZD4y0L/D/BZYif8fKAzCT/H7XKtjIiQeDH5y7Abh/oWWhH+N/AAAAAElFTkSuQmCC") no-repeat scroll 2px 0px;
+        animation: simple-translate-showButton 200ms;
+        opacity: 0.3;
+      }
+      #jras-qt-popup:hover {
+        opacity: 1;
+        background-color: yellow;
+        transition: .2s;
+      }
+      #jras-qt-popup.show {
+        display: block;
+      }
+      #jras-qt-popup.hide {
+        display: none;
+      }
 
       /* Окно настроек  */
       .modal {
@@ -3608,7 +3725,9 @@ const JRAS_CurrVersion = '2.2.11';
         }
       }
       return retVal;
-    }
+    };
+    this.rgb2hex = (rgb) => `#${rgb?.match(/^rgb\((\d+),\s*(\d+),\s*(\d+)\)$/)?.slice(1).map(n => parseInt(n, 10).toString(16).padStart(2, '0')).join('')}`;
+    this.commentBgColor = () => this.rgb2hex($('.comment').css('background-color'));
   }
 
   function niceBytes(a){let b=0,c=parseInt(a,10)||0;for(;1024<=c&&++b;)c/=1024;return c.toFixed(10>c&&0<b?1:0)+" "+["bytes","KB","MB","GB","TB","PB","EB","ZB","YB"][b]}
@@ -3974,6 +4093,9 @@ const JRAS_CurrVersion = '2.2.11';
     };
     this.JRAS_GUI_MAKEQUOTESONCOMMENTS = {
       ru: 'Цитаты из строк начинающихся с символа ">"'
+    };
+    this.JRAS_GUI_QUOTEPOPUPERHINT = {
+      ru: 'Процитировать выделенный текст'
     };
   }
 
