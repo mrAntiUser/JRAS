@@ -1372,8 +1372,18 @@ const JRAS_CurrVersion = '2.2.11';
             qCommId = e[2];
             qText = qText.substring(0, e.index);
           });
-          $(e)[0].nodeValue = qText;
-          $(e).wrap('<div class="jras-qt"><div></div></div>');
+          e.nodeValue = qText;
+          const currQuoteId = `jras-quote-${i}-${commentID}`;
+          const $qt = $(`<div class="jras-qt"><div id="${currQuoteId}"></div></div>`);
+          $(e).wrap($qt)
+          if (qUser){
+            $(e).wrap(`<div class="base-qt"><div class="qt-body"></div></div>`);
+            $(e.parentNode).before(`<div class="qt-header">${qUser}</div>`);
+            if (!page.isSchemeLight()){
+              $(e.parentNode).prev().css('background', 'linear-gradient(90deg, rgb(80, 80, 80) 0%, rgba(255, 254, 254, 0) 100%)');
+              $(e.parentNode).css('border-left', 'solid 1px rgb(80, 80, 80)')
+            }
+          }
           $elm.addClass('quotes');
         }
       });
@@ -1408,7 +1418,7 @@ const JRAS_CurrVersion = '2.2.11';
         const commentId = $parDiv[0].id.replace('comment', '');
         quoteData.$commentContainer = $parDiv;
         // quoteData.quoteInsertData = '> ' + selText + `<font color=${page.commentBgColor()}> ::: _[${quoteUser}:${commentId}]_</font>`;
-        quoteData.quoteInsertData = '> ' + selText + ` ::: _[${quoteUser}:${commentId}]_`;
+        quoteData.quoteInsertData = '> ' + selText + ` ::: _[${quoteUser}:${commentId}]_\n`;
         event.stopPropagation();
         const x = $baseContainer.offset().left - 10;
         const y = $parDiv.offset().top - $baseContainer.offset().top - 10;
@@ -2989,14 +2999,26 @@ const JRAS_CurrVersion = '2.2.11';
         margin-bottom: -1em;
         padding-left: 0.8em;
       }
-      .jras-qt div{
-    /* padding-left: 1.2em; */
-    /* position: relative; */
-    /* top: -0.3em; */
-       margin-top: -0.8em;
-       margin-left: 1.8em;
+      .jras-qt>div{
+        margin-top: -0.8em;
+        margin-left: 1.8em;
       }
-      .jras-qt div::before {
+      .jras-qt div.base-qt{
+        margin-left: 1.2em;
+        margin-top: -1.2em;
+      }
+      .jras-qt div.qt-header{
+        font-weight: 600;
+        font-style: normal;
+        background: linear-gradient(90deg, rgb(217 217 217) 0%, rgba(255, 254, 254, 0) 100%);
+        padding-left: 0.7em;
+        font-size: 90%;
+      }
+      .jras-qt div.qt-body{
+        padding-left: 0.4em;
+        border-left: solid 1px lightgray;
+      }
+      .jras-qt>div::before {
         content: ',,';
         font-size: 4.3em;
         margin-left: -0.2em;
