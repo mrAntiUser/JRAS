@@ -1480,28 +1480,44 @@ const JRAS_CurrVersion = '2.2.11';
   function makePopupQuote($par) {
     if (!userOptions.val('makeQuoteTool')) return;
     if (quoteData.$popupQuote) { return }
-    quoteData.$popupQuote = $(`<div id="jras-qt-popup" title="${lng.getVal('JRAS_GUI_QUOTEPOPUPERHINT')}"></div>`).click(function () {
+    quoteData.$popupQuote = $(`<div id="jras-qt-popup" title="${lng.getVal('JRAS_GUI_QUOTEPOPUPERHINT')}\n  - ${lng.getVal('JRAS_GUI_NEWANSWERALWAYS')}\n  - ${lng.getVal('JRAS_GUI_FINDOPENEDFORM')}\n  - ${lng.getVal('JRAS_GUI_ADDCOMMENTFORM')}"></div>`).click(function (e) {
       popupQuoteVisible(false);
       let $commentForm;
-      switch (userOptions.val('qTInsertIntoShowingInput')){
-        case 'newAnswerAlways':
-          $commentForm = quoteData.$commentContainer.find('div.addcomment');
-          if ($commentForm.length === 0 || !$commentForm.is(':visible')) {
-            quoteData.$commentContainer.find('span.reply-link>a.response')[0].click();
-          }
-          break;
-        case 'findOpenedForm':
-          $commentForm = quoteData.$commentContainer.parents('div.comment_list_post').find('div.addcomment:visible');
-          if ($commentForm.length === 0) {
-            quoteData.$commentContainer.find('span.reply-link>a.response')[0].click();
-          }else{
-            quoteData.$commentContainer = $commentForm;
-          }
-          break;
-        case 'addCommentForm':
-          quoteData.$commentContainer = quoteData.$commentContainer.parents('div.post_comment_list').find('>div.addcomment');
-          break;
-      };
+      const f_newAnswerAlways = ()=>{
+        $commentForm = quoteData.$commentContainer.find('div.addcomment');
+        if ($commentForm.length === 0 || !$commentForm.is(':visible')) {
+          quoteData.$commentContainer.find('span.reply-link>a.response')[0].click();
+        }
+      }
+      const f_findOpenedForm = () => {
+        $commentForm = quoteData.$commentContainer.parents('div.comment_list_post').find('div.addcomment:visible');
+        if ($commentForm.length === 0) {
+          quoteData.$commentContainer.find('span.reply-link>a.response')[0].click();
+        } else {
+          quoteData.$commentContainer = $commentForm;
+        }
+      }
+      const f_addCommentForm = () => {
+        quoteData.$commentContainer = quoteData.$commentContainer.parents('div.post_comment_list').find('>div.addcomment');
+      }
+      if (e.ctrlKey || e.shiftKey){
+        if (e.ctrlKey && e.shiftKey){f_addCommentForm()}
+        else if (e.ctrlKey){f_newAnswerAlways()}
+        else if (e.shiftKey){f_findOpenedForm()};
+      }else{
+        switch (userOptions.val('qTInsertIntoShowingInput')) {
+          case 'newAnswerAlways':
+            f_newAnswerAlways();
+            break;
+          case 'findOpenedForm':
+            f_findOpenedForm();
+            break;
+          case 'addCommentForm':
+            f_addCommentForm();
+            break;
+        };
+      }
+
       sendToCommentTextArea(quoteData.quoteInsertData);
     });
     $par.append(quoteData.$popupQuote);
@@ -4180,7 +4196,7 @@ const JRAS_CurrVersion = '2.2.11';
       ru: 'Цитаты из строк начинающихся с символа ">"'
     };
     this.JRAS_GUI_QUOTEPOPUPERHINT = {
-      ru: 'Процитировать выделенный текст'
+      ru: 'Процитировать выделенный текст.\n Можно использовать хоткеи (перекрывает настройки)'
     };
     this.JRAS_GUI_MAKEEXTQUOTES = {
       ru: 'Расширенная цитата (заголовок + текст)'
@@ -4195,13 +4211,13 @@ const JRAS_CurrVersion = '2.2.11';
       ru: 'Вставлять цитату в:'
     };
     this.JRAS_GUI_NEWANSWERALWAYS = {
-      ru: 'открывать форму ответа на цитируемое сообщение'
+      ru: 'открывать форму ответа на цитируемое сообщение [ctrl]'
     };
     this.JRAS_GUI_FINDOPENEDFORM = {
-      ru: 'найти уже открытую форму ответа'
+      ru: 'найти уже открытую форму ответа [shift]'
     };
     this.JRAS_GUI_ADDCOMMENTFORM = {
-      ru: 'форму создания нового коментария'
+      ru: 'форму создания нового коментария [ctrl+shift]'
     };
   }
 
