@@ -367,9 +367,6 @@ const JRAS_CurrVersion = '2.2.11';
         makeTreeComments: { dt: null,
           propData: function(){return { def: true, type: 'checkbox'}}
         },
-        makeQuotesOnComments: { dt: null,
-          propData: function(){return { def: true, type: 'checkbox'}}
-        },
         treeCommentsOnlyFullPost: { dt: null,
           propData: function(){return { def: false, type: 'checkbox'}}
         },
@@ -542,6 +539,26 @@ const JRAS_CurrVersion = '2.2.11';
         },
         extendedGifLinks: { dt: null,
           propData: function(){return { def: true, type: 'checkbox'}}
+        },
+        makeQuotesOnComments: { dt: null,
+          propData: function () { return { def: true, type: 'checkbox' } }
+        },
+        makeExtQuotes: { dt: null,
+          propData: function () { return { def: true, type: 'checkbox' } }
+        },
+        makeQuoteTool: { dt: null,
+          propData: function () { return { def: true, type: 'checkbox' } }
+        },
+        qTAddUserInfo: { dt: null,
+          propData: function () { return { def: true, type: 'checkbox' } }
+        },
+        qTInsertIntoShowingInput: { dt: null,
+          propData: function () { return { def: 'newAnswerAlways', type: 'combobox' } },
+          values: function () { return {
+            newAnswerAlways: lng.getVal('JRAS_GUI_NEWANSWERALWAYS'),
+            findOpenedForm: lng.getVal('JRAS_GUI_FINDOPENEDFORM'),
+            addCommentForm: lng.getVal('JRAS_GUI_ADDCOMMENTFORM')
+          }}
         },
 
         BlockUsers: [],
@@ -1358,8 +1375,9 @@ const JRAS_CurrVersion = '2.2.11';
 
   function makeQuotesNode($elm, commentID) {
     if ($elm.hasClass('quotes')) return;
-    const elmText = $elm.find('div.txt span').first().text();
-    if (!elmText) return;
+    const $elmDivTxt = $elm.find('div.txt');
+    const $elmText = $elmDivTxt.find('span').first().text();
+    if (!$elmText) return;
       const createQT = ($e) => {
       $e.contents().each((i, e) => {
         if (e.nodeType === 1) createQT($(e))
@@ -1376,13 +1394,20 @@ const JRAS_CurrVersion = '2.2.11';
           const currQuoteId = `jras-quote-${i}-${commentID}`;
           const $qt = $(`<div class="jras-qt"><div id="${currQuoteId}"></div></div>`);
           $(e).wrap($qt)
-          if (qUser){
+          if (userOptions.val('makeExtQuotes') && qUser){
             $(e).wrap(`<div class="base-qt"><div class="qt-body"></div></div>`);
-            $(e.parentNode).before(`<div class="qt-header">${qUser}</div>`);
-            if (!page.isSchemeLight()){
-              $(e.parentNode).prev().css('background', 'linear-gradient(90deg, rgb(80, 80, 80) 0%, rgba(255, 254, 254, 0) 100%)');
-              $(e.parentNode).css('border-left', 'solid 1px rgb(80, 80, 80)')
+            let linkToComment = '';
+            if (qCommId){
+              const s = $elmDivTxt[0].id.replace('comment_txt_', '');
+              linkToComment = ` <a qt-comment-link href="/post/${s.substring(0, s.search('_')) }#comment${qCommId}">#</a>`
             }
+            $(e.parentNode)
+              .before(`<div class="qt-header${page.isNewDesign ? '' : ' qt-header-old'}"><a qt-user-link href="/user/${qUser}">${qUser}</a>${linkToComment}</div>`)
+              .addClass(page.isSchemeLight() ? 'qt-body-l' : 'qt-body-d')
+              .prev().addClass(page.isSchemeLight() ? 'qt-header-l' : 'qt-header-d');
+
+            makeUserTooltips($elmDivTxt.find('div.qt-header a[qt-user-link]'));
+            makeAllPreviewTooltip($elmDivTxt.find('div.qt-header a[qt-comment-link]'));
           }
           $elm.addClass('quotes');
         }
@@ -1406,7 +1431,7 @@ const JRAS_CurrVersion = '2.2.11';
   }
 
   function makePopuperQuote(){
-    const $baseContainer = $('div[id^=postContainer].single_post.postContainer');
+    const $baseContainer = $('div#pageinner');//$('div[id^=postContainer].single_post.postContainer');
     makePopupQuote($baseContainer);
     $baseContainer.mouseup(function (event) {
       if (event.button !== 0) return;
@@ -1418,11 +1443,11 @@ const JRAS_CurrVersion = '2.2.11';
         const commentId = $parDiv[0].id.replace('comment', '');
         quoteData.$commentContainer = $parDiv;
         // quoteData.quoteInsertData = '> ' + selText + `<font color=${page.commentBgColor()}> ::: _[${quoteUser}:${commentId}]_</font>`;
-        quoteData.quoteInsertData = '> ' + selText + ` ::: _[${quoteUser}:${commentId}]_\n`;
-        event.stopPropagation();
-        const x = $baseContainer.offset().left - 10;
-        const y = $parDiv.offset().top - $baseContainer.offset().top - 10;
-        quoteData.$popupQuote.css({ 'top': event.offsetY + y + 'px', 'left': event.clientX - x + 'px' });
+        quoteData.quoteInsertData = `>  ${selText}${userOptions.val('qTAddUserInfo') ? ` ::: _[${ quoteUser }:${ commentId }]_`: ''}\n`;
+        // event.stopPropagation();
+        const x = event.clientX - $baseContainer.offset().left + 5;
+        const y = event.pageY - $baseContainer.offset().top - 35;
+        quoteData.$popupQuote.css({ 'top': y + 'px', 'left': x + 'px' });
         popupQuoteVisible(true);
       } else {
         popupQuoteVisible(false);
@@ -1431,7 +1456,7 @@ const JRAS_CurrVersion = '2.2.11';
   }
 
   function sendToCommentTextArea(text) {
-    const $textArea = quoteData.$commentContainer.find('div.addcomment textarea.comment_text');
+    const $textArea = quoteData.$commentContainer.find('form.post_comment_form textarea.comment_text');
     if ($textArea.length === 0) return;
     const caretPos = $textArea[0].selectionStart;
     const textAreaTxt = $textArea.val();
@@ -1453,13 +1478,30 @@ const JRAS_CurrVersion = '2.2.11';
   }
 
   function makePopupQuote($par) {
+    if (!userOptions.val('makeQuoteTool')) return;
     if (quoteData.$popupQuote) { return }
     quoteData.$popupQuote = $(`<div id="jras-qt-popup" title="${lng.getVal('JRAS_GUI_QUOTEPOPUPERHINT')}"></div>`).click(function () {
       popupQuoteVisible(false);
-      const $commentForm = quoteData.$commentContainer.find('div.addcomment');
-      if ($commentForm.length === 0 || !$commentForm.is(':visible')){
-        quoteData.$commentContainer.find('span.reply-link>a.response')[0].click();
-      }
+      let $commentForm;
+      switch (userOptions.val('qTInsertIntoShowingInput')){
+        case 'newAnswerAlways':
+          $commentForm = quoteData.$commentContainer.find('div.addcomment');
+          if ($commentForm.length === 0 || !$commentForm.is(':visible')) {
+            quoteData.$commentContainer.find('span.reply-link>a.response')[0].click();
+          }
+          break;
+        case 'findOpenedForm':
+          $commentForm = quoteData.$commentContainer.parents('div.comment_list_post').find('div.addcomment:visible');
+          if ($commentForm.length === 0) {
+            quoteData.$commentContainer.find('span.reply-link>a.response')[0].click();
+          }else{
+            quoteData.$commentContainer = $commentForm;
+          }
+          break;
+        case 'addCommentForm':
+          quoteData.$commentContainer = quoteData.$commentContainer.parents('div.post_comment_list').find('>div.addcomment');
+          break;
+      };
       sendToCommentTextArea(quoteData.quoteInsertData);
     });
     $par.append(quoteData.$popupQuote);
@@ -1905,6 +1947,7 @@ const JRAS_CurrVersion = '2.2.11';
             .each(function(){$arr.push($(this))});
           $jrasTTCont.find('div.image img').css({'max-width': $jrasTTCont.innerWidth()});
           $arr.forEach(function(elm){
+            makeQuotes();
             removeRedirectLink(elm);
             showHiddenComments(elm);
             correctOldReactorLink(elm);
@@ -3006,17 +3049,31 @@ const JRAS_CurrVersion = '2.2.11';
       .jras-qt div.base-qt{
         margin-left: 1.2em;
         margin-top: -1.2em;
+        padding-bottom: 0.4em;
       }
       .jras-qt div.qt-header{
-        font-weight: 600;
+       /* font-weight: 600; */
         font-style: normal;
-        background: linear-gradient(90deg, rgb(217 217 217) 0%, rgba(255, 254, 254, 0) 100%);
         padding-left: 0.7em;
         font-size: 90%;
       }
+      .jras-qt div.qt-header-old{
+        padding-bottom: 0.2em;
+      }
+      .jras-qt div.qt-header-l{
+        background: linear-gradient(90deg, lightgray 0%, rgba(255, 254, 254, 0) 100%);
+      }
+      .jras-qt div.qt-header-d{
+        background: linear-gradient(90deg, rgb(80, 80, 80) 0%, rgba(255, 254, 254, 0) 100%);
+      }
       .jras-qt div.qt-body{
         padding-left: 0.4em;
+      }
+      .jras-qt div.qt-body-l{
         border-left: solid 1px lightgray;
+      }
+      .jras-qt div.qt-body-d{
+        border-left: solid 1px rgb(80, 80, 80);
       }
       .jras-qt>div::before {
         content: ',,';
@@ -3503,6 +3560,12 @@ const JRAS_CurrVersion = '2.2.11';
                       ${getHTMLProp('collapseCommentWhenSize')} <br>
                       ${getHTMLProp('collapseCommentToSize')} </section>
                     <section class="jras-prop-gui-section"> ${getHTMLProp('makeQuotesOnComments')} </section>
+                    <section class="jras-prop-gui-section" style="margin-left: 20px; margin-top: -10px;">
+                      ${getHTMLProp('makeExtQuotes')} </section>
+                    <section class="jras-prop-gui-section"> ${getHTMLProp('makeQuoteTool')} </section>
+                    <section class="jras-prop-gui-section" style="margin-left: 20px; margin-top: -10px;">
+                      ${getHTMLProp('qTAddUserInfo')} <br>
+                      ${getHTMLProp('qTInsertIntoShowingInput')} </section>
                   </div>
                 </div>
                 <div id="jras-prop-gui-tab-5" class="jras-tabs-panel">
@@ -3686,7 +3749,7 @@ const JRAS_CurrVersion = '2.2.11';
 
   function PageData(){
     const getColorSchema = function(){ // light or dark
-      let c = $('#background').css('background-color');
+      let c = window.getComputedStyle(document.body, null).getPropertyValue('background-color');
       if (!c){c = $('body').css('background-color')}
       const rgb = (/^#[0-9A-F]{6}$/i.test(c)) ? c : c.match(/^rgba?\((\d+),\s*(\d+),\s*(\d+)/);
       const mono = (rgb !== null)
@@ -4118,6 +4181,27 @@ const JRAS_CurrVersion = '2.2.11';
     };
     this.JRAS_GUI_QUOTEPOPUPERHINT = {
       ru: 'Процитировать выделенный текст'
+    };
+    this.JRAS_GUI_MAKEEXTQUOTES = {
+      ru: 'Расширенная цитата (заголовок + текст)'
+    };
+    this.JRAS_GUI_MAKEQUOTETOOL = {
+      ru: 'Инструмент цитирования'
+    };
+    this.JRAS_GUI_QTADDUSERINFO = {
+      ru: 'При цитировании добавлять информацию о пользователе, которого цитируют'
+    };
+    this.JRAS_GUI_QTINSERTINTOSHOWINGINPUT = {
+      ru: 'Вставлять цитату в:'
+    };
+    this.JRAS_GUI_NEWANSWERALWAYS = {
+      ru: 'открывать форму ответа на цитируемое сообщение'
+    };
+    this.JRAS_GUI_FINDOPENEDFORM = {
+      ru: 'найти уже открытую форму ответа'
+    };
+    this.JRAS_GUI_ADDCOMMENTFORM = {
+      ru: 'форму создания нового коментария'
     };
   }
 
