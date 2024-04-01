@@ -316,16 +316,15 @@ const JRAS_CurrVersion = '2.2.11';
     correctOldReactorLink();
     previewReactorLink();
     makeExtendedGifLinks();
+    makeQuotes();
+    makePopuperQuote();
 
     if (page.pageIs('post') || page.pageIs('discussion')){
       showHiddenComments();
-      makeQuotes();
       correctCommentSize();
       makeTreeComments();
       makeAvatarOnOldDesign();
     }
-
-    makePopuperQuote();
 
     userRemove(userOptions.data.BlockUsers);
     tagRemove(userOptions.data.BlockTags, true);
@@ -977,7 +976,7 @@ const JRAS_CurrVersion = '2.2.11';
     })
   }
 
-  function makeExtendedGifLinks(){
+  function makeExtendedGifLinks($nodes){
     if (!userOptions.val('extendedGifLinks')){
       return;
     }
@@ -1011,7 +1010,8 @@ const JRAS_CurrVersion = '2.2.11';
         }
       });
     }
-    $('div.image span').filter('.video_gif_holder, .video_holder').each(function(idx, elm){
+    const $nds = $nodes ? $nodes : $('body');
+    $nds.find('div.image:not(:has(div.jras-ext-gif-cont)) span').filter('.video_gif_holder, .video_holder').each(function(idx, elm){
       baseDiv = $(elm).append('<div class="gifbuttons"></div>').parent().find('div.gifbuttons');
 
       $(elm).find('video source').each(function(videoId, videoElm) {
@@ -1141,55 +1141,53 @@ const JRAS_CurrVersion = '2.2.11';
     const observer = new MutationObserver(function(mutations){
       mutations.forEach(function(mutation){
         if (mutation.type === 'childList'){
+          setTimeout(function () {
 
-          setTimeout(function(){
+            if (userOptions.val('showUTOnComment')) {
+              makeUserTooltips($(mutation.addedNodes).find('span.reply-link > a:first-child'), 'a');
+            }
+            makeExtendedGifLinks($(mutation.addedNodes));
+            for (let i = 0; i < mutation.addedNodes.length; i++) {
+              const itm = mutation.addedNodes[i];
 
-              if (userOptions.val('showUTOnComment')){
-                makeUserTooltips($(mutation.addedNodes).find('span.reply-link > a:first-child'), 'a');
-              }
-              for (let i = 0; i < mutation.addedNodes.length; i++){
-                const itm = mutation.addedNodes[i];
+              removeRedirectLink($(itm));
+              showHiddenComments($(itm));
+              correctOldReactorLink($(itm));
+              previewReactorLink($(itm));
 
-                removeRedirectLink($(itm));
-                showHiddenComments($(itm));
-                correctOldReactorLink($(itm));
-                previewReactorLink($(itm));
-
-                if (userOptions.val('collapseComments')
-                  && !userOptions.val('collapseCommentsOnlyFullPost')
+              if (userOptions.val('collapseComments')
+                && !userOptions.val('collapseCommentsOnlyFullPost')
                 //&& !page.isChrome // в хроме не работает. Не хочу разбираться возвращает хз какой height
-                ){
-                  $(itm).find('div[id^=comment].comment>div[id^=comment_txt_].txt').each(function(idx, elm){
-                    makeCommentSizer(elm);
-                  })
-                }
+              ) {
+                $(itm).find('div[id^=comment].comment>div[id^=comment_txt_].txt').each(function (idx, elm) {
+                  makeCommentSizer(elm);
+                })
+              }
 
-                if ($(itm).is('div[id^=comment_list_post].comment_list_post')){
-                  $(itm).find('div[id^=comment].comment').each(function(idx, elm){
-                    if (userOptions.val('makeQuotesOnComments')) {
-                      makeQuotesNode($(elm), elm.id.replace('comment', ''));
-                    }
-                    if (userOptions.val('makeTreeComments') && !userOptions.val('treeCommentsOnlyFullPost')){
-                      makeTreeCommentNode(elm, elm.id.replace('comment', ''));
-                    }
-                    if (userOptions.val('makeAvatarOnOldDesign') && !userOptions.val('makeAvatarOnlyFullPost')){
-                      makeAvatarOnOldDesign(elm);
-                    }
-                  })
-                }
-                const blockUsersAsFindStr = 'a:contains(' + userOptions.data.BlockUsers.join('), a:contains(') + ')';
-                $(itm).find(blockUsersAsFindStr).closest('div[id^=comment_txt_].txt').each(function(idx, elm){
-                  const currUser = $.trim($(this).find(blockUsersAsFindStr).text());
-                  if (userOptions.data.BlockUsers.indexOf(currUser) != -1){
-                    makeBlockCommElements(elm, elm.parentElement.id, lng.getVal('JRAS_COMMBLOCKBYUSER'), currUser);
-                    $(this).hide();
+              if ($(itm).is('div[id^=comment_list_post].comment_list_post')) {
+                $(itm).find('div[id^=comment].comment').each(function (idx, elm) {
+                  if (userOptions.val('makeQuotesOnComments')) {
+                    makeQuotesNode($(elm), elm.id.replace('comment', ''));
+                  }
+                  if (userOptions.val('makeTreeComments') && !userOptions.val('treeCommentsOnlyFullPost')) {
+                    makeTreeCommentNode(elm, elm.id.replace('comment', ''));
+                  }
+                  if (userOptions.val('makeAvatarOnOldDesign') && !userOptions.val('makeAvatarOnlyFullPost')) {
+                    makeAvatarOnOldDesign(elm);
                   }
                 })
               }
-              correctPageHeight();
-            }, 10
-          );
-
+              const blockUsersAsFindStr = 'a:contains(' + userOptions.data.BlockUsers.join('), a:contains(') + ')';
+              $(itm).find(blockUsersAsFindStr).closest('div[id^=comment_txt_].txt').each(function (idx, elm) {
+                const currUser = $.trim($(this).find(blockUsersAsFindStr).text());
+                if (userOptions.data.BlockUsers.indexOf(currUser) != -1) {
+                  makeBlockCommElements(elm, elm.parentElement.id, lng.getVal('JRAS_COMMBLOCKBYUSER'), currUser);
+                  $(this).hide();
+                }
+              })
+            }
+            correctPageHeight();
+          }, 10);
 
         }
       });
@@ -1378,7 +1376,7 @@ const JRAS_CurrVersion = '2.2.11';
     const $elmDivTxt = $elm.find('div.txt');
     const $elmText = $elmDivTxt.find('span').first().text();
     if (!$elmText) return;
-      const createQT = ($e) => {
+    const createQT = async ($e) => {
       $e.contents().each((i, e) => {
         if (e.nodeType === 1) createQT($(e))
         else if (e.nodeType === 3 && $(e).text().trim()[0] === '>') {
@@ -1436,7 +1434,7 @@ const JRAS_CurrVersion = '2.2.11';
     $baseContainer.mouseup(function (event) {
       if (event.button !== 0) return;
       const selected = getSelectedText();
-      const selText = selected.toString();
+      const selText = selected.toString().trim();
       if (selText !== '') {
         const $parDiv = $(selected.focusNode).parents('div.txt').parent();
         const quoteUser = $parDiv.find('a.comment_username').text();
