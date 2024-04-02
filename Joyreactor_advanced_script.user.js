@@ -1479,49 +1479,56 @@ const JRAS_CurrVersion = '2.3.0';
     }
   }
 
+  function clearSelectedText() {
+    (window.getSelection ? window.getSelection() : document.selection).empty();
+  }
+
   function makePopupQuote($par) {
     if (!userOptions.val('makeQuoteTool')) return;
     if (quoteData.$popupQuote) { return }
-    quoteData.$popupQuote = $(`<div id="jras-qt-popup" title="${lng.getVal('JRAS_GUI_QUOTEPOPUPERHINT')}\n  - ${lng.getVal('JRAS_GUI_NEWANSWERALWAYS')}\n  - ${lng.getVal('JRAS_GUI_FINDOPENEDFORM')}\n  - ${lng.getVal('JRAS_GUI_ADDCOMMENTFORM')}"></div>`).click(function (e) {
-      popupQuoteVisible(false);
-      let $commentForm;
-      const f_newAnswerAlways = ()=>{
-        $commentForm = quoteData.$commentContainer.find('div.addcomment');
-        if ($commentForm.length === 0 || !$commentForm.is(':visible')) {
-          quoteData.$commentContainer.find('span.reply-link>a.response')[0].click();
+    quoteData.$popupQuote = $(`<div id="jras-qt-popup" title="${lng.getVal('JRAS_GUI_QUOTEPOPUPERHINT')}\n  - ${lng.getVal('JRAS_GUI_NEWANSWERALWAYS')}\n  - ${lng.getVal('JRAS_GUI_FINDOPENEDFORM')}\n  - ${lng.getVal('JRAS_GUI_ADDCOMMENTFORM')}"></div>`)
+      .on("mousedown", ()=>clearSelectedText())
+      .click(function (e) {
+        popupQuoteVisible(false);
+        let $commentForm;
+        const f_newAnswerAlways = ()=>{
+          $commentForm = quoteData.$commentContainer.find('div.addcomment');
+          if ($commentForm.length === 0 || !$commentForm.is(':visible')) {
+            quoteData.$commentContainer.find('span.reply-link>a.response')[0].click();
+          }
         }
-      }
-      const f_findOpenedForm = () => {
-        $commentForm = quoteData.$commentContainer.parents('div.comment_list_post').find('div.addcomment:visible');
-        if ($commentForm.length === 0) {
-          quoteData.$commentContainer.find('span.reply-link>a.response')[0].click();
-        } else {
-          quoteData.$commentContainer = $commentForm;
+        const f_findOpenedForm = () => {
+          $commentForm = quoteData.$commentContainer.parents('div.comment_list_post').find('div.addcomment:visible');
+          if ($commentForm.length === 0) {
+            quoteData.$commentContainer.find('span.reply-link>a.response')[0].click();
+          } else {
+            quoteData.$commentContainer = $commentForm;
+          }
         }
-      }
-      const f_addCommentForm = () => {
-        quoteData.$commentContainer = quoteData.$commentContainer.parents('div.post_comment_list').find('>div.addcomment');
-      }
-      if (e.ctrlKey || e.shiftKey){
-        if (e.ctrlKey && e.shiftKey){f_addCommentForm()}
-        else if (e.ctrlKey){f_newAnswerAlways()}
-        else if (e.shiftKey){f_findOpenedForm()};
-      }else{
-        switch (userOptions.val('qTInsertIntoShowingInput')) {
-          case 'newAnswerAlways':
-            f_newAnswerAlways();
-            break;
-          case 'findOpenedForm':
-            f_findOpenedForm();
-            break;
-          case 'addCommentForm':
-            f_addCommentForm();
-            break;
-        };
-      }
+        const f_addCommentForm = () => {
+          quoteData.$commentContainer = quoteData.$commentContainer.parents('div.post_comment_list').find('>div.addcomment');
+        }
+        if (e.ctrlKey || e.shiftKey){
+          if (e.ctrlKey && e.shiftKey){f_addCommentForm()}
+          else if (e.ctrlKey){f_newAnswerAlways()}
+          else if (e.shiftKey){f_findOpenedForm()};
+        }else{
+          switch (userOptions.val('qTInsertIntoShowingInput')) {
+            case 'newAnswerAlways':
+              f_newAnswerAlways();
+              break;
+            case 'findOpenedForm':
+              f_findOpenedForm();
+              break;
+            case 'addCommentForm':
+              f_addCommentForm();
+              break;
+          };
+        }
 
-      sendToCommentTextArea(quoteData.quoteInsertData);
-    });
+        sendToCommentTextArea(quoteData.quoteInsertData);
+      }
+    );
     $par.append(quoteData.$popupQuote);
   }
 
