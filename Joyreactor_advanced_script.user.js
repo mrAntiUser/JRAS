@@ -13,7 +13,7 @@
 // @include     *jr-proxy.com*
 // @require     http://ajax.googleapis.com/ajax/libs/jquery/2.2.0/jquery.min.js
 // @require     https://code.jquery.com/ui/1.11.4/jquery-ui.min.js
-// @version     2.2.10
+// @version     2.3.0
 // @grant       GM.getValue
 // @grant       GM.setValue
 // @grant       GM.listValues
@@ -27,9 +27,15 @@
 // @run-at      document-end
 // ==/UserScript==
 
-const JRAS_CurrVersion = '2.2.10';
+const JRAS_CurrVersion = '2.3.0';
 
 /* RELEASE NOTES
+ 2.3.0
+   + механизм выделения и цитирования коментариев
+   + отображение пользователя при цитировании
+   + вывод ссылок на гифки так же в коментариях
+ 2.2.11
+   + Сделал выделение цитат в коментах, если срока начинается с ">" то вся считается цитатой
  2.2.10
    * убрал тултип комента на ссылке в блоке самого комента
  2.2.9
@@ -41,14 +47,14 @@ const JRAS_CurrVersion = '2.2.10';
  2.2.6
    + Поменял отображение ссылок на скачивание гифок. Теперь выводятся с размерами (Issue-92)
  2.2.5.4
-   * Баг определения элемента для добавленияя размера
+   * Баг определения элемента для добавления размера
  2.2.5.3
-   + Размер в хинте для фалов webm, mp4 и gif
+   + Размер в хинте для файлов webm, mp4 и gif
  2.2.5.2
    * Ссылки на видео в постах без гифок
  2.2.5.1
    * Баг ссылки на webm и mp4 вели на гифку
- 2.2.5
+ 2.2.5 - https://old.reactor.cc/post/5511493
    + Ссылки на гифку как в новом дизижине. В разных форматах webm, mp4 и gif (Issue-85)
  2.2.4
    * Нет тултипа на фендомных тегах (Issue-78)
@@ -75,7 +81,7 @@ const JRAS_CurrVersion = '2.2.10';
    * поправлена ширина коментов с новыми стилями на не черном олде
    + Опция Центровать контент [true]
  1.8.7
-   * Размер страницы (динамический стиль) теперь считается нормально при разворачивании разных эледементов (Issue-43)
+   * Размер страницы (динамический стиль) теперь считается нормально при разворачивании разных элементов (Issue-43)
    * В свете длинных тегов поправлены стили. Не в скрипте, а в JRAS styles
  1.8.5
    * Мелкие фиксы
@@ -88,7 +94,7 @@ const JRAS_CurrVersion = '2.2.10';
    * Фикс определения цвета темы (Issue-13)
    + Опция скрывать шарные кнопки в БУП [false] (Issue-18.1)
    * Корректировка даты поста (Issue-33)
-   + Возможность скрыть правое меню и/или настроить ширину контентта (Issue-36)
+   + Возможность скрыть правое меню и/или настроить ширину контента (Issue-36)
  Опции
    + Корректировать дизайн и стиль сайта [false]
    + Скрывать правое меню [true]
@@ -291,6 +297,11 @@ const JRAS_CurrVersion = '2.2.10';
 
   const lng = new LanguageData();
   const page = new PageData();
+  
+  const quoteData = {
+    $commentContainer: undefined,
+    $popupQuote: undefined,
+    quoteInsertData: undefined };
 
   const userOptions = initOptions();
   userOptions.loadUserData(page.currentUser);
@@ -309,6 +320,8 @@ const JRAS_CurrVersion = '2.2.10';
     correctOldReactorLink();
     previewReactorLink();
     makeExtendedGifLinks();
+    makeQuotes();
+    makePopuperQuote();
 
     if (page.pageIs('post') || page.pageIs('discussion')){
       showHiddenComments();
@@ -529,6 +542,26 @@ const JRAS_CurrVersion = '2.2.10';
         },
         extendedGifLinks: { dt: null,
           propData: function(){return { def: true, type: 'checkbox'}}
+        },
+        makeQuotesOnComments: { dt: null,
+          propData: function () { return { def: true, type: 'checkbox' } }
+        },
+        makeExtQuotes: { dt: null,
+          propData: function () { return { def: true, type: 'checkbox' } }
+        },
+        makeQuoteTool: { dt: null,
+          propData: function () { return { def: true, type: 'checkbox' } }
+        },
+        qTAddUserInfo: { dt: null,
+          propData: function () { return { def: true, type: 'checkbox' } }
+        },
+        qTInsertIntoShowingInput: { dt: null,
+          propData: function () { return { def: 'newAnswerAlways', type: 'combobox' } },
+          values: function () { return {
+            newAnswerAlways: lng.getVal('JRAS_GUI_NEWANSWERALWAYS'),
+            findOpenedForm: lng.getVal('JRAS_GUI_FINDOPENEDFORM'),
+            addCommentForm: lng.getVal('JRAS_GUI_ADDCOMMENTFORM')
+          }}
         },
 
         BlockUsers: [],
@@ -947,7 +980,7 @@ const JRAS_CurrVersion = '2.2.10';
     })
   }
 
-  function makeExtendedGifLinks(){
+  function makeExtendedGifLinks($nodes){
     if (!userOptions.val('extendedGifLinks')){
       return;
     }
@@ -981,7 +1014,8 @@ const JRAS_CurrVersion = '2.2.10';
         }
       });
     }
-    $('div.image span').filter('.video_gif_holder, .video_holder').each(function(idx, elm){
+    const $nds = $nodes ? $nodes : $('body');
+    $nds.find('div.image:not(:has(div.jras-ext-gif-cont)) span').filter('.video_gif_holder, .video_holder').each(function(idx, elm){
       baseDiv = $(elm).append('<div class="gifbuttons"></div>').parent().find('div.gifbuttons');
 
       $(elm).find('video source').each(function(videoId, videoElm) {
@@ -1111,52 +1145,53 @@ const JRAS_CurrVersion = '2.2.10';
     const observer = new MutationObserver(function(mutations){
       mutations.forEach(function(mutation){
         if (mutation.type === 'childList'){
+          setTimeout(function () {
 
-          setTimeout(function(){
+            if (userOptions.val('showUTOnComment')) {
+              makeUserTooltips($(mutation.addedNodes).find('span.reply-link > a:first-child'), 'a');
+            }
+            makeExtendedGifLinks($(mutation.addedNodes));
+            for (let i = 0; i < mutation.addedNodes.length; i++) {
+              const itm = mutation.addedNodes[i];
 
-              if (userOptions.val('showUTOnComment')){
-                makeUserTooltips($(mutation.addedNodes).find('span.reply-link > a:first-child'), 'a');
-              }
-              for (let i = 0; i < mutation.addedNodes.length; i++){
-                const itm = mutation.addedNodes[i];
+              removeRedirectLink($(itm));
+              showHiddenComments($(itm));
+              correctOldReactorLink($(itm));
+              previewReactorLink($(itm));
 
-                removeRedirectLink($(itm));
-                showHiddenComments($(itm));
-                correctOldReactorLink($(itm));
-                previewReactorLink($(itm));
-
-                if (userOptions.val('collapseComments')
-                  && !userOptions.val('collapseCommentsOnlyFullPost')
+              if (userOptions.val('collapseComments')
+                && !userOptions.val('collapseCommentsOnlyFullPost')
                 //&& !page.isChrome // в хроме не работает. Не хочу разбираться возвращает хз какой height
-                ){
-                  $(itm).find('div[id^=comment].comment>div[id^=comment_txt_].txt').each(function(idx, elm){
-                    makeCommentSizer(elm);
-                  })
-                }
+              ) {
+                $(itm).find('div[id^=comment].comment>div[id^=comment_txt_].txt').each(function (idx, elm) {
+                  makeCommentSizer(elm);
+                })
+              }
 
-                if ($(itm).is('div[id^=comment_list_post].comment_list_post')){
-                  $(itm).find('div[id^=comment].comment').each(function(idx, elm){
-                    if (userOptions.val('makeTreeComments') && !userOptions.val('treeCommentsOnlyFullPost')){
-                      makeTreeCommentNode(elm, elm.id.replace('comment', ''));
-                    }
-                    if (userOptions.val('makeAvatarOnOldDesign') && !userOptions.val('makeAvatarOnlyFullPost')){
-                      makeAvatarOnOldDesign(elm);
-                    }
-                  })
-                }
-                const blockUsersAsFindStr = 'a:contains(' + userOptions.data.BlockUsers.join('), a:contains(') + ')';
-                $(itm).find(blockUsersAsFindStr).closest('div[id^=comment_txt_].txt').each(function(idx, elm){
-                  const currUser = $.trim($(this).find(blockUsersAsFindStr).text());
-                  if (userOptions.data.BlockUsers.indexOf(currUser) != -1){
-                    makeBlockCommElements(elm, elm.parentElement.id, lng.getVal('JRAS_COMMBLOCKBYUSER'), currUser);
-                    $(this).hide();
+              if ($(itm).is('div[id^=comment_list_post].comment_list_post')) {
+                $(itm).find('div[id^=comment].comment').each(function (idx, elm) {
+                  if (userOptions.val('makeQuotesOnComments')) {
+                    makeQuotesNode($(elm), elm.id.replace('comment', ''));
+                  }
+                  if (userOptions.val('makeTreeComments') && !userOptions.val('treeCommentsOnlyFullPost')) {
+                    makeTreeCommentNode(elm, elm.id.replace('comment', ''));
+                  }
+                  if (userOptions.val('makeAvatarOnOldDesign') && !userOptions.val('makeAvatarOnlyFullPost')) {
+                    makeAvatarOnOldDesign(elm);
                   }
                 })
               }
-              correctPageHeight();
-            }, 10
-          );
-
+              const blockUsersAsFindStr = 'a:contains(' + userOptions.data.BlockUsers.join('), a:contains(') + ')';
+              $(itm).find(blockUsersAsFindStr).closest('div[id^=comment_txt_].txt').each(function (idx, elm) {
+                const currUser = $.trim($(this).find(blockUsersAsFindStr).text());
+                if (userOptions.data.BlockUsers.indexOf(currUser) != -1) {
+                  makeBlockCommElements(elm, elm.parentElement.id, lng.getVal('JRAS_COMMBLOCKBYUSER'), currUser);
+                  $(this).hide();
+                }
+              })
+            }
+            correctPageHeight();
+          }, 10);
 
         }
       });
@@ -1327,6 +1362,187 @@ const JRAS_CurrVersion = '2.2.10';
         if($collToPar !== null && !needCollTree){
           $collToPar.css({'margin-top': '-3px', 'margin-left': '-36px'})
         }
+      }
+    }
+  }
+
+
+  function makeQuotes() {
+    if (!userOptions.val('makeQuotesOnComments')) return;
+    $('div[id^=comment].comment:not(div[id^=comment].comment.quotes)').each(function (idx, elm) {
+      makeQuotesNode($(elm), elm.id.replace('comment', ''));
+    })
+  }
+  
+
+  function makeQuotesNode($elm, commentID) {
+    if ($elm.hasClass('quotes')) return;
+    const $elmDivTxt = $elm.find('div.txt');
+    const $elmText = $elmDivTxt.find('span').first().text();
+    if (!$elmText) return;
+    const createQT = async ($e) => {
+      $e.contents().each((i, e) => {
+        if (e.nodeType === 1) createQT($(e))
+        else if (e.nodeType === 3 && $(e).text().trim()[0] === '>') {
+          let
+            qText = $(e).text().trim().substring(1).trim(),
+            qUser, qCommId;
+          const a = [...qText.matchAll(/ ::: _\[(.+):(\d+)]_/gm)].forEach((e)=>{
+            qUser = e[1];
+            qCommId = e[2];
+            qText = qText.substring(0, e.index);
+          });
+          e.nodeValue = qText;
+          const currQuoteId = `jras-quote-${i}-${commentID}`;
+          const $qt = $(`<div class="jras-qt"><div id="${currQuoteId}"></div></div>`);
+          $(e).wrap($qt)
+          if (userOptions.val('makeExtQuotes') && qUser){
+            $(e).wrap(`<div class="base-qt"><div class="qt-body"></div></div>`);
+            let linkToComment = '';
+            if (qCommId){
+              const s = $elmDivTxt[0].id.replace('comment_txt_', '');
+              linkToComment = ` <a qt-comment-link href="/post/${s.substring(0, s.search('_')) }#comment${qCommId}">#</a>`
+            }
+            $(e.parentNode)
+              .before(`<div class="qt-header${page.isNewDesign ? '' : ' qt-header-old'}"><a qt-user-link href="/user/${qUser}">${qUser}</a>${linkToComment}</div>`)
+              .addClass(page.isSchemeLight() ? 'qt-body-l' : 'qt-body-d')
+              .prev().addClass(page.isSchemeLight() ? 'qt-header-l' : 'qt-header-d');
+
+            makeUserTooltips($elmDivTxt.find('div.qt-header a[qt-user-link]'));
+            makeAllPreviewTooltip($elmDivTxt.find('div.qt-header a[qt-comment-link]'));
+          }
+          $elm.addClass('quotes');
+        }
+      });
+    }
+    createQT($elm);
+    // выдирание текста комента построчно
+    // const getText = ($e) => {
+    //   let retText = $e.text() ? '' : '\n';
+    //   $e.contents().each((i, e) => {
+    //     if (e.nodeType === 1) retText += getText($(e))
+    //     else retText += e.nodeType === 3 ? $(e).text() : '\n'
+    //   });
+    //   return retText;
+    // }
+    // const text = getText($elm.find('div.txt span').first()).trim();
+    // if (!text) return;
+    // [...text.matchAll(/>.+\n/gm)].forEach((e)=>{
+    //   console.log(`Found ${e[0]}`);
+    // })
+  }
+
+  function makePopuperQuote(){
+    const $baseContainer = $('div#pageinner');//$('div[id^=postContainer].single_post.postContainer');
+    makePopupQuote($baseContainer);
+    $baseContainer.mouseup(function (event) {
+      if (event.button !== 0) return;
+      const selected = getSelectedText();
+      const selText = selected.toString().trim();
+      if (selText !== '') {
+        const $parDiv = $(selected.focusNode).parents('div.txt').parent();
+        const quoteUser = $parDiv.find('a.comment_username').text();
+        const commentId = $parDiv[0].id.replace('comment', '');
+        quoteData.$commentContainer = $parDiv;
+        // quoteData.quoteInsertData = '> ' + selText + `<font color=${page.commentBgColor()}> ::: _[${quoteUser}:${commentId}]_</font>`;
+        quoteData.quoteInsertData = `>  ${selText}${userOptions.val('qTAddUserInfo') ? ` ::: _[${ quoteUser }:${ commentId }]_`: ''}\n`;
+        // event.stopPropagation();
+        const x = event.clientX - $baseContainer.offset().left + 5;
+        const y = event.pageY - $baseContainer.offset().top - 35;
+        quoteData.$popupQuote.css({ 'top': y + 'px', 'left': x + 'px' });
+        popupQuoteVisible(true);
+      } else {
+        popupQuoteVisible(false);
+      }
+    });
+  }
+
+  function sendToCommentTextArea(text) {
+    const $textArea = quoteData.$commentContainer.find('form.post_comment_form textarea.comment_text');
+    if ($textArea.length === 0) return;
+    const caretPos = $textArea[0].selectionStart;
+    const textAreaTxt = $textArea.val();
+    // if (textAreaTxt !== '' && text === quoteData.quoteInsertData) { text = '\n' + text }
+    $textArea.val(textAreaTxt.substring(0, caretPos) + text + textAreaTxt.substring(caretPos));
+    $textArea[0].selectionStart = caretPos + text.length;
+    $textArea[0].selectionEnd = $textArea[0].selectionStart;
+    $textArea[0].focus();
+  }
+
+  function getSelectedText() {
+    if (window.getSelection) {
+      return window.getSelection();
+    } else if (document.getSelection) {
+      return document.getSelection();
+    } else if (document.selection) {
+      return document.selection.createRange().text;
+    }
+  }
+
+  function clearSelectedText() {
+    (window.getSelection ? window.getSelection() : document.selection).empty();
+  }
+
+  function makePopupQuote($par) {
+    if (!userOptions.val('makeQuoteTool')) return;
+    if (quoteData.$popupQuote) { return }
+    quoteData.$popupQuote = $(`<div id="jras-qt-popup" title="${lng.getVal('JRAS_GUI_QUOTEPOPUPERHINT')}\n  - ${lng.getVal('JRAS_GUI_NEWANSWERALWAYS')}\n  - ${lng.getVal('JRAS_GUI_FINDOPENEDFORM')}\n  - ${lng.getVal('JRAS_GUI_ADDCOMMENTFORM')}"></div>`)
+      .on("mousedown", ()=>clearSelectedText())
+      .click(function (e) {
+        popupQuoteVisible(false);
+        let $commentForm;
+        const f_newAnswerAlways = ()=>{
+          $commentForm = quoteData.$commentContainer.find('div.addcomment');
+          if ($commentForm.length === 0 || !$commentForm.is(':visible')) {
+            quoteData.$commentContainer.find('span.reply-link>a.response')[0].click();
+          }
+        }
+        const f_findOpenedForm = () => {
+          $commentForm = quoteData.$commentContainer.parents('div.comment_list_post').find('div.addcomment:visible');
+          if ($commentForm.length === 0) {
+            quoteData.$commentContainer.find('span.reply-link>a.response')[0].click();
+          } else {
+            quoteData.$commentContainer = $commentForm;
+          }
+        }
+        const f_addCommentForm = () => {
+          quoteData.$commentContainer = quoteData.$commentContainer.parents('div.post_comment_list').find('>div.addcomment');
+        }
+        if (e.ctrlKey || e.shiftKey){
+          if (e.ctrlKey && e.shiftKey){f_addCommentForm()}
+          else if (e.ctrlKey){f_newAnswerAlways()}
+          else if (e.shiftKey){f_findOpenedForm()};
+        }else{
+          switch (userOptions.val('qTInsertIntoShowingInput')) {
+            case 'newAnswerAlways':
+              f_newAnswerAlways();
+              break;
+            case 'findOpenedForm':
+              f_findOpenedForm();
+              break;
+            case 'addCommentForm':
+              f_addCommentForm();
+              break;
+          };
+        }
+
+        sendToCommentTextArea(quoteData.quoteInsertData);
+      }
+    );
+    $par.append(quoteData.$popupQuote);
+  }
+
+  function popupQuoteVisible(value) {
+    if (!quoteData.$popupQuote) { return }
+    if (value === undefined) {
+      quoteData.$popupQuote.toggleClass('show hide');
+    } else {
+      if (value) {
+        quoteData.$popupQuote.removeClass('hide');
+        quoteData.$popupQuote.addClass('show');
+      } else {
+        quoteData.$popupQuote.removeClass('show');
+        quoteData.$popupQuote.addClass('hide');
       }
     }
   }
@@ -1756,6 +1972,7 @@ const JRAS_CurrVersion = '2.2.10';
             .each(function(){$arr.push($(this))});
           $jrasTTCont.find('div.image img').css({'max-width': $jrasTTCont.innerWidth()});
           $arr.forEach(function(elm){
+            makeQuotes();
             removeRedirectLink(elm);
             showHiddenComments(elm);
             correctOldReactorLink(elm);
@@ -2446,8 +2663,8 @@ const JRAS_CurrVersion = '2.2.10';
       .avatarForOldDesign{
         float: left;
         border-radius: 3px;
-        margin-left: -15px;
-        margin-right: 6px;
+        margin-left: -1.2em;
+        margin-right: 1em;
         height: 35px;
       }
       .treeCross-old-toparent {
@@ -2840,7 +3057,88 @@ const JRAS_CurrVersion = '2.2.10';
        position: absolute;
        float: right;
        right: 0;
+       width: 75%;
      }
+     .jras-qt {
+        opacity: 0.6;
+        font-style: italic;
+        font-size: 105%;
+     /*    display: inline-block; */
+        margin-bottom: -1em;
+        padding-left: 0.8em;
+      }
+      .jras-qt>div{
+        margin-top: -0.8em;
+        margin-left: 1.8em;
+      }
+      .jras-qt div.base-qt{
+        margin-left: 1.2em;
+        margin-top: -1.2em;
+        padding-bottom: 0.4em;
+      }
+      .jras-qt div.qt-header{
+       /* font-weight: 600; */
+        font-style: normal;
+        padding-left: 0.7em;
+        font-size: 90%;
+      }
+      .jras-qt div.qt-header-old{
+        padding-bottom: 0.2em;
+      }
+      .jras-qt div.qt-header-l{
+        background: linear-gradient(90deg, lightgray 0%, rgba(255, 254, 254, 0) 100%);
+      }
+      .jras-qt div.qt-header-d{
+        background: linear-gradient(90deg, rgb(80, 80, 80) 0%, rgba(255, 254, 254, 0) 100%);
+      }
+      .jras-qt div.qt-body{
+        padding-left: 0.4em;
+      }
+      .jras-qt div.qt-body-l{
+        border-left: solid 1px lightgray;
+      }
+      .jras-qt div.qt-body-d{
+        border-left: solid 1px rgb(80, 80, 80);
+      }
+      .jras-qt>div::before {
+        content: ',,';
+        font-size: 4.3em;
+        margin-left: -0.2em;
+        margin-right: 0.2em;
+        position: relative;
+        color: #9f9f9f;
+        font-family: times-new-roman;
+        letter-spacing: -0.07em;
+        font-style: normal;
+        top: -0.13em;
+      }
+      #jras-qt-popup {
+        position: absolute;
+        top: -1000px;
+        left: -1000px;
+        height: 24px;
+        width: 28px;
+        z-index: 1;
+        -webkit-box-shadow: 3px 3px 3px 0px rgba(0,0,0,0.2);
+        -moz-box-shadow: 3px 3px 3px 0px rgba(0,0,0,0.2);
+        box-shadow: 3px 3px 3px 0px rgba(0,0,0,0.2);
+        border: 1px solid lightgray;
+        border-radius: 4px;
+        background: #3cff00 url("data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABgAAAAYCAYAAADgdz34AAAAAXNSR0IArs4c6QAAAARnQU1BAACxjwv8YQUAAAAJcEhZcwAADsMAAA7DAcdvqGQAAACISURBVEhL7ZVLDoAgDES5ndH7b/ydRdvEMaQFBUpgw0veYgp2dugGqSzkQV6PpeB73sU7X04ShzUK2J0HwLpYovY1L0DOFcgcvZArkFkPjPQvQE4xhDqTA+QUQ6izr8sl9C9AzhXIHL2QK5BZD4y0L/D/BZYif8fKAzCT/H7XKtjIiQeDH5y7Abh/oWWhH+N/AAAAAElFTkSuQmCC") no-repeat scroll 2px 0px;
+        animation: simple-translate-showButton 200ms;
+        opacity: 0.3;
+      }
+      #jras-qt-popup:hover {
+        opacity: 1;
+        background-color: yellow;
+        transition: .2s;
+      }
+      #jras-qt-popup.show {
+        display: block;
+      }
+      #jras-qt-popup.hide {
+        display: none;
+      }
 
       /* Окно настроек  */
       .modal {
@@ -3286,6 +3584,13 @@ const JRAS_CurrVersion = '2.2.10';
                       ${getHTMLProp('collapseCommentsOnlyFullPost')} <br>
                       ${getHTMLProp('collapseCommentWhenSize')} <br>
                       ${getHTMLProp('collapseCommentToSize')} </section>
+                    <section class="jras-prop-gui-section"> ${getHTMLProp('makeQuotesOnComments')} </section>
+                    <section class="jras-prop-gui-section" style="margin-left: 20px; margin-top: -10px;">
+                      ${getHTMLProp('makeExtQuotes')} </section>
+                    <section class="jras-prop-gui-section"> ${getHTMLProp('makeQuoteTool')} </section>
+                    <section class="jras-prop-gui-section" style="margin-left: 20px; margin-top: -10px;">
+                      ${getHTMLProp('qTAddUserInfo')} <br>
+                      ${getHTMLProp('qTInsertIntoShowingInput')} </section>
                   </div>
                 </div>
                 <div id="jras-prop-gui-tab-5" class="jras-tabs-panel">
@@ -3469,7 +3774,7 @@ const JRAS_CurrVersion = '2.2.10';
 
   function PageData(){
     const getColorSchema = function(){ // light or dark
-      let c = $('#background').css('background-color');
+      let c = window.getComputedStyle(document.body, null).getPropertyValue('background-color');
       if (!c){c = $('body').css('background-color')}
       const rgb = (/^#[0-9A-F]{6}$/i.test(c)) ? c : c.match(/^rgba?\((\d+),\s*(\d+),\s*(\d+)/);
       const mono = (rgb !== null)
@@ -3530,7 +3835,9 @@ const JRAS_CurrVersion = '2.2.10';
         }
       }
       return retVal;
-    }
+    };
+    this.rgb2hex = (rgb) => `#${rgb?.match(/^rgb\((\d+),\s*(\d+),\s*(\d+)\)$/)?.slice(1).map(n => parseInt(n, 10).toString(16).padStart(2, '0')).join('')}`;
+    this.commentBgColor = () => this.rgb2hex($('.comment').css('background-color'));
   }
 
   function niceBytes(a){let b=0,c=parseInt(a,10)||0;for(;1024<=c&&++b;)c/=1024;return c.toFixed(10>c&&0<b?1:0)+" "+["bytes","KB","MB","GB","TB","PB","EB","ZB","YB"][b]}
@@ -3893,6 +4200,33 @@ const JRAS_CurrVersion = '2.2.10';
     };
     this.JRAS_GUI_PREVIEWSIZEY = {
       ru: 'Размер тултипа превью по ветрикали. % от окна страницы'
+    };
+    this.JRAS_GUI_MAKEQUOTESONCOMMENTS = {
+      ru: 'Цитаты из строк начинающихся с символа ">"'
+    };
+    this.JRAS_GUI_QUOTEPOPUPERHINT = {
+      ru: 'Процитировать выделенный текст.\n Можно использовать хоткеи (перекрывает настройки)'
+    };
+    this.JRAS_GUI_MAKEEXTQUOTES = {
+      ru: 'Расширенная цитата (заголовок + текст)'
+    };
+    this.JRAS_GUI_MAKEQUOTETOOL = {
+      ru: 'Инструмент цитирования'
+    };
+    this.JRAS_GUI_QTADDUSERINFO = {
+      ru: 'При цитировании добавлять информацию о пользователе, которого цитируют'
+    };
+    this.JRAS_GUI_QTINSERTINTOSHOWINGINPUT = {
+      ru: 'Вставлять цитату в:'
+    };
+    this.JRAS_GUI_NEWANSWERALWAYS = {
+      ru: 'открывать форму ответа на цитируемое сообщение [ctrl]'
+    };
+    this.JRAS_GUI_FINDOPENEDFORM = {
+      ru: 'найти уже открытую форму ответа [shift]'
+    };
+    this.JRAS_GUI_ADDCOMMENTFORM = {
+      ru: 'форму создания нового коментария [ctrl+shift]'
     };
   }
 
