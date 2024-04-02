@@ -3774,7 +3774,7 @@ const JRAS_CurrVersion = '2.3.0';
 
   function PageData(){
     const getColorSchema = function(){ // light or dark
-      let c = window.getComputedStyle(document.body, null).getPropertyValue('background-color');
+      let c = window.getComputedStyle($('body')[0], null).getPropertyValue('background-color');
       if (!c){c = $('body').css('background-color')}
       const rgb = (/^#[0-9A-F]{6}$/i.test(c)) ? c : c.match(/^rgba?\((\d+),\s*(\d+),\s*(\d+)/);
       const mono = (rgb !== null)
@@ -3812,9 +3812,8 @@ const JRAS_CurrVersion = '2.3.0';
         this.currentUser = 'Anonymous';
       }
     }
-    this.scheme = getColorSchema();
     this.isSchemeLight = function(){
-      return this.scheme == 'light'
+      return getColorSchema() == 'light'
     };
     this.isNewDesignFunc = function(){
       regEx = /^((https?:)(\/\/\/?)([\w]*(?::[\w]*)?@)?([\d\w\.-]+)(?::(\d+))?)?([\/\\\w\.()-]*)?(?:([?][^#]*)?(#.*)?)*/gmi;
