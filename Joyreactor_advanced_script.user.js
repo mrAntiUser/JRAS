@@ -13,7 +13,7 @@
 // @include     *jr-proxy.com*
 // @require     http://ajax.googleapis.com/ajax/libs/jquery/2.2.0/jquery.min.js
 // @require     https://code.jquery.com/ui/1.11.4/jquery-ui.min.js
-// @version     2.3.0
+// @version     2.3.0.1
 // @grant       GM.getValue
 // @grant       GM.setValue
 // @grant       GM.listValues
@@ -27,9 +27,11 @@
 // @run-at      document-end
 // ==/UserScript==
 
-const JRAS_CurrVersion = '2.3.0';
+const JRAS_CurrVersion = '2.3.0.1';
 
 /* RELEASE NOTES
+ 2.3.0.1
+   * fix цитаты налезающие на элементы ниже
  2.3.0
    + механизм выделения и цитирования коментариев
    + отображение пользователя при цитировании
@@ -3064,8 +3066,11 @@ const JRAS_CurrVersion = '2.3.0';
         font-style: italic;
         font-size: 105%;
      /*    display: inline-block; */
-        margin-bottom: -1em;
+        margin-bottom: 0.5em;
         padding-left: 0.8em;
+      }
+      .jras-qt:last-of-type{
+        margin-bottom: -1em;
       }
       .jras-qt>div{
         margin-top: -0.8em;
@@ -3774,7 +3779,7 @@ const JRAS_CurrVersion = '2.3.0';
 
   function PageData(){
     const getColorSchema = function(){ // light or dark
-      let c = window.getComputedStyle(document.body, null).getPropertyValue('background-color');
+      let c = window.getComputedStyle($('body')[0], null).getPropertyValue('background-color');
       if (!c){c = $('body').css('background-color')}
       const rgb = (/^#[0-9A-F]{6}$/i.test(c)) ? c : c.match(/^rgba?\((\d+),\s*(\d+),\s*(\d+)/);
       const mono = (rgb !== null)
@@ -3812,9 +3817,8 @@ const JRAS_CurrVersion = '2.3.0';
         this.currentUser = 'Anonymous';
       }
     }
-    this.scheme = getColorSchema();
     this.isSchemeLight = function(){
-      return this.scheme == 'light'
+      return getColorSchema() == 'light'
     };
     this.isNewDesignFunc = function(){
       regEx = /^((https?:)(\/\/\/?)([\w]*(?::[\w]*)?@)?([\d\w\.-]+)(?::(\d+))?)?([\/\\\w\.()-]*)?(?:([?][^#]*)?(#.*)?)*/gmi;
