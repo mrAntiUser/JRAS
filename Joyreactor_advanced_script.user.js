@@ -13,7 +13,7 @@
 // @include     *jr-proxy.com*
 // @require     http://ajax.googleapis.com/ajax/libs/jquery/2.2.0/jquery.min.js
 // @require     https://code.jquery.com/ui/1.11.4/jquery-ui.min.js
-// @version     2.3.0
+// @version     2.3.0.1
 // @grant       GM.getValue
 // @grant       GM.setValue
 // @grant       GM.listValues
@@ -27,9 +27,11 @@
 // @run-at      document-end
 // ==/UserScript==
 
-const JRAS_CurrVersion = '2.3.0';
+const JRAS_CurrVersion = '2.3.0.1';
 
 /* RELEASE NOTES
+ 2.3.0.1
+   * fix цитаты налезающие на элементы ниже
  2.3.0
    + механизм выделения и цитирования коментариев
    + отображение пользователя при цитировании
