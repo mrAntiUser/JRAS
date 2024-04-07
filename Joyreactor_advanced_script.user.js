@@ -3064,8 +3064,11 @@ const JRAS_CurrVersion = '2.3.0';
         font-style: italic;
         font-size: 105%;
      /*    display: inline-block; */
-        margin-bottom: -1em;
+        margin-bottom: 0.5em;
         padding-left: 0.8em;
+      }
+      .jras-qt:last-of-type{
+        margin-bottom: -1em;
       }
       .jras-qt>div{
         margin-top: -0.8em;
