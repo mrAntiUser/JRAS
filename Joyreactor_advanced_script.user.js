@@ -10,6 +10,7 @@
 // @supportURL  https://github.com/mrAntiUser/JRAS/issues
 // @include     *reactor.cc*
 // @include     *joyreactor.cc*
+// @include     *joyreactor.com*
 // @include     *jr-proxy.com*
 // @require     http://ajax.googleapis.com/ajax/libs/jquery/2.2.0/jquery.min.js
 // @require     https://code.jquery.com/ui/1.11.4/jquery-ui.min.js
