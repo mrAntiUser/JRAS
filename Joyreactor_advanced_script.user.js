@@ -13,7 +13,7 @@
 // @include     *jr-proxy.com*
 // @require     http://ajax.googleapis.com/ajax/libs/jquery/2.2.0/jquery.min.js
 // @require     https://code.jquery.com/ui/1.11.4/jquery-ui.min.js
-// @version     2.3.0.1
+// @version     2.4.0
 // @grant       GM.getValue
 // @grant       GM.setValue
 // @grant       GM.listValues
@@ -27,9 +27,17 @@
 // @run-at      document-end
 // ==/UserScript==
 
-const JRAS_CurrVersion = '2.3.0.1';
+const JRAS_CurrVersion = '2.4.0';
 
 /* RELEASE NOTES
+ 2.4.0
+   + Управление звуком видео
+   + Кнопка вкл/выкл звук
+   + Опция надо ли вообще [true]
+   + Опция при включении звука перематывать видео в начало [true]
+   + Опция автоматически включать звук при 50% видимости видео [false]
+   + Опция автоматически включать звук при средней точке экрана [true]
+   * Цитаты по-умолчанию отключены
  2.3.0.1
    * fix цитаты налезающие на элементы ниже
  2.3.0
@@ -299,12 +307,17 @@ const JRAS_CurrVersion = '2.3.0.1';
 
   const lng = new LanguageData();
   const page = new PageData();
+
   const videoSoundStates = new WeakMap();
   const videoSoundScrollStates = new WeakMap();
   const videoSoundAutoChanges = new WeakMap();
   let lastVideoVolume = loadVideoSoundVolume();
   let videoSoundChangeToken = 0;
   let videoSoundScrollObserver;
+  let videoSoundHalfObserver;
+  let currentSoundVideo;
+  let videoSoundScreenMiddleRaf;
+  let currentScreenMiddleVideo;
   
   const quoteData = {
     $commentContainer: undefined,
@@ -328,8 +341,7 @@ const JRAS_CurrVersion = '2.3.0.1';
     correctOldReactorLink();
     previewReactorLink();
     makeExtendedGifLinks();
-    initVideoSoundControls();
-    initVideoSoundScrollObserver();
+    setVideoSoundProc();
     makeQuotes();
     makePopuperQuote();
 
@@ -554,11 +566,23 @@ const JRAS_CurrVersion = '2.3.0.1';
         extendedGifLinks: { dt: null,
           propData: function(){return { def: true, type: 'checkbox'}}
         },
+        videoSoundOptions: { dt: null,
+          propData: function(){return { def: true, type: 'checkbox'}}
+        },
         restartVideoOnUnmute: { dt: null,
           propData: function(){return { def: true, type: 'checkbox'}}
         },
+        autoUnmuteVideoNone: { dt: null,
+          propData: function(){return { def: false, type: 'radio', group: 'autoUnmuteVideoMode'}}
+        },
+        autoUnmuteVideoOnHalfScreen: { dt: null,
+          propData: function(){return { def: false, type: 'radio', group: 'autoUnmuteVideoMode'}}
+        },
+        autoUnmuteVideoOnScreenMiddle: { dt: null,
+          propData: function(){return { def: true, type: 'radio', group: 'autoUnmuteVideoMode'}}
+        },
         makeQuotesOnComments: { dt: null,
-          propData: function () { return { def: true, type: 'checkbox' } }
+          propData: function () { return { def: false, type: 'checkbox' } }
         },
         makeExtQuotes: { dt: null,
           propData: function () { return { def: true, type: 'checkbox' } }
@@ -1043,6 +1067,16 @@ const JRAS_CurrVersion = '2.3.0.1';
     });
   }
 
+  function setVideoSoundProc(){
+    if (!userOptions.val('videoSoundOptions')){
+      return;
+    }
+    initVideoSoundControls();
+    initVideoSoundScrollObserver();
+    initVideoSoundHalfObserver();
+    initVideoSoundScreenMiddleObserver();
+  }
+
   function loadVideoSoundVolume(){
     // сохраним это значение отдельно от опций, для быстрого доступа мимо настроек
     const savedVolume = parseFloat(win.localStorage.getItem('jras_video_volume'));
@@ -1173,6 +1207,11 @@ const JRAS_CurrVersion = '2.3.0.1';
 
     if (!wasAutoChange){
       videoSoundChangeToken += 1;
+      if (!isMuted && currentVolume > 0){
+        currentSoundVideo = video;
+      }else if (currentSoundVideo === video){
+        currentSoundVideo = null;
+      }
     }
     videoSoundStates.set(video, { muted: isMuted, volume: currentVolume });
     updateVideoSoundButton(video);
@@ -1222,7 +1261,9 @@ const JRAS_CurrVersion = '2.3.0.1';
       if (!tryAttachVideoSoundButton(video)){
         bindVideoSoundLoadListeners(video);
       }
+      observeVideoForAutoSound(video);
     });
+    handleScreenMiddleAutoSound();
   }
 
   function findPostContainers($nodes){
@@ -1317,6 +1358,133 @@ const JRAS_CurrVersion = '2.3.0.1';
       });
     });
     observer.observe(document.body, { childList: true, subtree: true });
+  }
+
+  function canAutoUnmuteVideo(video){
+    if (video.dataset && video.dataset.jrasSoundHasAudio === '1'){
+      return true;
+    }
+    const $btn = $(video).data('jrasSoundBtn');
+    if ($btn && $btn.length){
+      return true;
+    }
+    return getVideoSoundState(video) === 'yes';
+  }
+
+  function getOtherSoundedVideo(video){
+    if (currentSoundVideo && currentSoundVideo !== video && document.contains(currentSoundVideo)){
+      if (!currentSoundVideo.muted && currentSoundVideo.volume > 0){
+        return currentSoundVideo;
+      }
+    }
+    let otherVideo;
+    $('video').each(function(){
+      if (this === video){return}
+      if (!this.muted && this.volume > 0){
+        otherVideo = this;
+        return false;
+      }
+    });
+    return otherVideo;
+  }
+
+  function ensureVideoSoundOn(video){
+    if ((userOptions.val('autoUnmuteVideoNone'))){return}
+    if (!video || !canAutoUnmuteVideo(video)){return}
+    if (!video.muted && video.volume > 0){
+      currentSoundVideo = video;
+      return;
+    }
+    const wasPlaying = !video.paused && !video.ended;
+    const otherVideo = getOtherSoundedVideo(video);
+    if (otherVideo){
+      setVideoMutedAuto(otherVideo, true);
+    }
+    videoSoundChangeToken += 1;
+    const savedVolume = getVideoSoundVolume();
+    const targetVolume = ($.isNumeric(savedVolume) && savedVolume > 0) ? savedVolume : 1;
+    if (video.volume !== targetVolume){
+      setVideoVolumeAuto(video, targetVolume);
+    }
+    if (video.muted){
+      setVideoMutedAuto(video, false);
+    }
+    const shouldRestart = userOptions.val('restartVideoOnUnmute');
+    if (shouldRestart){
+      video.currentTime = 0;
+    }
+    if (wasPlaying || shouldRestart){
+      video.play();
+    }
+    currentSoundVideo = video;
+  }
+
+  function observeVideoForAutoSound(video){
+    if (!videoSoundHalfObserver){return}
+    if (video.dataset && video.dataset.jrasSoundHalfObserved){return}
+    if (video.dataset){
+      video.dataset.jrasSoundHalfObserved = '1';
+    }
+    videoSoundHalfObserver.observe(video);
+  }
+
+  function initVideoSoundHalfObserver(){
+    if (!('IntersectionObserver' in window)){return}
+    videoSoundHalfObserver = new IntersectionObserver(function(entries){
+      entries.forEach(function(entry){
+        if (entry.isIntersecting && entry.intersectionRatio >= 0.5){
+          if (userOptions.val('autoUnmuteVideoOnHalfScreen')){
+            ensureVideoSoundOn(entry.target);
+          }
+        }
+      });
+    }, { root: null, threshold: [0.5] });
+
+    $('video').each(function(){
+      observeVideoForAutoSound(this);
+    });
+  }
+
+  function initVideoSoundScreenMiddleObserver(){
+    const onScroll = function(){
+      if (videoSoundScreenMiddleRaf){return}
+      videoSoundScreenMiddleRaf = win.requestAnimationFrame(function(){
+        videoSoundScreenMiddleRaf = null;
+        handleScreenMiddleAutoSound();
+      });
+    };
+    $(window).on('scroll', onScroll);
+    $(window).on('resize', onScroll);
+    onScroll();
+  }
+
+  function handleScreenMiddleAutoSound(){
+    if (!userOptions.val('autoUnmuteVideoOnScreenMiddle')){return}
+    const video = findVideoAtScreenMiddle();
+    if (!video){
+      currentScreenMiddleVideo = null;
+      return;
+    }
+    if (video === currentScreenMiddleVideo){return}
+    currentScreenMiddleVideo = video;
+    ensureVideoSoundOn(video);
+  }
+
+  function findVideoAtScreenMiddle(){
+    const midY = (win.innerHeight || document.documentElement.clientHeight || 0) / 2;
+    if (!midY){return null}
+    let target = null;
+    $('video').each(function(){
+      const rect = this.getBoundingClientRect ? this.getBoundingClientRect() : null;
+      if (!rect){return}
+      if (rect.bottom <= 0 || rect.top >= (win.innerHeight || document.documentElement.clientHeight || 0)){return}
+      if (rect.right <= 0 || rect.left >= (win.innerWidth || document.documentElement.clientWidth || 0)){return}
+      if (rect.top <= midY && rect.bottom >= midY){
+        target = this;
+        return false;
+      }
+    });
+    return target;
   }
 
   function showHiddenComments($inElm){
@@ -3293,6 +3461,13 @@ const JRAS_CurrVersion = '2.3.0.1';
         margin-top: 5px;
         margin-bottom: 14px;
       }
+      .jras-prop-gui-subsection{
+        margin-left: 20px;
+        margin-top: -10px;
+      }
+      .jras-prop-gui-small-section{
+        margin-top: -10px;
+      }
       .jras-prop-gui-button-right{
         padding-left: 20px;
         right: 0px;
@@ -3754,6 +3929,10 @@ const JRAS_CurrVersion = '2.3.0.1';
           retVal = `<input id="${propID}Val" type="${propData.type}" style="vertical-align: middle;"/>
                     <label id="${propID}Caption" for="${prop}" style="cursor: pointer;vertical-align: middle;"/>`;
           break;
+        case 'radio':
+          retVal = `<input id="${propID}Val" type="${propData.type}" name="${propData.group || prop}" value="${propData.value || prop}" style="vertical-align: middle;"/>
+                    <label id="${propID}Caption" for="${propID}Val" style="cursor: pointer;vertical-align: middle;"/>`;
+          break;
         case 'combobox':
           retVal = `<span id="${propID}Caption" style="vertical-align: middle;"/>
                     <select id="${propID}Val" name="jras-${prop}" style="vertical-align: middle;">`;
@@ -3812,15 +3991,21 @@ const JRAS_CurrVersion = '2.3.0.1';
                     <section class="jras-prop-gui-section"> ${getHTMLProp('language', 'Val', {'width': '30%'})} </section>
                     <section class="jras-prop-gui-section"> ${getHTMLProp('removeShareButtons')} </section>
                     <section class="jras-prop-gui-section"> ${getHTMLProp('fixedTopbar')} </section>
-                    <section class="jras-prop-gui-section" style="margin-left: 20px; margin-top: -10px;"> ${getHTMLProp('hideFixedTopbar')} </section>
+                    <section class="jras-prop-gui-section jras-prop-gui-subsection"> ${getHTMLProp('hideFixedTopbar')} </section>
                     <section class="jras-prop-gui-section"> ${getHTMLProp('correctRedirectLink')} </section>
                     <section class="jras-prop-gui-section"> ${getHTMLProp('correctOldReactorLink')} </section>
                     <section class="jras-prop-gui-section"> ${getHTMLProp('showHiddenComments')} </section>
-                    <section class="jras-prop-gui-section" style="margin-left: 20px; margin-top: -10px;"> ${getHTMLProp('showHiddenCommentsMark')} </section>
+                    <section class="jras-prop-gui-section jras-prop-gui-subsection"> ${getHTMLProp('showHiddenCommentsMark')} </section>
                     <section class="jras-prop-gui-section"> ${getHTMLProp('extendedGifLinks')} </section>
-                    <section class="jras-prop-gui-section"> ${getHTMLProp('restartVideoOnUnmute')} </section>
-                    <section class="jras-prop-gui-section""> ${getHTMLProp('pcbShowPostControl')} </section>
-                    <section class="jras-prop-gui-section" style="margin-left: 20px; margin-top: -10px;">
+                    <section class="jras-prop-gui-section"> ${getHTMLProp('videoSoundOptions')} </section>
+                    <section class="jras-prop-gui-section jras-prop-gui-subsection">
+                      ${getHTMLProp('restartVideoOnUnmute')} <br>
+                      ${getHTMLProp('autoUnmuteVideoNone')} <br>
+                      ${getHTMLProp('autoUnmuteVideoOnHalfScreen')} <br>
+                      ${getHTMLProp('autoUnmuteVideoOnScreenMiddle')}
+                    </section>
+                    <section class="jras-prop-gui-section"> ${getHTMLProp('pcbShowPostControl')} </section>
+                    <section class="jras-prop-gui-section jras-prop-gui-subsection">
                       ${getHTMLProp('pcbShowInFullPost')} <br>
                       ${getHTMLProp('pcbHideShareButoons')} <br>
                       ${getHTMLProp('pcbHideJRShareBlock')} <br>
@@ -3829,16 +4014,17 @@ const JRAS_CurrVersion = '2.3.0.1';
                       ${getHTMLProp('pcbAnimateMoveSpeed')}<br>
                       ${getHTMLProp('pcbTopScreenPos')} <br>
                       ${getHTMLProp('pcbTopBorder')} <br>
-                      ${getHTMLProp('pcbBottomBorder')} </section>
+                      ${getHTMLProp('pcbBottomBorder')}
+                    </section>
                   </div>
                 </div>
                 <div id="jras-prop-gui-tab-2" class="jras-tabs-panel">
                   <div class="jras-tabs-panel-content">
                     <section class="jras-prop-gui-section"> ${getHTMLProp('delUserComment')} </section>
-                    <section class="jras-prop-gui-section" style="margin-top: -10px;"> ${getHTMLProp('showUserNameDelComment')} </section>
-                    <section class="jras-prop-gui-section" style="margin-top: -10px;"> ${getHTMLProp('fullDelUserPost')} </section>
-                    <section class="jras-prop-gui-section" style="margin-top: -10px;"> ${getHTMLProp('delUserPost')} </section>
-                    <section class="jras-prop-gui-section" style="margin-top: -10px;"> ${getHTMLProp('showUserNameDelPost')} </section>
+                    <section class="jras-prop-gui-section jras-prop-gui-small-section"> ${getHTMLProp('showUserNameDelComment')} </section>
+                    <section class="jras-prop-gui-section jras-prop-gui-small-section"> ${getHTMLProp('fullDelUserPost')} </section>
+                    <section class="jras-prop-gui-section jras-prop-gui-small-section"> ${getHTMLProp('delUserPost')} </section>
+                    <section class="jras-prop-gui-section jras-prop-gui-small-section"> ${getHTMLProp('showUserNameDelPost')} </section>
                     <span id="jras-guiBlockUserListCaption"></span>
                     <textarea id="jras-guiBlockUserList" style="width: 98%; border: 1px solid rgb(216, 216, 216); height: 139px;">
                     </textarea>
@@ -3850,7 +4036,7 @@ const JRAS_CurrVersion = '2.3.0.1';
                 <div id="jras-prop-gui-tab-3" class="jras-tabs-panel">
                   <div class="jras-tabs-panel-content">
                     <section class="jras-prop-gui-section"> ${getHTMLProp('isToBeLoadingUserData')} </section>
-                    <section class="jras-prop-gui-section" style="margin-left: 20px; margin-top: -10px;">
+                    <section class="jras-prop-gui-section jras-prop-gui-subsection">
                       ${getHTMLProp('showUTOnLine')} <br>
                       ${getHTMLProp('showUTOnComment')}<br>
                       ${getHTMLProp('showUTOnPrivateMess')} <br>
@@ -3862,15 +4048,15 @@ const JRAS_CurrVersion = '2.3.0.1';
                       ${getHTMLProp('minShowUserAwards', 'Val', {'width': '60px'})} <br>
                       ${getHTMLProp('chatlaneToPacaki')} <br>
                       ${getHTMLProp('showUTOnTopComments')} </section>
-                    <section class="jras-prop-gui-section" style="margin-top: -10px;"> ${getHTMLProp('isToBeLoadingTagData')} </section>
-                    <section class="jras-prop-gui-section" style="margin-left: 20px; margin-top: -10px;">
+                    <section class="jras-prop-gui-section jras-prop-gui-small-section"> ${getHTMLProp('isToBeLoadingTagData')} </section>
+                    <section class="jras-prop-gui-section jras-prop-gui-subsection">
                       ${getHTMLProp('showTTOnLine')} <br>
                       ${getHTMLProp('showTTFullPost')} <br>
                       ${getHTMLProp('showTTOnTrends')} <br>
                       ${getHTMLProp('showTTOnLikeTags')} <br>
                       ${getHTMLProp('showTTOnInteresting')} </section>
-                    <section class="jras-prop-gui-section" style="margin-top: -10px;"> ${getHTMLProp('previewReactorLink')} </section>
-                    <section class="jras-prop-gui-section" style="margin-left: 20px; margin-top: -10px;">
+                    <section class="jras-prop-gui-section jras-prop-gui-small-section"> ${getHTMLProp('previewReactorLink')} </section>
+                    <section class="jras-prop-gui-section jras-prop-gui-subsection">
                       ${getHTMLProp('previewSizeX')} <br>
                       ${getHTMLProp('previewSizeY')} </section>
                   </div>
@@ -3878,24 +4064,24 @@ const JRAS_CurrVersion = '2.3.0.1';
                 <div id="jras-prop-gui-tab-4" class="jras-tabs-panel">
                   <div class="jras-tabs-panel-content">
                     <section class="jras-prop-gui-section"> ${getHTMLProp('makeTreeComments')} </section>
-                    <section class="jras-prop-gui-section" style="margin-left: 20px; margin-top: -10px;">
+                    <section class="jras-prop-gui-section jras-prop-gui-subsection">
                       ${getHTMLProp('treeCommentsOnlyFullPost')} </section>
                     <section class="jras-prop-gui-section"> ${getHTMLProp('makeAvatarOnOldDesign')} </section>
-                    <section class="jras-prop-gui-section" style="margin-left: 20px; margin-top: -10px;">
+                    <section class="jras-prop-gui-section jras-prop-gui-subsection">
                       ${getHTMLProp('makeAvatarOnlyFullPost')} <br>
                       ${getHTMLProp('showCommentDate')} <br>
                       ${getHTMLProp('avatarHeight')}</section>
                     <section class="jras-prop-gui-section"> ${getHTMLProp('whenCollapseMakeRead')} </section>
                     <section class="jras-prop-gui-section"> ${getHTMLProp('collapseComments')} </section>
-                    <section class="jras-prop-gui-section" style="margin-left: 20px; margin-top: -10px;">
+                    <section class="jras-prop-gui-section jras-prop-gui-subsection">
                       ${getHTMLProp('collapseCommentsOnlyFullPost')} <br>
                       ${getHTMLProp('collapseCommentWhenSize')} <br>
                       ${getHTMLProp('collapseCommentToSize')} </section>
                     <section class="jras-prop-gui-section"> ${getHTMLProp('makeQuotesOnComments')} </section>
-                    <section class="jras-prop-gui-section" style="margin-left: 20px; margin-top: -10px;">
+                    <section class="jras-prop-gui-section jras-prop-gui-subsection">
                       ${getHTMLProp('makeExtQuotes')} </section>
                     <section class="jras-prop-gui-section"> ${getHTMLProp('makeQuoteTool')} </section>
-                    <section class="jras-prop-gui-section" style="margin-left: 20px; margin-top: -10px;">
+                    <section class="jras-prop-gui-section jras-prop-gui-subsection">
                       ${getHTMLProp('qTAddUserInfo')} <br>
                       ${getHTMLProp('qTInsertIntoShowingInput')} </section>
                   </div>
@@ -3903,7 +4089,7 @@ const JRAS_CurrVersion = '2.3.0.1';
                 <div id="jras-prop-gui-tab-5" class="jras-tabs-panel">
                   <div class="jras-tabs-panel-content">
                     <section class="jras-prop-gui-section"> ${getHTMLProp('stCorrectStyle')} </section>
-                    <section class="jras-prop-gui-section" style="margin-left: 20px; margin-top: -10px;">
+                    <section class="jras-prop-gui-section jras-prop-gui-subsection">
                       ${getHTMLProp('stHideSideBar')} <br>
                       ${getHTMLProp('stStretchContent')} <br>
                       ${getHTMLProp('stCenterContent')} <br>
@@ -4009,6 +4195,9 @@ const JRAS_CurrVersion = '2.3.0.1';
         case 'checkbox':
           $propDialog.find('#' + getPropID(optName) + 'Val').prop('checked', userOptions.val(optName));
           break;
+        case 'radio':
+          $propDialog.find('#' + getPropID(optName) + 'Val').prop('checked', userOptions.val(optName));
+          break;
         case 'combobox':
         case 'number':
           $propDialog.find('#' + getPropID(optName) + 'Val').val(userOptions.val(optName));
@@ -4067,6 +4256,9 @@ const JRAS_CurrVersion = '2.3.0.1';
     userOptions.each(function(thd, optName, opt){
       switch(opt.propData().type) {
         case 'checkbox':
+          userOptions.val(optName, $propDialog.find('#' + getPropID(optName) + 'Val').prop('checked'));
+          break;
+        case 'radio':
           userOptions.val(optName, $propDialog.find('#' + getPropID(optName) + 'Val').prop('checked'));
           break;
         case 'combobox':
@@ -4534,6 +4726,9 @@ const JRAS_CurrVersion = '2.3.0.1';
     this.JRAS_GUI_ADDCOMMENTFORM = {
       ru: 'форму создания нового коментария [ctrl+shift]'
     };
+    this.JRAS_GUI_VIDEOSOUNDOPTIONS = {
+      ru: 'Управлять звуком на видео'
+    };
     this.JRAS_VIDEO_SOUND_MUTE = {
       ru: 'Выключить звук'
     };
@@ -4542,6 +4737,15 @@ const JRAS_CurrVersion = '2.3.0.1';
     };
     this.JRAS_GUI_RESTARTVIDEOONUNMUTE = {
       ru: 'При включении звука начинать видео сначала'
+    };
+    this.JRAS_GUI_AUTOUNMUTEVIDEONONE = {
+      ru: 'Не включать звук автоматически'
+    };
+    this.JRAS_GUI_AUTOUNMUTEVIDEOONHALFSCREEN = {
+      ru: 'Автоматически включать звук при 50% видимости видео'
+    };
+    this.JRAS_GUI_AUTOUNMUTEVIDEOONSCREENMIDDLE = {
+      ru: 'Автоматически включать звук при пересечении середины экрана'
     };
   }
 
