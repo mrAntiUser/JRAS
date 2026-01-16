@@ -300,7 +300,11 @@ const JRAS_CurrVersion = '2.3.0.1';
   const lng = new LanguageData();
   const page = new PageData();
   const videoSoundStates = new WeakMap();
+  const videoSoundScrollStates = new WeakMap();
+  const videoSoundAutoChanges = new WeakMap();
   let lastVideoVolume = loadVideoSoundVolume();
+  let videoSoundChangeToken = 0;
+  let videoSoundScrollObserver;
   
   const quoteData = {
     $commentContainer: undefined,
@@ -325,6 +329,7 @@ const JRAS_CurrVersion = '2.3.0.1';
     previewReactorLink();
     makeExtendedGifLinks();
     initVideoSoundControls();
+    initVideoSoundScrollObserver();
     makeQuotes();
     makePopuperQuote();
 
@@ -1061,8 +1066,34 @@ const JRAS_CurrVersion = '2.3.0.1';
   function applyVideoSoundVolume(video){
     const volume = getVideoSoundVolume();
     if ($.isNumeric(volume)){
-      video.volume = volume;
+      setVideoVolumeAuto(video, volume);
     }
+  }
+
+  function addVideoSoundAutoChange(video, count){
+    const prev = videoSoundAutoChanges.get(video) || 0;
+    videoSoundAutoChanges.set(video, prev + (count || 1));
+  }
+
+  function consumeVideoSoundAutoChange(video){
+    const prev = videoSoundAutoChanges.get(video) || 0;
+    if (prev <= 1){
+      videoSoundAutoChanges.delete(video);
+    }else{
+      videoSoundAutoChanges.set(video, prev - 1);
+    }
+    return prev > 0;
+  }
+
+  function setVideoMutedAuto(video, muted){
+    addVideoSoundAutoChange(video);
+    video.muted = muted;
+  }
+
+  function setVideoVolumeAuto(video, volume){
+    if (!$.isNumeric(volume)){return}
+    addVideoSoundAutoChange(video);
+    video.volume = volume;
   }
 
   function getVideoSoundState(video){
@@ -1116,21 +1147,25 @@ const JRAS_CurrVersion = '2.3.0.1';
   }
 
   function handleVideoVolumeChange(video){
+    const wasAutoChange = consumeVideoSoundAutoChange(video);
     const prevState = videoSoundStates.get(video) || { muted: video.muted, volume: video.volume };
     const isMuted = video.muted;
     const currentVolume = video.volume;
     const savedVolume = getVideoSoundVolume();
 
-    if (!isMuted && prevState.muted && currentVolume === prevState.volume){
+    if (!wasAutoChange && !isMuted && prevState.muted && currentVolume === prevState.volume){
       if ($.isNumeric(savedVolume) && savedVolume !== currentVolume){
-        video.volume = savedVolume;
+        setVideoVolumeAuto(video, savedVolume);
       }
     }
 
-    if (!isMuted && $.isNumeric(currentVolume) && currentVolume !== savedVolume){
+    if (!wasAutoChange && !isMuted && $.isNumeric(currentVolume) && currentVolume !== savedVolume){
       saveVideoSoundVolume(currentVolume);
     }
 
+    if (!wasAutoChange){
+      videoSoundChangeToken += 1;
+    }
     videoSoundStates.set(video, { muted: isMuted, volume: currentVolume });
     updateVideoSoundButton(video);
   }
@@ -1180,6 +1215,90 @@ const JRAS_CurrVersion = '2.3.0.1';
         bindVideoSoundLoadListeners(video);
       }
     });
+  }
+
+  function findPostContainers($nodes){
+    if (!$nodes){return $('div[id^=postContainer].postContainer')}
+    const $arr = $();
+    $nodes.each(function(){
+      const $node = $(this);
+      if ($node.is('div[id^=postContainer].postContainer')){
+        $arr.push(this);
+      }
+      $node.find('div[id^=postContainer].postContainer').each(function(){
+        $arr.push(this);
+      });
+    });
+    return $arr;
+  }
+
+  function setPostVisibilityState(post, isVisible){
+    const $videos = $(post).find('video');
+    if (!$videos.length){return}
+    $videos.each(function(){
+      const video = this;
+      if (isVisible){
+        const saved = videoSoundScrollStates.get(video);
+        if (!saved){return}
+        if (saved.token !== videoSoundChangeToken){
+          videoSoundScrollStates.delete(video);
+          return;
+        }
+        if ($.isNumeric(saved.volume) && saved.volume !== video.volume){
+          setVideoVolumeAuto(video, saved.volume);
+        }
+        if (saved.muted !== video.muted){
+          setVideoMutedAuto(video, saved.muted);
+        }
+        videoSoundScrollStates.delete(video);
+      }else{
+        if (!videoSoundScrollStates.has(video)){
+          videoSoundScrollStates.set(video, {
+            muted: video.muted,
+            volume: video.volume,
+            token: videoSoundChangeToken
+          });
+        }
+        if (!video.muted){
+          setVideoMutedAuto(video, true);
+        }
+      }
+    });
+  }
+
+  function observePostContainerForSound(post){
+    if (post.dataset && post.dataset.jrasSoundPostObserved){return}
+    if (post.dataset){
+      post.dataset.jrasSoundPostObserved = '1';
+    }
+    if (videoSoundScrollObserver){
+      videoSoundScrollObserver.observe(post);
+    }
+  }
+
+  function initVideoSoundScrollObserver(){
+    if (!('IntersectionObserver' in window)){return}
+    videoSoundScrollObserver = new IntersectionObserver(function(entries){
+      entries.forEach(function(entry){
+        setPostVisibilityState(entry.target, entry.isIntersecting && entry.intersectionRatio > 0);
+      });
+    }, { root: null, threshold: 0.1 });
+
+    findPostContainers().each(function(){
+      observePostContainerForSound(this);
+    });
+
+    const postList = document.getElementById('post_list') || document.body;
+    const observer = new MutationObserver(function(mutations){
+      mutations.forEach(function(mutation){
+        if (mutation.type !== 'childList' || !mutation.addedNodes.length){return}
+        const $posts = findPostContainers($(mutation.addedNodes));
+        $posts.each(function(){
+          observePostContainerForSound(this);
+        });
+      });
+    });
+    observer.observe(postList, { childList: true, subtree: true });
   }
 
   function subscribeVideoSoundObserver(){
@@ -4055,14 +4174,6 @@ const JRAS_CurrVersion = '2.3.0.1';
     this.JRAS_EXTGIFTITLESIZESTR = {
       ru: 'Размер: '
     };
-    this.JRAS_VIDEO_SOUND_MUTE = {
-      ru: 'Выключить звук',
-      en: 'Mute'
-    };
-    this.JRAS_VIDEO_SOUND_UNMUTE = {
-      ru: 'Включить звук',
-      en: 'Unmute'
-    };
     this.JRAS_POSTBLOCKBYTAG = {
       ru: 'Пост заблокированый по тегам: '
     };
@@ -4413,6 +4524,12 @@ const JRAS_CurrVersion = '2.3.0.1';
     };
     this.JRAS_GUI_ADDCOMMENTFORM = {
       ru: 'форму создания нового коментария [ctrl+shift]'
+    };
+    this.JRAS_VIDEO_SOUND_MUTE = {
+      ru: 'Выключить звук'
+    };
+    this.JRAS_VIDEO_SOUND_UNMUTE = {
+      ru: 'Включить звук'
     };
   }
 
