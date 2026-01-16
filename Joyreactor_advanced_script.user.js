@@ -299,6 +299,8 @@ const JRAS_CurrVersion = '2.3.0.1';
 
   const lng = new LanguageData();
   const page = new PageData();
+  const videoSoundStates = new WeakMap();
+  let lastVideoVolume = loadVideoSoundVolume();
   
   const quoteData = {
     $commentContainer: undefined,
@@ -322,6 +324,7 @@ const JRAS_CurrVersion = '2.3.0.1';
     correctOldReactorLink();
     previewReactorLink();
     makeExtendedGifLinks();
+    initVideoSoundControls();
     makeQuotes();
     makePopuperQuote();
 
@@ -336,6 +339,7 @@ const JRAS_CurrVersion = '2.3.0.1';
     tagRemove(userOptions.data.BlockTags, true);
 
     subscribeShowComment();
+    subscribeVideoSoundObserver();
 
     dynamicStyle();
 
@@ -1031,6 +1035,163 @@ const JRAS_CurrVersion = '2.3.0.1';
     });
   }
 
+  function loadVideoSoundVolume(){
+    // сохраним это значение отдельно от опций, для быстрого доступа мимо настроек
+    const savedVolume = parseFloat(win.localStorage.getItem('jras_video_volume'));
+    if ($.isNumeric(savedVolume)){
+      return Math.min(1, Math.max(0, savedVolume));
+    }
+    return 1;
+  }
+
+  function saveVideoSoundVolume(volume){
+    if (!$.isNumeric(volume)){return}
+    const safeVolume = Math.min(1, Math.max(0, volume));
+    lastVideoVolume = safeVolume;
+    win.localStorage.setItem('jras_video_volume', safeVolume);
+  }
+
+  function getVideoSoundVolume(){
+    if (!$.isNumeric(lastVideoVolume)){
+      lastVideoVolume = loadVideoSoundVolume();
+    }
+    return lastVideoVolume;
+  }
+
+  function applyVideoSoundVolume(video){
+    const volume = getVideoSoundVolume();
+    if ($.isNumeric(volume)){
+      video.volume = volume;
+    }
+  }
+
+  function getVideoSoundState(video){
+    if (!video){return 'unknown'}
+    if (typeof video.mozHasAudio !== 'undefined'){
+      return video.mozHasAudio ? 'yes' : 'unknown';
+    }
+    if (video.audioTracks && typeof video.audioTracks.length === 'number'){
+      return video.audioTracks.length ? 'yes' : 'unknown';
+    }
+    if (typeof video.webkitAudioDecodedByteCount !== 'undefined'){
+      return video.webkitAudioDecodedByteCount > 0 ? 'yes' : 'unknown';
+    }
+    return 'unknown';
+  }
+
+  function updateVideoSoundButton(video){
+    const $btn = $(video).data('jrasSoundBtn');
+    if (!$btn || !$btn.length){return}
+    const isMuted = video.muted || video.volume === 0;
+    $btn.toggleClass('jras-video-sound-muted', isMuted);
+    $btn.text(isMuted ? '🔇' : '🔊');
+    $btn.attr('title', isMuted ? lng.getVal('JRAS_VIDEO_SOUND_UNMUTE') : lng.getVal('JRAS_VIDEO_SOUND_MUTE'));
+  }
+
+  function toggleVideoMute(video){
+    if (!video){return}
+    if (video.muted || video.volume === 0){
+      const savedVolume = getVideoSoundVolume();
+      const targetVolume = ($.isNumeric(savedVolume) && savedVolume > 0) ? savedVolume : 1;
+      video.volume = targetVolume;
+      video.muted = false;
+    }else{
+      video.muted = true;
+    }
+  }
+
+  function createVideoSoundButton(video){
+    const $holder = $(video).closest('.video_holder');
+    if (!$holder.length){return}
+    if ($holder.find('.jras-video-sound-btn').length){return}
+    const $btn = $('<div class="jras-video-sound-btn" />');
+    $btn.on('click', function(e){
+      e.preventDefault();
+      e.stopPropagation();
+      toggleVideoMute(video);
+    });
+    $holder.append($btn);
+    $(video).data('jrasSoundBtn', $btn);
+    updateVideoSoundButton(video);
+  }
+
+  function handleVideoVolumeChange(video){
+    const prevState = videoSoundStates.get(video) || { muted: video.muted, volume: video.volume };
+    const isMuted = video.muted;
+    const currentVolume = video.volume;
+    const savedVolume = getVideoSoundVolume();
+
+    if (!isMuted && prevState.muted && currentVolume === prevState.volume){
+      if ($.isNumeric(savedVolume) && savedVolume !== currentVolume){
+        video.volume = savedVolume;
+      }
+    }
+
+    if (!isMuted && $.isNumeric(currentVolume) && currentVolume !== savedVolume){
+      saveVideoSoundVolume(currentVolume);
+    }
+
+    videoSoundStates.set(video, { muted: isMuted, volume: currentVolume });
+    updateVideoSoundButton(video);
+  }
+
+  function tryAttachVideoSoundButton(video){
+    const state = getVideoSoundState(video);
+    if (state === 'yes'){
+      createVideoSoundButton(video);
+      if (video.dataset){
+        video.dataset.jrasSoundHasAudio = '1';
+      }
+      return true;
+    }
+    return false;
+  }
+
+  function bindVideoSoundLoadListeners(video){
+    const tryAttach = function(){
+      if (tryAttachVideoSoundButton(video)){
+        $(video).off('loadedmetadata.jrasSound loadeddata.jrasSound canplay.jrasSound play.jrasSound playing.jrasSound timeupdate.jrasSound durationchange.jrasSound');
+      }
+    };
+    $(video).on('loadedmetadata.jrasSound loadeddata.jrasSound canplay.jrasSound play.jrasSound playing.jrasSound timeupdate.jrasSound durationchange.jrasSound', tryAttach);
+    $(video).on('loadstart.jrasSound', function(){
+      if (video.dataset){
+        delete video.dataset.jrasSoundHasAudio;
+      }
+    });
+  }
+
+  function initVideoSoundControls($nodes){
+    const $scope = $nodes ? $nodes : $('body');
+    const $videos = $scope.is('video') ? $scope : $scope.find('video');
+    $videos.each(function(){
+      const video = this;
+      if (video.dataset && video.dataset.jrasSoundInit){return}
+      if (video.dataset){
+        video.dataset.jrasSoundInit = '1';
+      }
+      applyVideoSoundVolume(video);
+      videoSoundStates.set(video, { muted: video.muted, volume: video.volume });
+      $(video).on('volumechange.jrasSound', function(){
+        handleVideoVolumeChange(video);
+      });
+
+      if (!tryAttachVideoSoundButton(video)){
+        bindVideoSoundLoadListeners(video);
+      }
+    });
+  }
+
+  function subscribeVideoSoundObserver(){
+    const observer = new MutationObserver(function(mutations){
+      mutations.forEach(function(mutation){
+        if (mutation.type !== 'childList' || !mutation.addedNodes.length){return}
+        initVideoSoundControls($(mutation.addedNodes));
+      });
+    });
+    observer.observe(document.body, { childList: true, subtree: true });
+  }
+
   function showHiddenComments($inElm){
     if (!userOptions.val('showHiddenComments')){
       return;
@@ -1153,6 +1314,7 @@ const JRAS_CurrVersion = '2.3.0.1';
               makeUserTooltips($(mutation.addedNodes).find('span.reply-link > a:first-child'), 'a');
             }
             makeExtendedGifLinks($(mutation.addedNodes));
+            initVideoSoundControls($(mutation.addedNodes));
             for (let i = 0; i < mutation.addedNodes.length; i++) {
               const itm = mutation.addedNodes[i];
 
@@ -2578,7 +2740,8 @@ const JRAS_CurrVersion = '2.3.0.1';
     }
     if (userOptions.val('extendedGifLinks')){
       newCssClass(`
-        .video_gif_holder:hover .gifbuttons, .video_holder:hover .gifbuttons{
+        .video_gif_holder:hover .gifbuttons,
+        .video_holder:hover .gifbuttons{
           display: block;
         }
         .gifbuttons {
@@ -2631,6 +2794,17 @@ const JRAS_CurrVersion = '2.3.0.1';
       .video_holder{
         display: inline-block;
         position: relative;
+      }
+
+      .jras-video-sound-btn{
+        position: absolute;
+        top: 3.3em;
+        right: 5px;
+        padding: 5px 6px;
+        cursor: pointer;
+        user-select: none;
+        transform: scale(1.7);
+        opacity: .5;
       }
 
       .jras-ext-gif-cont {
@@ -3880,6 +4054,14 @@ const JRAS_CurrVersion = '2.3.0.1';
     };
     this.JRAS_EXTGIFTITLESIZESTR = {
       ru: 'Размер: '
+    };
+    this.JRAS_VIDEO_SOUND_MUTE = {
+      ru: 'Выключить звук',
+      en: 'Mute'
+    };
+    this.JRAS_VIDEO_SOUND_UNMUTE = {
+      ru: 'Включить звук',
+      en: 'Unmute'
     };
     this.JRAS_POSTBLOCKBYTAG = {
       ru: 'Пост заблокированый по тегам: '
