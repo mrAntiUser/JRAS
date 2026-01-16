@@ -554,6 +554,9 @@ const JRAS_CurrVersion = '2.3.0.1';
         extendedGifLinks: { dt: null,
           propData: function(){return { def: true, type: 'checkbox'}}
         },
+        restartVideoOnUnmute: { dt: null,
+          propData: function(){return { def: true, type: 'checkbox'}}
+        },
         makeQuotesOnComments: { dt: null,
           propData: function () { return { def: true, type: 'checkbox' } }
         },
@@ -1122,6 +1125,11 @@ const JRAS_CurrVersion = '2.3.0.1';
   function toggleVideoMute(video){
     if (!video){return}
     if (video.muted || video.volume === 0){
+      if (userOptions.val('restartVideoOnUnmute')){
+        try{
+          video.currentTime = 0;
+        }catch(e){}
+      }
       const savedVolume = getVideoSoundVolume();
       const targetVolume = ($.isNumeric(savedVolume) && savedVolume > 0) ? savedVolume : 1;
       video.volume = targetVolume;
@@ -3810,6 +3818,7 @@ const JRAS_CurrVersion = '2.3.0.1';
                     <section class="jras-prop-gui-section"> ${getHTMLProp('showHiddenComments')} </section>
                     <section class="jras-prop-gui-section" style="margin-left: 20px; margin-top: -10px;"> ${getHTMLProp('showHiddenCommentsMark')} </section>
                     <section class="jras-prop-gui-section"> ${getHTMLProp('extendedGifLinks')} </section>
+                    <section class="jras-prop-gui-section"> ${getHTMLProp('restartVideoOnUnmute')} </section>
                     <section class="jras-prop-gui-section""> ${getHTMLProp('pcbShowPostControl')} </section>
                     <section class="jras-prop-gui-section" style="margin-left: 20px; margin-top: -10px;">
                       ${getHTMLProp('pcbShowInFullPost')} <br>
@@ -4530,6 +4539,9 @@ const JRAS_CurrVersion = '2.3.0.1';
     };
     this.JRAS_VIDEO_SOUND_UNMUTE = {
       ru: 'Включить звук'
+    };
+    this.JRAS_GUI_RESTARTVIDEOONUNMUTE = {
+      ru: 'При включении звука начинать видео сначала'
     };
   }
 
