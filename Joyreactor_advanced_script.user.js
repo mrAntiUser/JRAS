@@ -1254,6 +1254,7 @@ const JRAS_CurrVersion = '2.4.0';
   }
 
   function initVideoSoundControls($nodes){
+    if (!userOptions.val('videoSoundOptions')){return}
     const $scope = $nodes ? $nodes : $('body');
     const $videos = $scope.is('video') ? $scope : $scope.find('video');
     $videos.each(function(){
