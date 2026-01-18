@@ -32,11 +32,13 @@ const JRAS_CurrVersion = '2.4.0';
 /* RELEASE NOTES
  2.4.0
    + Управление звуком видео
-   + Кнопка вкл/выкл звук
-   + Опция надо ли вообще [true]
-   + Опция при включении звука перематывать видео в начало [true]
-   + Опция автоматически включать звук при 50% видимости видео [false]
-   + Опция автоматически включать звук при средней точке экрана [true]
+      + Кнопка вкл/выкл звук
+      + Опция надо ли вообще [true]
+      + Опция при включении звука перематывать видео в начало [true]
+      + Опция Выключать звук когда пост уходит с экрана [true]
+      + Опция Выключать звук когда видео уходит с экрана [false]
+      + Опция автоматически включать звук при 50% видимости видео [false]
+      + Опция автоматически включать звук при средней точке экрана [true]
    * Цитаты по-умолчанию отключены
  2.3.0.1
    * fix цитаты налезающие на элементы ниже
@@ -314,6 +316,7 @@ const JRAS_CurrVersion = '2.4.0';
   let lastVideoVolume = loadVideoSoundVolume();
   let videoSoundChangeToken = 0;
   let videoSoundScrollObserver;
+  let videoSoundVideoScrollObserver;
   let videoSoundHalfObserver;
   let currentSoundVideo;
   let videoSoundScreenMiddleRaf;
@@ -571,6 +574,12 @@ const JRAS_CurrVersion = '2.4.0';
         },
         restartVideoOnUnmute: { dt: null,
           propData: function(){return { def: true, type: 'checkbox'}}
+        },
+        videoSoundMuteOnPostScroll: { dt: null,
+          propData: function(){return { def: true, type: 'radio', group: 'videoSoundMuteOnScrollMode'}}
+        },
+        videoSoundMuteOnVideoScroll: { dt: null,
+          propData: function(){return { def: false, type: 'radio', group: 'videoSoundMuteOnScrollMode'}}
         },
         autoUnmuteVideoNone: { dt: null,
           propData: function(){return { def: false, type: 'radio', group: 'autoUnmuteVideoMode'}}
@@ -1073,6 +1082,7 @@ const JRAS_CurrVersion = '2.4.0';
     }
     initVideoSoundControls();
     initVideoSoundScrollObserver();
+    initVideoSoundVideoScrollObserver();
     initVideoSoundHalfObserver();
     initVideoSoundScreenMiddleObserver();
   }
@@ -1262,6 +1272,7 @@ const JRAS_CurrVersion = '2.4.0';
         bindVideoSoundLoadListeners(video);
       }
       observeVideoForAutoSound(video);
+      observeVideoForSoundScroll(video);
     });
     handleScreenMiddleAutoSound();
   }
@@ -1282,6 +1293,7 @@ const JRAS_CurrVersion = '2.4.0';
   }
 
   function setPostVisibilityState(post, isVisible){
+    if (!userOptions.val('videoSoundMuteOnPostScroll')){return}
     const $videos = $(post).find('video');
     if (!$videos.length){return}
     $videos.each(function(){
@@ -1315,6 +1327,37 @@ const JRAS_CurrVersion = '2.4.0';
     });
   }
 
+  function setVideoVisibilityState(video, isVisible){
+    if (!userOptions.val('videoSoundMuteOnVideoScroll')){return}
+    if (!video){return}
+    if (isVisible){
+      const saved = videoSoundScrollStates.get(video);
+      if (!saved){return}
+      if (saved.token !== videoSoundChangeToken){
+        videoSoundScrollStates.delete(video);
+        return;
+      }
+      if ($.isNumeric(saved.volume) && saved.volume !== video.volume){
+        setVideoVolumeAuto(video, saved.volume);
+      }
+      if (saved.muted !== video.muted){
+        setVideoMutedAuto(video, saved.muted);
+      }
+      videoSoundScrollStates.delete(video);
+    }else{
+      if (!videoSoundScrollStates.has(video)){
+        videoSoundScrollStates.set(video, {
+          muted: video.muted,
+          volume: video.volume,
+          token: videoSoundChangeToken
+        });
+      }
+      if (!video.muted){
+        setVideoMutedAuto(video, true);
+      }
+    }
+  }
+
   function observePostContainerForSound(post){
     if (post.dataset && post.dataset.jrasSoundPostObserved){return}
     if (post.dataset){
@@ -1323,6 +1366,15 @@ const JRAS_CurrVersion = '2.4.0';
     if (videoSoundScrollObserver){
       videoSoundScrollObserver.observe(post);
     }
+  }
+
+  function observeVideoForSoundScroll(video){
+    if (!videoSoundVideoScrollObserver){return}
+    if (video.dataset && video.dataset.jrasSoundVideoScrollObserved){return}
+    if (video.dataset){
+      video.dataset.jrasSoundVideoScrollObserved = '1';
+    }
+    videoSoundVideoScrollObserver.observe(video);
   }
 
   function initVideoSoundScrollObserver(){
@@ -1348,6 +1400,19 @@ const JRAS_CurrVersion = '2.4.0';
       });
     });
     observer.observe(postList, { childList: true, subtree: true });
+  }
+
+  function initVideoSoundVideoScrollObserver(){
+    if (!('IntersectionObserver' in window)){return}
+    videoSoundVideoScrollObserver = new IntersectionObserver(function(entries){
+      entries.forEach(function(entry){
+        setVideoVisibilityState(entry.target, entry.isIntersecting && entry.intersectionRatio > 0);
+      });
+    }, { root: null, threshold: 0.1 });
+
+    $('video').each(function(){
+      observeVideoForSoundScroll(this);
+    });
   }
 
   function subscribeVideoSoundObserver(){
@@ -3468,6 +3533,15 @@ const JRAS_CurrVersion = '2.4.0';
       .jras-prop-gui-small-section{
         margin-top: -10px;
       }
+      .jras-prop-gui-radio-group{
+        margin: 5px 0;
+        border-left: 1px solid #515151;
+        padding: 2px 3px;
+        display: block;
+        background-image: linear-gradient(to top, #515151 1px, rgba(255,255,255,0) 1px), linear-gradient(to bottom, #515151 0.1rem, rgba(255,255,255,0) 1px);
+        background-size: 13px 100%;
+        background-repeat: no-repeat;
+      }
       .jras-prop-gui-button-right{
         padding-left: 20px;
         right: 0px;
@@ -4000,9 +4074,15 @@ const JRAS_CurrVersion = '2.4.0';
                     <section class="jras-prop-gui-section"> ${getHTMLProp('videoSoundOptions')} </section>
                     <section class="jras-prop-gui-section jras-prop-gui-subsection">
                       ${getHTMLProp('restartVideoOnUnmute')} <br>
-                      ${getHTMLProp('autoUnmuteVideoNone')} <br>
-                      ${getHTMLProp('autoUnmuteVideoOnHalfScreen')} <br>
-                      ${getHTMLProp('autoUnmuteVideoOnScreenMiddle')}
+                      <div class="jras-prop-gui-radio-group">
+                        ${getHTMLProp('videoSoundMuteOnPostScroll')} <br>
+                        ${getHTMLProp('videoSoundMuteOnVideoScroll')}
+                      </div>
+                      <div class="jras-prop-gui-radio-group">
+                        ${getHTMLProp('autoUnmuteVideoNone')} <br>
+                        ${getHTMLProp('autoUnmuteVideoOnHalfScreen')} <br>
+                        ${getHTMLProp('autoUnmuteVideoOnScreenMiddle')}
+                      </div>
                     </section>
                     <section class="jras-prop-gui-section"> ${getHTMLProp('pcbShowPostControl')} </section>
                     <section class="jras-prop-gui-section jras-prop-gui-subsection">
@@ -4737,6 +4817,12 @@ const JRAS_CurrVersion = '2.4.0';
     };
     this.JRAS_GUI_RESTARTVIDEOONUNMUTE = {
       ru: 'При включении звука начинать видео сначала'
+    };
+    this.JRAS_GUI_VIDEOSOUNDMUTEONPOSTSCROLL = {
+      ru: 'Выключать звук когда пост уходит с экрана'
+    };
+    this.JRAS_GUI_VIDEOSOUNDMUTEONVIDEOSCROLL = {
+      ru: 'Выключать звук когда видео уходит с экрана'
     };
     this.JRAS_GUI_AUTOUNMUTEVIDEONONE = {
       ru: 'Не включать звук автоматически'
