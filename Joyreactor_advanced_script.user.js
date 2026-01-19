@@ -1110,6 +1110,11 @@ const JRAS_CurrVersion = '2.4.0';
     return lastVideoVolume;
   }
 
+  function getTargetVideoSoundVolume(){
+    const savedVolume = getVideoSoundVolume();
+    return ($.isNumeric(savedVolume) && savedVolume > 0) ? savedVolume : 1;
+  }
+
   function applyVideoSoundVolume(video){
     const volume = getVideoSoundVolume();
     if ($.isNumeric(volume)){
@@ -1174,9 +1179,7 @@ const JRAS_CurrVersion = '2.4.0';
           video.currentTime = 0;
         }catch(e){}
       }
-      const savedVolume = getVideoSoundVolume();
-      const targetVolume = ($.isNumeric(savedVolume) && savedVolume > 0) ? savedVolume : 1;
-      video.volume = targetVolume;
+      video.volume = getTargetVideoSoundVolume();
       video.muted = false;
     }else{
       video.muted = true;
@@ -1298,38 +1301,16 @@ const JRAS_CurrVersion = '2.4.0';
     const $videos = $(post).find('video');
     if (!$videos.length){return}
     $videos.each(function(){
-      const video = this;
-      if (isVisible){
-        const saved = videoSoundScrollStates.get(video);
-        if (!saved){return}
-        if (saved.token !== videoSoundChangeToken){
-          videoSoundScrollStates.delete(video);
-          return;
-        }
-        if ($.isNumeric(saved.volume) && saved.volume !== video.volume){
-          setVideoVolumeAuto(video, saved.volume);
-        }
-        if (saved.muted !== video.muted){
-          setVideoMutedAuto(video, saved.muted);
-        }
-        videoSoundScrollStates.delete(video);
-      }else{
-        if (!videoSoundScrollStates.has(video)){
-          videoSoundScrollStates.set(video, {
-            muted: video.muted,
-            volume: video.volume,
-            token: videoSoundChangeToken
-          });
-        }
-        if (!video.muted){
-          setVideoMutedAuto(video, true);
-        }
-      }
+      applyVisibilitySoundState(this, isVisible);
     });
   }
 
   function setVideoVisibilityState(video, isVisible){
     if (!userOptions.val('videoSoundMuteOnVideoScroll')){return}
+    applyVisibilitySoundState(video, isVisible);
+  }
+
+  function applyVisibilitySoundState(video, isVisible){
     if (!video){return}
     if (isVisible){
       const saved = videoSoundScrollStates.get(video);
@@ -1360,31 +1341,36 @@ const JRAS_CurrVersion = '2.4.0';
   }
 
   function observePostContainerForSound(post){
-    if (post.dataset && post.dataset.jrasSoundPostObserved){return}
-    if (post.dataset){
-      post.dataset.jrasSoundPostObserved = '1';
-    }
-    if (videoSoundScrollObserver){
-      videoSoundScrollObserver.observe(post);
-    }
+    observeOnce(post, videoSoundScrollObserver, 'jrasSoundPostObserved');
   }
 
   function observeVideoForSoundScroll(video){
-    if (!videoSoundVideoScrollObserver){return}
-    if (video.dataset && video.dataset.jrasSoundVideoScrollObserved){return}
-    if (video.dataset){
-      video.dataset.jrasSoundVideoScrollObserved = '1';
+    observeOnce(video, videoSoundVideoScrollObserver, 'jrasSoundVideoScrollObserved');
+  }
+
+  function observeOnce(element, observer, flagName){
+    if (!observer || !element){return}
+    if (element.dataset){
+      if (element.dataset[flagName]){return}
+      element.dataset[flagName] = '1';
     }
-    videoSoundVideoScrollObserver.observe(video);
+    observer.observe(element);
+  }
+
+  function createVisibilityObserver(callback){
+    if (!('IntersectionObserver' in window)){return null}
+    return new IntersectionObserver(function(entries){
+      entries.forEach(function(entry){
+        callback(entry);
+      });
+    }, { root: null, threshold: 0.1 });
   }
 
   function initVideoSoundScrollObserver(){
-    if (!('IntersectionObserver' in window)){return}
-    videoSoundScrollObserver = new IntersectionObserver(function(entries){
-      entries.forEach(function(entry){
-        setPostVisibilityState(entry.target, entry.isIntersecting && entry.intersectionRatio > 0);
-      });
-    }, { root: null, threshold: 0.1 });
+    videoSoundScrollObserver = createVisibilityObserver(function(entry){
+      setPostVisibilityState(entry.target, entry.isIntersecting && entry.intersectionRatio > 0);
+    });
+    if (!videoSoundScrollObserver){return}
 
     findPostContainers().each(function(){
       observePostContainerForSound(this);
@@ -1404,12 +1390,10 @@ const JRAS_CurrVersion = '2.4.0';
   }
 
   function initVideoSoundVideoScrollObserver(){
-    if (!('IntersectionObserver' in window)){return}
-    videoSoundVideoScrollObserver = new IntersectionObserver(function(entries){
-      entries.forEach(function(entry){
-        setVideoVisibilityState(entry.target, entry.isIntersecting && entry.intersectionRatio > 0);
-      });
-    }, { root: null, threshold: 0.1 });
+    videoSoundVideoScrollObserver = createVisibilityObserver(function(entry){
+      setVideoVisibilityState(entry.target, entry.isIntersecting && entry.intersectionRatio > 0);
+    });
+    if (!videoSoundVideoScrollObserver){return}
 
     $('video').each(function(){
       observeVideoForSoundScroll(this);
@@ -1454,6 +1438,15 @@ const JRAS_CurrVersion = '2.4.0';
     return otherVideo;
   }
 
+  function muteOtherVideos(activeVideo){
+    $('video').each(function(){
+      if (this === activeVideo){return}
+      if (!this.muted){
+        setVideoMutedAuto(this, true);
+      }
+    });
+  }
+
   function ensureVideoSoundOn(video){
     if ((userOptions.val('autoUnmuteVideoNone'))){return}
     if (!video || !canAutoUnmuteVideo(video)){return}
@@ -1462,13 +1455,9 @@ const JRAS_CurrVersion = '2.4.0';
       return;
     }
     const wasPlaying = !video.paused && !video.ended;
-    const otherVideo = getOtherSoundedVideo(video);
-    if (otherVideo){
-      setVideoMutedAuto(otherVideo, true);
-    }
+    muteOtherVideos(video);
     videoSoundChangeToken += 1;
-    const savedVolume = getVideoSoundVolume();
-    const targetVolume = ($.isNumeric(savedVolume) && savedVolume > 0) ? savedVolume : 1;
+    const targetVolume = getTargetVideoSoundVolume();
     if (video.volume !== targetVolume){
       setVideoVolumeAuto(video, targetVolume);
     }
