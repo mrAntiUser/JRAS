@@ -13,7 +13,7 @@
 // @include     *jr-proxy.com*
 // @require     http://ajax.googleapis.com/ajax/libs/jquery/2.2.0/jquery.min.js
 // @require     https://code.jquery.com/ui/1.11.4/jquery-ui.min.js
-// @version     2.4.0
+// @version     2.4.1
 // @grant       GM.getValue
 // @grant       GM.setValue
 // @grant       GM.listValues
@@ -27,9 +27,11 @@
 // @run-at      document-end
 // ==/UserScript==
 
-const JRAS_CurrVersion = '2.4.0';
+const JRAS_CurrVersion = '2.4.1';
 
 /* RELEASE NOTES
+ 2.4.1
+   + Звук видео в коментариях отключается в момент ухода видео с экрана
  2.4.0
    + Управление звуком видео
       + Кнопка вкл/выкл звук
@@ -317,6 +319,7 @@ const JRAS_CurrVersion = '2.4.0';
   let videoSoundChangeToken = 0;
   let videoSoundScrollObserver;
   let videoSoundVideoScrollObserver;
+  let videoSoundCommentObserver;
   let videoSoundHalfObserver;
   let currentSoundVideo;
   let videoSoundScreenMiddleRaf;
@@ -1281,6 +1284,27 @@ const JRAS_CurrVersion = '2.4.0';
     handleScreenMiddleAutoSound();
   }
 
+  function initCommentVideoSoundObserver($nodes){
+    if (!('IntersectionObserver' in window)){return}
+    if (!videoSoundCommentObserver){
+      videoSoundCommentObserver = new IntersectionObserver(function(entries){
+        entries.forEach(function(entry){
+          if (!entry.isIntersecting || entry.intersectionRatio <= 0){
+            const video = entry.target;
+            if (!video.muted){
+              setVideoMutedAuto(video, true);
+            }
+          }
+        });
+      }, { root: null, threshold: 0.1 });
+    }
+    const $scope = $nodes ? $nodes : $('body');
+    const $videos = $scope.is('video') ? $scope : $scope.find('video');
+    $videos.each(function(){
+      observeOnce(this, videoSoundCommentObserver, 'jrasSoundCommentObserved');
+    });
+  }
+
   function findPostContainers($nodes){
     if (!$nodes){return $('div[id^=postContainer].postContainer')}
     const $arr = $();
@@ -1665,6 +1689,7 @@ const JRAS_CurrVersion = '2.4.0';
             }
             makeExtendedGifLinks($(mutation.addedNodes));
             initVideoSoundControls($(mutation.addedNodes));
+            initCommentVideoSoundObserver($(mutation.addedNodes));
             for (let i = 0; i < mutation.addedNodes.length; i++) {
               const itm = mutation.addedNodes[i];
 
