@@ -13,7 +13,7 @@
 // @include     *jr-proxy.com*
 // @require     http://ajax.googleapis.com/ajax/libs/jquery/2.2.0/jquery.min.js
 // @require     https://code.jquery.com/ui/1.11.4/jquery-ui.min.js
-// @version     2.4.1
+// @version     2.4.3
 // @grant       GM.getValue
 // @grant       GM.setValue
 // @grant       GM.listValues
@@ -27,12 +27,15 @@
 // @run-at      document-end
 // ==/UserScript==
 
-const JRAS_CurrVersion = '2.4.1';
+const JRAS_CurrVersion = '2.4.3';
 
 /* RELEASE NOTES
+ 2.4.3
+   * fix "Звук видео в коментариях отключается в момент ухода видео с экрана" для видео в коментах на странице поста
+   * Поправлено расположение кнопки включения звука на reactor.cc.  Точнее там поправлен блок со ссылками на gif
  2.4.1
    + Звук видео в коментариях отключается в момент ухода видео с экрана
- 2.4.0
+ 2.4.0 - https://old.reactor.cc/post/6247778
    + Управление звуком видео
       + Кнопка вкл/выкл звук
       + Опция надо ли вообще [true]
@@ -1084,6 +1087,7 @@ const JRAS_CurrVersion = '2.4.1';
       return;
     }
     initVideoSoundControls();
+    initCommentVideoSoundObserver($('div.post_comment_list'));
     initVideoSoundScrollObserver();
     initVideoSoundVideoScrollObserver();
     initVideoSoundHalfObserver();
@@ -1281,6 +1285,7 @@ const JRAS_CurrVersion = '2.4.1';
       observeVideoForAutoSound(video);
       observeVideoForSoundScroll(video);
     });
+    initCommentVideoSoundObserver($nodes);
     handleScreenMiddleAutoSound();
   }
 
@@ -1301,28 +1306,41 @@ const JRAS_CurrVersion = '2.4.1';
     const $scope = $nodes ? $nodes : $('body');
     const $videos = $scope.is('video') ? $scope : $scope.find('video');
     $videos.each(function(){
+      if ($(this).closest('div.post_comment_list').length === 0){return}
       observeOnce(this, videoSoundCommentObserver, 'jrasSoundCommentObserved');
     });
   }
 
   function findPostContainers($nodes){
-    if (!$nodes){return $('div[id^=postContainer].postContainer')}
+    if (!$nodes){
+      return $('div[id^=postContainer].postContainer').filter(function(){
+        return $(this).closest('div.post_comment_list').length === 0;
+      });
+    }
     const $arr = $();
     $nodes.each(function(){
       const $node = $(this);
-      if ($node.is('div[id^=postContainer].postContainer')){
+      if ($node.is('div[id^=postContainer].postContainer')
+        && $node.closest('div.post_comment_list').length === 0){
         $arr.push(this);
       }
       $node.find('div[id^=postContainer].postContainer').each(function(){
+        if ($(this).closest('div.post_comment_list').length !== 0){return}
         $arr.push(this);
       });
     });
     return $arr;
   }
 
+  function findPostVideos($post){
+    return $post.find('video').filter(function(){
+      return $(this).closest('div.post_comment_list').length === 0;
+    });
+  }
+
   function setPostVisibilityState(post, isVisible){
     if (!userOptions.val('videoSoundMuteOnPostScroll')){return}
-    const $videos = $(post).find('video');
+    const $videos = findPostVideos($(post));
     if (!$videos.length){return}
     $videos.each(function(){
       applyVisibilitySoundState(this, isVisible);
@@ -3190,7 +3208,13 @@ const JRAS_CurrVersion = '2.4.1';
       }
       .jras-ext-gif-box {
         margin: -2px 3px;
+        line-height: 1.5em !important;
+        height: unset !important;
       }
+      .post_content p, .post_content div {
+        margin: 0;
+      }
+
 
      /* для старого дизайна */
       .treeCross-old{
