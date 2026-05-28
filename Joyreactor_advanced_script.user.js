@@ -13,7 +13,7 @@
 // @include     *jr-proxy.com*
 // @require     http://ajax.googleapis.com/ajax/libs/jquery/2.2.0/jquery.min.js
 // @require     https://code.jquery.com/ui/1.11.4/jquery-ui.min.js
-// @version     2.4.3
+// @version     2.4.4
 // @grant       GM.getValue
 // @grant       GM.setValue
 // @grant       GM.listValues
@@ -27,9 +27,11 @@
 // @run-at      document-end
 // ==/UserScript==
 
-const JRAS_CurrVersion = '2.4.3';
+const JRAS_CurrVersion = '2.4.4';
 
 /* RELEASE NOTES
+ 2.4.4
+   + я не люблю свежие анусы
  2.4.3
    * fix "Звук видео в коментариях отключается в момент ухода видео с экрана" для видео в коментах на странице поста
    * Поправлено расположение кнопки включения звука на reactor.cc.  Точнее там поправлен блок со ссылками на gif
@@ -1263,6 +1265,11 @@ const JRAS_CurrVersion = '2.4.3';
     });
   }
 
+  function isVideoInContentContainer(video){
+    if (!video){return false}
+    return $(video).closest('div.content-container, div#post_list').length > 0;
+  }
+
   function initVideoSoundControls($nodes){
     if (!userOptions.val('videoSoundOptions')){return}
     const $scope = $nodes ? $nodes : $('body');
@@ -1270,6 +1277,7 @@ const JRAS_CurrVersion = '2.4.3';
     $videos.each(function(){
       const video = this;
       if (video.dataset && video.dataset.jrasSoundInit){return}
+      if (!isVideoInContentContainer(video)){return}
       if (video.dataset){
         video.dataset.jrasSoundInit = '1';
       }
@@ -1296,6 +1304,7 @@ const JRAS_CurrVersion = '2.4.3';
         entries.forEach(function(entry){
           if (!entry.isIntersecting || entry.intersectionRatio <= 0){
             const video = entry.target;
+            if (!isVideoInContentContainer(video)){return}
             if (!video.muted){
               setVideoMutedAuto(video, true);
             }
@@ -1306,7 +1315,7 @@ const JRAS_CurrVersion = '2.4.3';
     const $scope = $nodes ? $nodes : $('body');
     const $videos = $scope.is('video') ? $scope : $scope.find('video');
     $videos.each(function(){
-      if ($(this).closest('div.post_comment_list').length === 0){return}
+      if ($(this).closest('div.post_comment_list').length === 0 || !isVideoInContentContainer(this)){return}
       observeOnce(this, videoSoundCommentObserver, 'jrasSoundCommentObserved');
     });
   }
@@ -1343,17 +1352,20 @@ const JRAS_CurrVersion = '2.4.3';
     const $videos = findPostVideos($(post));
     if (!$videos.length){return}
     $videos.each(function(){
+      if (!isVideoInContentContainer(this)){return}
       applyVisibilitySoundState(this, isVisible);
     });
   }
 
   function setVideoVisibilityState(video, isVisible){
     if (!userOptions.val('videoSoundMuteOnVideoScroll')){return}
+    if (!isVideoInContentContainer(video)){return}
     applyVisibilitySoundState(video, isVisible);
   }
 
   function applyVisibilitySoundState(video, isVisible){
     if (!video){return}
+    if (!isVideoInContentContainer(video)){return}
     if (isVisible){
       const saved = videoSoundScrollStates.get(video);
       if (!saved){return}
@@ -1438,6 +1450,7 @@ const JRAS_CurrVersion = '2.4.3';
     if (!videoSoundVideoScrollObserver){return}
 
     $('video').each(function(){
+      if (!isVideoInContentContainer(this)){return}
       observeVideoForSoundScroll(this);
     });
   }
@@ -1472,6 +1485,7 @@ const JRAS_CurrVersion = '2.4.3';
     let otherVideo;
     $('video').each(function(){
       if (this === video){return}
+      if (!isVideoInContentContainer(this)){return}
       if (!this.muted && this.volume > 0){
         otherVideo = this;
         return false;
@@ -1483,6 +1497,7 @@ const JRAS_CurrVersion = '2.4.3';
   function muteOtherVideos(activeVideo){
     $('video').each(function(){
       if (this === activeVideo){return}
+      if (!isVideoInContentContainer(this)){return}
       if (!this.muted){
         setVideoMutedAuto(this, true);
       }
@@ -1491,6 +1506,7 @@ const JRAS_CurrVersion = '2.4.3';
 
   function ensureVideoSoundOn(video){
     if ((userOptions.val('autoUnmuteVideoNone'))){return}
+    if (!isVideoInContentContainer(video)){return}
     if (!video || !canAutoUnmuteVideo(video)){return}
     if (!video.muted && video.volume > 0){
       currentSoundVideo = video;
@@ -1519,6 +1535,7 @@ const JRAS_CurrVersion = '2.4.3';
   function observeVideoForAutoSound(video){
     if (!videoSoundHalfObserver){return}
     if (video.dataset && video.dataset.jrasSoundHalfObserved){return}
+    if (!isVideoInContentContainer(video)){return}
     if (video.dataset){
       video.dataset.jrasSoundHalfObserved = '1';
     }
@@ -1572,6 +1589,7 @@ const JRAS_CurrVersion = '2.4.3';
     if (!midY){return null}
     let target = null;
     $('video').each(function(){
+      if (!isVideoInContentContainer(this)){return}
       const rect = this.getBoundingClientRect ? this.getBoundingClientRect() : null;
       if (!rect){return}
       if (rect.bottom <= 0 || rect.top >= (win.innerHeight || document.documentElement.clientHeight || 0)){return}
