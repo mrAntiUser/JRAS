@@ -11,9 +11,10 @@
 // @include     *reactor.cc*
 // @include     *joyreactor.cc*
 // @include     *jr-proxy.com*
+// @connect     api.joyreactor.cc
 // @require     http://ajax.googleapis.com/ajax/libs/jquery/2.2.0/jquery.min.js
 // @require     https://code.jquery.com/ui/1.11.4/jquery-ui.min.js
-// @version     2.4.4
+// @version     2.5.0
 // @grant       GM.getValue
 // @grant       GM.setValue
 // @grant       GM.listValues
@@ -27,9 +28,17 @@
 // @run-at      document-end
 // ==/UserScript==
 
-const JRAS_CurrVersion = '2.4.4';
+const JRAS_CurrVersion = '2.5.0';
 
 /* RELEASE NOTES
+ 2.5.0
+   + линки пользователей из профиля
+     + Опция надо ли вообще [true]
+     + Опция Пользовательские ссылки на посте [true]
+     + Опция Пользовательские ссылки в комментариях [true]
+     + Опция сколько показывать ссылок (0 - показывать всё) [0]
+     + Опция Показывать прогрессбар ожидания загрузки пользовательских ссылок [true]
+     + Опция Пытаться загрузить favorite.ico для неизвестных сайтов [true]
  2.4.4
    + я не люблю свежие анусы
  2.4.3
@@ -310,12 +319,17 @@ const JRAS_CurrVersion = '2.4.4';
   const GMdeleteValue     = (gm3) ? GM_deleteValue : GM.deleteValue;
   const GMxmlhttpRequest  = (gm3) ? GM_xmlhttpRequest : GM.xmlhttpRequest;
 
+  const graphqlEndpoint = 'https://api.joyreactor.cc/graphql';
+
+  const defUserName = 'Anonymous';
   const defLoadTooltipSize = 212;
   const defUserTooltipSize = 212;
   const defTagTooltipSize = 270;
 
   const lng = new LanguageData();
   const page = new PageData();
+  const userUrlsByName = new Map();
+  const socialMediaIco = new SocialMediaIcons();
 
   const videoSoundStates = new WeakMap();
   const videoSoundScrollStates = new WeakMap();
@@ -329,11 +343,16 @@ const JRAS_CurrVersion = '2.4.4';
   let currentSoundVideo;
   let videoSoundScreenMiddleRaf;
   let currentScreenMiddleVideo;
-  
+
   const quoteData = {
     $commentContainer: undefined,
     $popupQuote: undefined,
     quoteInsertData: undefined };
+
+  const delay = {
+    makeAllUsersCommentsLink: 150,
+    showHiddenComments: 500
+  }
 
   const userOptions = initOptions();
   userOptions.loadUserData(page.currentUser);
@@ -344,6 +363,7 @@ const JRAS_CurrVersion = '2.4.4';
     themeDependentCSS();
     makePropElements();
     makeAllUserTooltip();
+    makeAllUsersLink();
     makeAllTagTooltip();
     makePostControls();
     procTopbar();
@@ -362,6 +382,7 @@ const JRAS_CurrVersion = '2.4.4';
       makeTreeComments();
       makeAvatarOnOldDesign();
     }
+    makeAllUsersCommentsLink();
 
     userRemove(userOptions.data.BlockUsers);
     tagRemove(userOptions.data.BlockTags, true);
@@ -597,6 +618,27 @@ const JRAS_CurrVersion = '2.4.4';
         },
         autoUnmuteVideoOnScreenMiddle: { dt: null,
           propData: function(){return { def: true, type: 'radio', group: 'autoUnmuteVideoMode'}}
+        },
+        showUserLinks: { dt: null,
+          propData: function () { return { def: true, type: 'checkbox' } }
+        },
+        showUserLinksProgressbar: { dt: null,
+          propData: function () { return { def: true, type: 'checkbox' } }
+        },
+        loadFavoriteIcoForUserLinks: {
+          dt: null,
+          propData: function () { return { def: true, type: 'checkbox' } }
+        },
+        showUserLinksOnPost: { dt: null,
+          propData: function () { return { def: true, type: 'checkbox' } }
+        },
+        showUserLinksOnComment: {
+          dt: null,
+          propData: function () { return { def: true, type: 'checkbox' } }
+        },
+        showUserLinksCount: {
+          dt: null,
+          propData: function () { return { def: 0, type: 'number', min: 0, max: 99 } }
         },
         makeQuotesOnComments: { dt: null,
           propData: function () { return { def: false, type: 'checkbox' } }
@@ -836,6 +878,10 @@ const JRAS_CurrVersion = '2.4.4';
   }
   function b64decode(str){
     return decodeURIComponent(escape(atob(str)));
+  }
+
+  function escapeGraphqlString(str) {
+    return String(str).replace(/\\/g, '\\\\').replace(/"/g, '\\"');
   }
 
   function removeRedirectLink($inElm){
@@ -1623,7 +1669,7 @@ const JRAS_CurrVersion = '2.4.4';
           }
           $parElm.css({'color': 'rgb(255, 57, 57)'});
         }
-      }, 500 * idx);
+      }, delay.showHiddenComments * idx);
     })
   }
 
@@ -1726,9 +1772,7 @@ const JRAS_CurrVersion = '2.4.4';
             makeExtendedGifLinks($(mutation.addedNodes));
             initVideoSoundControls($(mutation.addedNodes));
             initCommentVideoSoundObserver($(mutation.addedNodes));
-            for (let i = 0; i < mutation.addedNodes.length; i++) {
-              const itm = mutation.addedNodes[i];
-
+            for (const itm of mutation.addedNodes) {
               removeRedirectLink($(itm));
               showHiddenComments($(itm));
               correctOldReactorLink($(itm));
@@ -1754,6 +1798,15 @@ const JRAS_CurrVersion = '2.4.4';
                   if (userOptions.val('makeAvatarOnOldDesign') && !userOptions.val('makeAvatarOnlyFullPost')) {
                     makeAvatarOnOldDesign(elm);
                   }
+                  if (userOptions.val('showUserLinks') && userOptions.val('showUserLinksOnComment')) {
+                    setTimeout(function () {
+                      makeUserLinks($(elm).find('span.reply-link'), $(elm).find('span.reply-link>a:first').text().trim(), {
+                        insertAfter: '>a:first',
+                        loaderClassName: 'jras-nick-comment-loader',
+                        linkContainerClassName: 'jras-nick-comment-link-cntnr',
+                        linkClassName: 'jras-nick-comment-link' });
+                    }, delay.makeAllUsersCommentsLink * idx);
+                  };
                 })
               }
               const blockUsersAsFindStr = 'a:contains(' + userOptions.data.BlockUsers.join('), a:contains(') + ')';
@@ -2417,6 +2470,64 @@ const JRAS_CurrVersion = '2.4.4';
     });
   }
 
+  function graphqlRequest(query, variables = {}, options = {}) {
+    const endpoint = options.endpoint || graphqlEndpoint;
+    const operationName = options.operationName;
+
+    return new Promise((resolve, reject) => {
+      const payload = JSON.stringify({
+        query,
+        variables,
+        operationName
+      });
+
+      GMxmlhttpRequest({
+        method: 'POST',
+        url: endpoint,
+        headers: Object.assign({
+          'Content-Type': 'application/json',
+          'Accept': 'application/json',
+        }, options.headers || {}),
+        // withCredentials: true,
+        data: payload,
+        timeout: options.timeoutMs || 15000,
+        onload: function (res) {
+          let body;
+          try {
+            body = JSON.parse(res.responseText || 'null');
+          } catch (e) {
+            reject({ type: 'parse_error', status: res.status, message: 'Invalid JSON in response', raw: res.responseText});
+            return;
+          }
+          if (res.status < 200 || res.status >= 300) {
+            reject({ type: 'http_error', status: res.status, body });
+            return;
+          }
+          if (body && Array.isArray(body.errors) && body.errors.length) {
+            reject({ type: 'graphql_error', status: res.status, errors: body.errors, data: body.data});
+            return;
+          }
+          resolve(body);
+        },
+        onerror: function (err) {
+          reject({type: 'network_error', error: err});
+        },
+        ontimeout: function () {
+          reject({ type: 'timeout' });
+        }
+      });
+    });
+  }
+
+  function getGraphqlJsonSkipError(query, variables = {}, options = {}) {
+    return graphqlRequest(query, variables, options)
+      .then((json) => json)
+      .catch((e) => {
+        win.console.log('JRAS graphqlRequest Error:', e);
+        return null;
+      });
+  }
+
   function actionTooltipButton($button, link, buttonTxtID){
     $button.click({clickLink: link, updateContainer: $button}, function(eventObject){
       const t = eventObject.data.updateContainer.find('#' + buttonTxtID);
@@ -2792,7 +2903,7 @@ const JRAS_CurrVersion = '2.4.4';
           setTooltipBounds($tooltip, {width: defUserTooltipSize});
           const $userSideBar = $(doc).find('div.user-awards').closest('div#sidebar');
           const $userData = $(doc).find('div.user-awards').parent('div.sidebarContent');
-          $userData.find('div.user').clone().appendTo($outContainer).css({'line-height': '22px'})
+          $userData.find('div.user').clone().appendTo($outContainer).css({'line-height': '16px'})
             .find('span').addClass('jras-tooltip-caption');
           if (userOptions.val('chatlaneToPacaki')){
             $outContainer.find('div.user > span').css('color', $outContainer.find('div.user').css('color'));
@@ -2801,7 +2912,9 @@ const JRAS_CurrVersion = '2.4.4';
           $outContainer.find('div.user').prepend(
             `<div style="background-color: ${colUserOnline}; height: 83%; margin-right: 4px; display: inline-block; width: 5px; border-radius: 10px;"></div>`
           );
-
+          const $userLinkCtrl = $('<span style="padding-left: 5px;">&nbsp;</span>');
+          $outContainer.find('div.user').append($userLinkCtrl);
+          makeUserLinks($userLinkCtrl, $userData.find('div.user span').text().trim(), {linkClassName: 'jras-tooltip-nick-link'});
 
           makeUserAwardsBlock($userData.find('div.user-awards'), $outContainer);
 
@@ -2892,6 +3005,86 @@ const JRAS_CurrVersion = '2.4.4';
       });
       makeJRASUserTooltipElm($mainBtnContainer, userName);
     }
+  }
+
+  function getUserUrls(userName) {
+    const queryUserName = String(userName || '').trim();
+    const cacheKey = queryUserName.toLowerCase();
+    if (!cacheKey) return Promise.resolve(null);
+    if (userUrlsByName.has(cacheKey)) return userUrlsByName.get(cacheKey);
+    const userUrlsPromise = getGraphqlJsonSkipError(`query {user(username:"${escapeGraphqlString(queryUserName)}"){urls}}`)
+      .then(json => {
+        if (json === null) {
+          userUrlsByName.delete(cacheKey);
+          return null;
+        }
+        const urls = json?.data?.user?.urls;
+        return urls?.length ? urls : null;
+      });
+    userUrlsByName.set(cacheKey, userUrlsPromise);
+    return userUrlsPromise;
+  }
+
+  function makeUserLinkIcon(url) {
+    const icoNotFound = $(`<span style="position: relative;top: -2px;" title="icon not found for ${url.hostname}">\u066d</span>`);
+    const hostKey = url.hostname.split('.').reverse().slice(0, 2).reverse().join('_');
+    const knownIcon = socialMediaIco[hostKey];
+    if (knownIcon) {
+      return $(knownIcon).addClass('jras-media-n jras-media-color');
+    }
+    if (!userOptions.val('loadFavoriteIcoForUserLinks')) return icoNotFound;
+    const $img = $(`<img class="jras-media-n" loading="lazy">`);
+    $img.on('error', function onFaviconError() {
+      $img.off('error', onFaviconError);
+      $img.replaceWith(icoNotFound);
+    });
+    $img.attr('src', `${url.origin}/favicon.ico`).addClass('jras-media-n jras-media-color');
+    return $img;
+  }
+
+  function makeUserLinks($baseContainer, userName, options = {}){
+    if (!userOptions.val('showUserLinks')) return;
+    if (!$baseContainer) return;
+    const $jrasLoadLinks = $(`<span class="${userOptions.val('showUserLinksProgressbar') ? 'jras-loader' : ''} jras-loader-normal jras-nick-comment-link-cntnr ${options.loaderClassName || ''}"></span>`);
+    if (options.insertAfter) {
+      $baseContainer.find(options.insertAfter).after($jrasLoadLinks);
+    }else {
+      $baseContainer.append($jrasLoadLinks);
+    }
+    getUserUrls(userName)
+      .then(urls => {
+        if (urls && urls.length) {
+          const $container = $(`<span class="${options.linkContainerClassName || ''}"></span>`);
+          urls.forEach((link, idx) => {
+            const userLinksLimit = userOptions.val('showUserLinksCount');
+            if (userLinksLimit != 0 && idx > userLinksLimit - 1) return;
+            $container.append($(`<a href="${link}" target="_blank" rel="nofollow"></a>`).addClass(options.linkClassName || '').append(makeUserLinkIcon(new URL(link))));
+          });
+          $jrasLoadLinks.replaceWith($container);
+        } else {
+          $jrasLoadLinks.remove();
+        }
+      });
+  }
+
+  function makeAllUsersLink() {
+    if (!userOptions.val('showUserLinks') || !userOptions.val('showUserLinksOnPost')) return;
+    $('div.uhead_nick').each(function(){
+      makeUserLinks($(this), $(this).find('>a').text().trim(), { loaderClassName: 'jras-nick-loader', linkClassName:'jras-nick-link'});
+    });
+  }
+
+  function makeAllUsersCommentsLink() {
+    if (!userOptions.val('showUserLinks') || !userOptions.val('showUserLinksOnComment')) return;
+    $('div[id^="comment"] span.reply-link').each(function (idx, elm) {
+      setTimeout(function () {
+        makeUserLinks($(elm), $(elm).find('>a:first').text().trim(),{
+          insertAfter: '>a:first',
+          loaderClassName: 'jras-nick-comment-loader',
+          linkContainerClassName: 'jras-nick-comment-link-cntnr',
+          linkClassName: 'jras-nick-comment-link'});
+      }, delay.makeAllUsersCommentsLink * idx);
+    })
   }
 
   function getSideBarSection($sideBarUser, sectCaption){
@@ -3232,7 +3425,13 @@ const JRAS_CurrVersion = '2.4.4';
       .post_content p, .post_content div {
         margin: 0;
       }
-
+      .jras-media-n {
+        width: 1em;
+        height: 1em;
+     }
+      .jras-media-color {
+        fill: currentColor;
+      }
 
      /* для старого дизайна */
       .treeCross-old{
@@ -3751,6 +3950,50 @@ const JRAS_CurrVersion = '2.4.4';
       #jras-qt-popup.hide {
         display: none;
       }
+      .jras-loader-normal{
+        width: 1em;
+        height: 1em;
+      }
+      .jras-nick-loader{
+        vertical-align: top;
+        margin-top: 11px;
+        margin-left: 5px;
+      }
+      .jras-nick-comment-loader{
+        margin-left: 5px;
+        height: 1em !important;
+      }
+      .jras-nick-link{
+        margin-top: 9px !important;
+      }
+      .jras-tooltip-nick-link{
+        padding-right: 2px;
+      }
+      .jras-nick-comment-link{
+        /*font-size: 75%;*/
+      }
+      .jras-nick-comment-link-cntnr{
+        position: relative;
+        top: 2px;
+      }
+
+
+      .jras-loader {
+        border: 0.2em dotted;
+        border-radius: 50%;
+        display: inline-block;
+        position: relative;
+        box-sizing: border-box;
+        animation: rotation 2s linear infinite; 
+      }
+      @keyframes rotation {
+        0% {
+          transform: rotate(0deg);
+        }
+        100% {
+          transform: rotate(360deg);
+        }
+      }
 
       /* Окно настроек  */
       .modal {
@@ -4141,6 +4384,14 @@ const JRAS_CurrVersion = '2.4.4';
                         ${getHTMLProp('autoUnmuteVideoOnScreenMiddle')}
                       </div>
                     </section>
+                    <section class="jras-prop-gui-section"> ${getHTMLProp('showUserLinks')} </section>
+                    <section class="jras-prop-gui-section jras-prop-gui-subsection">
+                      ${getHTMLProp('showUserLinksOnPost')} <br>
+                      ${getHTMLProp('showUserLinksOnComment')} <br>
+                      ${getHTMLProp('showUserLinksProgressbar')} <br>
+                      ${getHTMLProp('loadFavoriteIcoForUserLinks')} <br>
+                      ${getHTMLProp('showUserLinksCount')}
+                    </section>
                     <section class="jras-prop-gui-section"> ${getHTMLProp('pcbShowPostControl')} </section>
                     <section class="jras-prop-gui-section jras-prop-gui-subsection">
                       ${getHTMLProp('pcbShowInFullPost')} <br>
@@ -4439,13 +4690,13 @@ const JRAS_CurrVersion = '2.4.4';
     this.currentPage = win.location.href;
     this.isUserLogon = $('li.login.lastitem a').is('#logout');
 
-    this.currentUser = this.isUserLogon ? $('li.login a#settings').attr('href') : 'Anonymous';
-    if (this.currentUser != 'Anonymous'){
+    this.currentUser = this.isUserLogon ? $('li.login a#settings').attr('href') : defUserName;
+    if (this.currentUser != defUserName){
       regEx = /(^.user.)(.+)/g;
       matches = regEx.exec(this.currentUser);
       this.currentUser = matches[2];
       if (this.currentUser === undefined || this.currentUser == ''){
-        this.currentUser = 'Anonymous';
+        this.currentUser = defUserName;
       }
     }
     this.isSchemeLight = function(){
@@ -4476,6 +4727,41 @@ const JRAS_CurrVersion = '2.4.4';
   }
 
   function niceBytes(a){let b=0,c=parseInt(a,10)||0;for(;1024<=c&&++b;)c/=1024;return c.toFixed(10>c&&0<b?1:0)+" "+["bytes","KB","MB","GB","TB","PB","EB","ZB","YB"][b]}
+
+  function SocialMediaIcons(){
+    this.artstation_com = `<svg viewBox="0 0 24 24"><path d="M0 17.723l2.027 3.505h.001a2.424 2.424 0 0 0 2.164 1.333h13.457l-2.792-4.838H0zm24 .025c0-.484-.143-.935-.388-1.314L15.728 2.728a2.424 2.424 0 0 0-2.142-1.289H9.419L21.598 22.54l1.92-3.325c.378-.637.482-.919.482-1.467zm-11.129-3.462L7.428 4.858l-5.444 9.428h10.887z"/></svg>`;
+    this.behance_net    = `<svg viewBox="0 0 24 24"><path d="M16.969 16.927a2.561 2.561 0 0 0 1.901.677 2.501 2.501 0 0 0 1.531-.475c.362-.235.636-.584.779-.99h2.585a5.091 5.091 0 0 1-1.9 2.896 5.292 5.292 0 0 1-3.091.88 5.839 5.839 0 0 1-2.284-.433 4.871 4.871 0 0 1-1.723-1.211 5.657 5.657 0 0 1-1.08-1.874 7.057 7.057 0 0 1-.383-2.393c-.005-.8.129-1.595.396-2.349a5.313 5.313 0 0 1 5.088-3.604 4.87 4.87 0 0 1 2.376.563c.661.362 1.231.87 1.668 1.485a6.2 6.2 0 0 1 .943 2.133c.194.821.263 1.666.205 2.508h-7.699c-.063.79.184 1.574.688 2.187ZM6.947 4.084a8.065 8.065 0 0 1 1.928.198 4.29 4.29 0 0 1 1.49.638c.418.303.748.711.958 1.182.241.579.357 1.203.341 1.83a3.506 3.506 0 0 1-.506 1.961 3.726 3.726 0 0 1-1.503 1.287 3.588 3.588 0 0 1 2.027 1.437c.464.747.697 1.615.67 2.494a4.593 4.593 0 0 1-.423 2.032 3.945 3.945 0 0 1-1.163 1.413 5.114 5.114 0 0 1-1.683.807 7.135 7.135 0 0 1-1.928.259H0V4.084h6.947Zm-.235 12.9c.308.004.616-.029.916-.099a2.18 2.18 0 0 0 .766-.332c.228-.158.411-.371.534-.619.142-.317.208-.663.191-1.009a2.08 2.08 0 0 0-.642-1.715 2.618 2.618 0 0 0-1.696-.505h-3.54v4.279h3.471Zm13.635-5.967a2.13 2.13 0 0 0-1.654-.619 2.336 2.336 0 0 0-1.163.259 2.474 2.474 0 0 0-.738.62 2.359 2.359 0 0 0-.396.792c-.074.239-.12.485-.137.734h4.769a3.239 3.239 0 0 0-.679-1.785l-.002-.001Zm-13.813-.648a2.254 2.254 0 0 0 1.423-.433c.399-.355.607-.88.56-1.413a1.916 1.916 0 0 0-.178-.891 1.298 1.298 0 0 0-.495-.533 1.851 1.851 0 0 0-.711-.274 3.966 3.966 0 0 0-.835-.073H3.241v3.631h3.293v-.014ZM21.62 5.122h-5.976v1.527h5.976V5.122Z"/></svg>`;
+    this.bsky_social    = `<svg viewBox="0 0 24 24"><path d="M5.202 2.857C7.954 4.922 10.913 9.11 12 11.358c1.087-2.247 4.046-6.436 6.798-8.501C20.783 1.366 24 .213 24 3.883c0 .732-.42 6.156-.667 7.037-.856 3.061-3.978 3.842-6.755 3.37 4.854.826 6.089 3.562 3.422 6.299-5.065 5.196-7.28-1.304-7.847-2.97-.104-.305-.152-.448-.153-.327 0-.121-.05.022-.153.327-.568 1.666-2.782 8.166-7.847 2.97-2.667-2.737-1.432-5.473 3.422-6.3-2.777.473-5.899-.308-6.755-3.369C.42 10.04 0 4.615 0 3.883c0-3.67 3.217-2.517 5.202-1.026"/></svg>`;
+    this.boosty_to      = '<svg viewBox="0 0 24 24"><path d="M2.661 14.337 6.801 0h6.362L11.88 4.444l-.038.077-3.378 11.733h3.15c-1.321 3.289-2.35 5.867-3.086 7.733-5.816-.063-7.442-4.228-6.02-9.155M8.554 24l7.67-11.035h-3.25l2.83-7.073c4.852.508 7.137 4.33 5.791 8.952C20.16 19.81 14.344 24 8.68 24h-.127z"/></svg>';
+    this.deviantart_com = `<svg viewBox="0 0 24 24"><path d="M19.207 4.794l.23-.43V0H15.07l-.436.44-2.058 3.925-.646.436H4.58v5.993h4.04l.36.436-4.175 7.98-.24.43V24H8.93l.436-.44 2.07-3.925.644-.436h7.35v-5.993h-4.05l-.36-.438 4.186-7.977z"/></svg>`;
+    this.discord_com    = `<svg viewBox="0 0 24 24"><path d="M20.317 4.3698a19.7913 19.7913 0 00-4.8851-1.5152.0741.0741 0 00-.0785.0371c-.211.3753-.4447.8648-.6083 1.2495-1.8447-.2762-3.68-.2762-5.4868 0-.1636-.3933-.4058-.8742-.6177-1.2495a.077.077 0 00-.0785-.037 19.7363 19.7363 0 00-4.8852 1.515.0699.0699 0 00-.0321.0277C.5334 9.0458-.319 13.5799.0992 18.0578a.0824.0824 0 00.0312.0561c2.0528 1.5076 4.0413 2.4228 5.9929 3.0294a.0777.0777 0 00.0842-.0276c.4616-.6304.8731-1.2952 1.226-1.9942a.076.076 0 00-.0416-.1057c-.6528-.2476-1.2743-.5495-1.8722-.8923a.077.077 0 01-.0076-.1277c.1258-.0943.2517-.1923.3718-.2914a.0743.0743 0 01.0776-.0105c3.9278 1.7933 8.18 1.7933 12.0614 0a.0739.0739 0 01.0785.0095c.1202.099.246.1981.3728.2924a.077.077 0 01-.0066.1276 12.2986 12.2986 0 01-1.873.8914.0766.0766 0 00-.0407.1067c.3604.698.7719 1.3628 1.225 1.9932a.076.076 0 00.0842.0286c1.961-.6067 3.9495-1.5219 6.0023-3.0294a.077.077 0 00.0313-.0552c.5004-5.177-.8382-9.6739-3.5485-13.6604a.061.061 0 00-.0312-.0286zM8.02 15.3312c-1.1825 0-2.1569-1.0857-2.1569-2.419 0-1.3332.9555-2.4189 2.157-2.4189 1.2108 0 2.1757 1.0952 2.1568 2.419 0 1.3332-.9555 2.4189-2.1569 2.4189zm7.9748 0c-1.1825 0-2.1569-1.0857-2.1569-2.419 0-1.3332.9554-2.4189 2.1569-2.4189 1.2108 0 2.1757 1.0952 2.1568 2.419 0 1.3332-.946 2.4189-2.1568 2.4189Z"/></svg>`;
+    this.dribbble_com   = `<svg viewBox="0 0 24 24"><path d="M12 24C5.385 24 0 18.615 0 12S5.385 0 12 0s12 5.385 12 12-5.385 12-12 12zm10.12-10.358c-.35-.11-3.17-.953-6.384-.438 1.34 3.684 1.887 6.684 1.992 7.308 2.3-1.555 3.936-4.02 4.395-6.87zm-6.115 7.808c-.153-.9-.75-4.032-2.19-7.77l-.066.02c-5.79 2.015-7.86 6.025-8.04 6.4 1.73 1.358 3.92 2.166 6.29 2.166 1.42 0 2.77-.29 4-.814zm-11.62-2.58c.232-.4 3.045-5.055 8.332-6.765.135-.045.27-.084.405-.12-.26-.585-.54-1.167-.832-1.74C7.17 11.775 2.206 11.71 1.756 11.7l-.004.312c0 2.633.998 5.037 2.634 6.855zm-2.42-8.955c.46.008 4.683.026 9.477-1.248-1.698-3.018-3.53-5.558-3.8-5.928-2.868 1.35-5.01 3.99-5.676 7.17zM9.6 2.052c.282.38 2.145 2.914 3.822 6 3.645-1.365 5.19-3.44 5.373-3.702-1.81-1.61-4.19-2.586-6.795-2.586-.825 0-1.63.1-2.4.285zm10.335 3.483c-.218.29-1.935 2.493-5.724 4.04.24.49.47.985.68 1.486.08.18.15.36.22.53 3.41-.43 6.8.26 7.14.33-.02-2.42-.88-4.64-2.31-6.38z"/></svg>`;
+    this.facebook_com   = `<svg viewBox="0 0 24 24"><path d="M9.101 23.691v-7.98H6.627v-3.667h2.474v-1.58c0-4.085 1.848-5.978 5.858-5.978.401 0 .955.042 1.468.103a8.68 8.68 0 0 1 1.141.195v3.325a8.623 8.623 0 0 0-.653-.036 26.805 26.805 0 0 0-.733-.009c-.707 0-1.259.096-1.675.309a1.686 1.686 0 0 0-.679.622c-.258.42-.374.995-.374 1.752v1.297h3.919l-.386 2.103-.287 1.564h-3.246v8.245C19.396 23.238 24 18.179 24 12.044c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.628 3.874 10.35 9.101 11.647Z"/></svg>`;
+    this.github_com     = `<svg viewBox="0 0 24 24"><path d="M12 .297c-6.63 0-12 5.373-12 12 0 5.303 3.438 9.8 8.205 11.385.6.113.82-.258.82-.577 0-.285-.01-1.04-.015-2.04-3.338.724-4.042-1.61-4.042-1.61C4.422 18.07 3.633 17.7 3.633 17.7c-1.087-.744.084-.729.084-.729 1.205.084 1.838 1.236 1.838 1.236 1.07 1.835 2.809 1.305 3.495.998.108-.776.417-1.305.76-1.605-2.665-.3-5.466-1.332-5.466-5.93 0-1.31.465-2.38 1.235-3.22-.135-.303-.54-1.523.105-3.176 0 0 1.005-.322 3.3 1.23.96-.267 1.98-.399 3-.405 1.02.006 2.04.138 3 .405 2.28-1.552 3.285-1.23 3.285-1.23.645 1.653.24 2.873.12 3.176.765.84 1.23 1.91 1.23 3.22 0 4.61-2.805 5.625-5.475 5.92.42.36.81 1.096.81 2.22 0 1.606-.015 2.896-.015 3.286 0 .315.21.69.825.57C20.565 22.092 24 17.592 24 12.297c0-6.627-5.373-12-12-12"/></svg>`;
+    this.instagram_com  = `<svg viewBox="0 0 24 24"><path d="M7.0301.084c-1.2768.0602-2.1487.264-2.911.5634-.7888.3075-1.4575.72-2.1228 1.3877-.6652.6677-1.075 1.3368-1.3802 2.127-.2954.7638-.4956 1.6365-.552 2.914-.0564 1.2775-.0689 1.6882-.0626 4.947.0062 3.2586.0206 3.6671.0825 4.9473.061 1.2765.264 2.1482.5635 2.9107.308.7889.72 1.4573 1.388 2.1228.6679.6655 1.3365 1.0743 2.1285 1.38.7632.295 1.6361.4961 2.9134.552 1.2773.056 1.6884.069 4.9462.0627 3.2578-.0062 3.668-.0207 4.9478-.0814 1.28-.0607 2.147-.2652 2.9098-.5633.7889-.3086 1.4578-.72 2.1228-1.3881.665-.6682 1.0745-1.3378 1.3795-2.1284.2957-.7632.4966-1.636.552-2.9124.056-1.2809.0692-1.6898.063-4.948-.0063-3.2583-.021-3.6668-.0817-4.9465-.0607-1.2797-.264-2.1487-.5633-2.9117-.3084-.7889-.72-1.4568-1.3876-2.1228C21.2982 1.33 20.628.9208 19.8378.6165 19.074.321 18.2017.1197 16.9244.0645 15.6471.0093 15.236-.005 11.977.0014 8.718.0076 8.31.0215 7.0301.0839m.1402 21.6932c-1.17-.0509-1.8053-.2453-2.2287-.408-.5606-.216-.96-.4771-1.3819-.895-.422-.4178-.6811-.8186-.9-1.378-.1644-.4234-.3624-1.058-.4171-2.228-.0595-1.2645-.072-1.6442-.079-4.848-.007-3.2037.0053-3.583.0607-4.848.05-1.169.2456-1.805.408-2.2282.216-.5613.4762-.96.895-1.3816.4188-.4217.8184-.6814 1.3783-.9003.423-.1651 1.0575-.3614 2.227-.4171 1.2655-.06 1.6447-.072 4.848-.079 3.2033-.007 3.5835.005 4.8495.0608 1.169.0508 1.8053.2445 2.228.408.5608.216.96.4754 1.3816.895.4217.4194.6816.8176.9005 1.3787.1653.4217.3617 1.056.4169 2.2263.0602 1.2655.0739 1.645.0796 4.848.0058 3.203-.0055 3.5834-.061 4.848-.051 1.17-.245 1.8055-.408 2.2294-.216.5604-.4763.96-.8954 1.3814-.419.4215-.8181.6811-1.3783.9-.4224.1649-1.0577.3617-2.2262.4174-1.2656.0595-1.6448.072-4.8493.079-3.2045.007-3.5825-.006-4.848-.0608M16.953 5.5864A1.44 1.44 0 1 0 18.39 4.144a1.44 1.44 0 0 0-1.437 1.4424M5.8385 12.012c.0067 3.4032 2.7706 6.1557 6.173 6.1493 3.4026-.0065 6.157-2.7701 6.1506-6.1733-.0065-3.4032-2.771-6.1565-6.174-6.1498-3.403.0067-6.156 2.771-6.1496 6.1738M8 12.0077a4 4 0 1 1 4.008 3.9921A3.9996 3.9996 0 0 1 8 12.0077"/></svg>`;
+    this.itch_io        = `<svg viewBox="0 0 24 24"><path d="M3.13 1.338C2.08 1.96.02 4.328 0 4.95v1.03c0 1.303 1.22 2.45 2.325 2.45 1.33 0 2.436-1.102 2.436-2.41 0 1.308 1.07 2.41 2.4 2.41 1.328 0 2.362-1.102 2.362-2.41 0 1.308 1.137 2.41 2.466 2.41h.024c1.33 0 2.466-1.102 2.466-2.41 0 1.308 1.034 2.41 2.363 2.41 1.33 0 2.4-1.102 2.4-2.41 0 1.308 1.106 2.41 2.435 2.41C22.78 8.43 24 7.282 24 5.98V4.95c-.02-.62-2.082-2.99-3.13-3.612-3.253-.114-5.508-.134-8.87-.133-3.362 0-7.945.053-8.87.133zm6.376 6.477a2.74 2.74 0 0 1-.468.602c-.5.49-1.19.795-1.947.795a2.786 2.786 0 0 1-1.95-.795c-.182-.178-.32-.37-.446-.59-.127.222-.303.412-.486.59a2.788 2.788 0 0 1-1.95.795c-.092 0-.187-.025-.264-.052-.107 1.113-.152 2.176-.168 2.95v.005l-.006 1.167c.02 2.334-.23 7.564 1.03 8.85 1.952.454 5.545.662 9.15.663 3.605 0 7.198-.21 9.15-.664 1.26-1.284 1.01-6.514 1.03-8.848l-.006-1.167v-.004c-.016-.775-.06-1.838-.168-2.95-.077.026-.172.052-.263.052a2.788 2.788 0 0 1-1.95-.795c-.184-.178-.36-.368-.486-.59-.127.22-.265.412-.447.59a2.786 2.786 0 0 1-1.95.794c-.76 0-1.446-.303-1.948-.793a2.74 2.74 0 0 1-.468-.602 2.738 2.738 0 0 1-.463.602 2.787 2.787 0 0 1-1.95.794h-.16a2.787 2.787 0 0 1-1.95-.793 2.738 2.738 0 0 1-.464-.602zm-2.004 2.59v.002c.795.002 1.5 0 2.373.953.687-.072 1.406-.108 2.125-.107.72 0 1.438.035 2.125.107.873-.953 1.578-.95 2.372-.953.376 0 1.876 0 2.92 2.934l1.123 4.028c.832 2.995-.266 3.068-1.636 3.07-2.03-.075-3.156-1.55-3.156-3.025-1.124.184-2.436.276-3.748.277-1.312 0-2.624-.093-3.748-.277 0 1.475-1.125 2.95-3.156 3.026-1.37-.004-2.468-.077-1.636-3.072l1.122-4.027c1.045-2.934 2.545-2.934 2.92-2.934zM12 12.714c-.002.002-2.14 1.964-2.523 2.662l1.4-.056v1.22c0 .056.56.033 1.123.007.562.026 1.124.05 1.124-.008v-1.22l1.4.055C14.138 14.677 12 12.713 12 12.713z"/></svg>`;
+    this.linkedin_com   = `<svg viewBox="0 0 72 72"><path d="M8,72 L64,72 C68.418278,72 72,68.418278 72,64 L72,8 C72,3.581722 68.418278,-8.11624501e-16 64,0 L8,0 C3.581722,8.11624501e-16 -5.41083001e-16,3.581722 0,8 L0,64 C5.41083001e-16,68.418278 3.581722,72 8,72 Z"/><path d="M62,62 L51.315625,62 L51.315625,43.8021149 C51.315625,38.8127542 49.4197917,36.0245323 45.4707031,36.0245323 C41.1746094,36.0245323 38.9300781,38.9261103 38.9300781,43.8021149 L38.9300781,62 L28.6333333,62 L28.6333333,27.3333333 L38.9300781,27.3333333 L38.9300781,32.0029283 C38.9300781,32.0029283 42.0260417,26.2742151 49.3825521,26.2742151 C56.7356771,26.2742151 62,30.7644705 62,40.051212 L62,62 Z M16.349349,22.7940133 C12.8420573,22.7940133 10,19.9296567 10,16.3970067 C10,12.8643566 12.8420573,10 16.349349,10 C19.8566406,10 22.6970052,12.8643566 22.6970052,16.3970067 C22.6970052,19.9296567 19.8566406,22.7940133 16.349349,22.7940133 Z M11.0325521,62 L21.769401,62 L21.769401,27.3333333 L11.0325521,27.3333333 L11.0325521,62 Z" fill="#c7c7c7"/></svg>`;
+    this.linktr_ee      = `<svg viewBox="0 0 24 24"><path d="m13.73635 5.85251 4.00467-4.11665 2.3248 2.3808-4.20064 4.00466h5.9085v3.30473h-5.9365l4.22865 4.10766-2.3248 2.3338L12.0005 12.099l-5.74052 5.76852-2.3248-2.3248 4.22864-4.10766h-5.9375V8.12132h5.9085L3.93417 4.11666l2.3248-2.3808 4.00468 4.11665V0h3.4727zm-3.4727 10.30614h3.4727V24h-3.4727z"/></svg>`;
+    this.patreon_com    = `<svg viewBox="0 0 24 24"><path d="M22.957 7.21c-.004-3.064-2.391-5.576-5.191-6.482-3.478-1.125-8.064-.962-11.384.604C2.357 3.231 1.093 7.391 1.046 11.54c-.039 3.411.302 12.396 5.369 12.46 3.765.047 4.326-4.804 6.068-7.141 1.24-1.662 2.836-2.132 4.801-2.618 3.376-.836 5.678-3.501 5.673-7.031Z"/></svg>`;
+    this.pinterest_com  = `<svg viewBox="0 0 24 24"><path d="M12.017 0C5.396 0 .029 5.367.029 11.987c0 5.079 3.158 9.417 7.618 11.162-.105-.949-.199-2.403.041-3.439.219-.937 1.406-5.957 1.406-5.957s-.359-.72-.359-1.781c0-1.663.967-2.911 2.168-2.911 1.024 0 1.518.769 1.518 1.688 0 1.029-.653 2.567-.992 3.992-.285 1.193.6 2.165 1.775 2.165 2.128 0 3.768-2.245 3.768-5.487 0-2.861-2.063-4.869-5.008-4.869-3.41 0-5.409 2.562-5.409 5.199 0 1.033.394 2.143.889 2.741.099.12.112.225.085.345-.09.375-.293 1.199-.334 1.363-.053.225-.172.271-.401.165-1.495-.69-2.433-2.878-2.433-4.646 0-3.776 2.748-7.252 7.92-7.252 4.158 0 7.392 2.967 7.392 6.923 0 4.135-2.607 7.462-6.233 7.462-1.214 0-2.354-.629-2.758-1.379l-.749 2.848c-.269 1.045-1.004 2.352-1.498 3.146 1.123.345 2.306.535 3.55.535 6.607 0 11.985-5.365 11.985-11.987C23.97 5.39 18.592.026 11.985.026L12.017 0z"/></svg>`;
+    this.pixiv_net      = `<svg viewBox="0 0 24 24"><path d="M4.94 0A4.953 4.953 0 0 0 0 4.94v14.12A4.953 4.953 0 0 0 4.94 24h14.12A4.953 4.953 0 0 0 24 19.06c-.014 1.355 0-14.12 0-14.12A4.953 4.953 0 0 0 19.06 0Zm1.783 5.465h.904a.37.37 0 0 1 .31.17l.752 1.17a6.172 6.172 0 0 1 10.01 4.834 6.172 6.172 0 0 1-9.394 5.265v2.016a.37.37 0 0 1-.37.367H6.724a.37.37 0 0 1-.37-.367V5.834a.37.37 0 0 1 .37-.37m5.804 2.951a3.222 3.222 0 1 0-.002 6.443 3.222 3.222 0 0 0 .002-6.443"/></svg>`;
+    this.reddit_com     = `<svg viewBox="0 0 24 24"><path d="M12 0C5.373 0 0 5.373 0 12c0 3.314 1.343 6.314 3.515 8.485l-2.286 2.286C.775 23.225 1.097 24 1.738 24H12c6.627 0 12-5.373 12-12S18.627 0 12 0Zm4.388 3.199c1.104 0 1.999.895 1.999 1.999 0 1.105-.895 2-1.999 2-.946 0-1.739-.657-1.947-1.539v.002c-1.147.162-2.032 1.15-2.032 2.341v.007c1.776.067 3.4.567 4.686 1.363.473-.363 1.064-.58 1.707-.58 1.547 0 2.802 1.254 2.802 2.802 0 1.117-.655 2.081-1.601 2.531-.088 3.256-3.637 5.876-7.997 5.876-4.361 0-7.905-2.617-7.998-5.87-.954-.447-1.614-1.415-1.614-2.538 0-1.548 1.255-2.802 2.803-2.802.645 0 1.239.218 1.712.585 1.275-.79 2.881-1.291 4.64-1.365v-.01c0-1.663 1.263-3.034 2.88-3.207.188-.911.993-1.595 1.959-1.595Zm-8.085 8.376c-.784 0-1.459.78-1.506 1.797-.047 1.016.64 1.429 1.426 1.429.786 0 1.371-.369 1.418-1.385.047-1.017-.553-1.841-1.338-1.841Zm7.406 0c-.786 0-1.385.824-1.338 1.841.047 1.017.634 1.385 1.418 1.385.785 0 1.473-.413 1.426-1.429-.046-1.017-.721-1.797-1.506-1.797Zm-3.703 4.013c-.974 0-1.907.048-2.77.135-.147.015-.241.168-.183.305.483 1.154 1.622 1.964 2.953 1.964 1.33 0 2.47-.81 2.953-1.964.057-.137-.037-.29-.184-.305-.863-.087-1.795-.135-2.769-.135Z"/></svg>`;
+    this.signal_org     = `<svg viewBox="0 0 24 24"><path d="M12 0q-.934 0-1.83.139l.17 1.111a11 11 0 0 1 3.32 0l.172-1.111A12 12 0 0 0 12 0M9.152.34A12 12 0 0 0 5.77 1.742l.584.961a10.8 10.8 0 0 1 3.066-1.27zm5.696 0-.268 1.094a10.8 10.8 0 0 1 3.066 1.27l.584-.962A12 12 0 0 0 14.848.34M12 2.25a9.75 9.75 0 0 0-8.539 14.459c.074.134.1.292.064.441l-1.013 4.338 4.338-1.013a.62.62 0 0 1 .441.064A9.7 9.7 0 0 0 12 21.75c5.385 0 9.75-4.365 9.75-9.75S17.385 2.25 12 2.25m-7.092.068a12 12 0 0 0-2.59 2.59l.909.664a11 11 0 0 1 2.345-2.345zm14.184 0-.664.909a11 11 0 0 1 2.345 2.345l.909-.664a12 12 0 0 0-2.59-2.59M1.742 5.77A12 12 0 0 0 .34 9.152l1.094.268a10.8 10.8 0 0 1 1.269-3.066zm20.516 0-.961.584a10.8 10.8 0 0 1 1.27 3.066l1.093-.268a12 12 0 0 0-1.402-3.383M.138 10.168A12 12 0 0 0 0 12q0 .934.139 1.83l1.111-.17A11 11 0 0 1 1.125 12q0-.848.125-1.66zm23.723.002-1.111.17q.125.812.125 1.66c0 .848-.042 1.12-.125 1.66l1.111.172a12.1 12.1 0 0 0 0-3.662M1.434 14.58l-1.094.268a12 12 0 0 0 .96 2.591l-.265 1.14 1.096.255.36-1.539-.188-.365a10.8 10.8 0 0 1-.87-2.35m21.133 0a10.8 10.8 0 0 1-1.27 3.067l.962.584a12 12 0 0 0 1.402-3.383zm-1.793 3.848a11 11 0 0 1-2.345 2.345l.664.909a12 12 0 0 0 2.59-2.59zm-19.959 1.1L.357 21.48a1.8 1.8 0 0 0 2.162 2.161l1.954-.455-.256-1.095-1.953.455a.675.675 0 0 1-.81-.81l.454-1.954zm16.832 1.769a10.8 10.8 0 0 1-3.066 1.27l.268 1.093a12 12 0 0 0 3.382-1.402zm-10.94.213-1.54.36.256 1.095 1.139-.266c.814.415 1.683.74 2.591.961l.268-1.094a10.8 10.8 0 0 1-2.35-.869zm3.634 1.24-.172 1.111a12.1 12.1 0 0 0 3.662 0l-.17-1.111q-.812.125-1.66.125a11 11 0 0 1-1.66-.125"/></svg>`;
+    this.snapchat_com   = `<svg viewBox="0 0 24 24"><path d="M12.206.793c.99 0 4.347.276 5.93 3.821.529 1.193.403 3.219.299 4.847l-.003.06c-.012.18-.022.345-.03.51.075.045.203.09.401.09.3-.016.659-.12 1.033-.301.165-.088.344-.104.464-.104.182 0 .359.029.509.09.45.149.734.479.734.838.015.449-.39.839-1.213 1.168-.089.029-.209.075-.344.119-.45.135-1.139.36-1.333.81-.09.224-.061.524.12.868l.015.015c.06.136 1.526 3.475 4.791 4.014.255.044.435.27.42.509 0 .075-.015.149-.045.225-.24.569-1.273.988-3.146 1.271-.059.091-.12.375-.164.57-.029.179-.074.36-.134.553-.076.271-.27.405-.555.405h-.03c-.135 0-.313-.031-.538-.074-.36-.075-.765-.135-1.273-.135-.3 0-.599.015-.913.074-.6.104-1.123.464-1.723.884-.853.599-1.826 1.288-3.294 1.288-.06 0-.119-.015-.18-.015h-.149c-1.468 0-2.427-.675-3.279-1.288-.599-.42-1.107-.779-1.707-.884-.314-.045-.629-.074-.928-.074-.54 0-.958.089-1.272.149-.211.043-.391.074-.54.074-.374 0-.523-.224-.583-.42-.061-.192-.09-.389-.135-.567-.046-.181-.105-.494-.166-.57-1.918-.222-2.95-.642-3.189-1.226-.031-.063-.052-.15-.055-.225-.015-.243.165-.465.42-.509 3.264-.54 4.73-3.879 4.791-4.02l.016-.029c.18-.345.224-.645.119-.869-.195-.434-.884-.658-1.332-.809-.121-.029-.24-.074-.346-.119-1.107-.435-1.257-.93-1.197-1.273.09-.479.674-.793 1.168-.793.146 0 .27.029.383.074.42.194.789.3 1.104.3.234 0 .384-.06.465-.105l-.046-.569c-.098-1.626-.225-3.651.307-4.837C7.392 1.077 10.739.807 11.727.807l.419-.015h.06z"/></svg>`;
+    this.telegram_org   = `<svg viewBox="0 0 24 24"><path d="M11.944 0A12 12 0 0 0 0 12a12 12 0 0 0 12 12 12 12 0 0 0 12-12A12 12 0 0 0 12 0a12 12 0 0 0-.056 0zm4.962 7.224c.1-.002.321.023.465.14a.506.506 0 0 1 .171.325c.016.093.036.306.02.472-.18 1.898-.962 6.502-1.36 8.627-.168.9-.499 1.201-.82 1.23-.696.065-1.225-.46-1.9-.902-1.056-.693-1.653-1.124-2.678-1.8-1.185-.78-.417-1.21.258-1.91.177-.184 3.247-2.977 3.307-3.23.007-.032.014-.15-.056-.212s-.174-.041-.249-.024c-.106.024-1.793 1.14-5.061 3.345-.48.33-.913.49-1.302.48-.428-.008-1.252-.241-1.865-.44-.752-.245-1.349-.374-1.297-.789.027-.216.325-.437.893-.663 3.498-1.524 5.83-2.529 6.998-3.014 3.332-1.386 4.025-1.627 4.476-1.635z"/></svg>`;
+    this.threads_net    = `<svg viewBox="0 0 24 24"><path d="M12.186 24h-.007c-3.581-.024-6.334-1.205-8.184-3.509C2.35 18.44 1.5 15.586 1.472 12.01v-.017c.03-3.579.879-6.43 2.525-8.482C5.845 1.205 8.6.024 12.18 0h.014c2.746.02 5.043.725 6.826 2.098 1.677 1.29 2.858 3.13 3.509 5.467l-2.04.569c-1.104-3.96-3.898-5.984-8.304-6.015-2.91.022-5.11.936-6.54 2.717C4.307 6.504 3.616 8.914 3.589 12c.027 3.086.718 5.496 2.057 7.164 1.43 1.783 3.631 2.698 6.54 2.717 2.623-.02 4.358-.631 5.8-2.045 1.647-1.613 1.618-3.593 1.09-4.798-.31-.71-.873-1.3-1.634-1.75-.192 1.352-.622 2.446-1.284 3.272-.886 1.102-2.14 1.704-3.73 1.79-1.202.065-2.361-.218-3.259-.801-1.063-.689-1.685-1.74-1.752-2.964-.065-1.19.408-2.285 1.33-3.082.88-.76 2.119-1.207 3.583-1.291a13.853 13.853 0 0 1 3.02.142c-.126-.742-.375-1.332-.75-1.757-.513-.586-1.308-.883-2.359-.89h-.029c-.844 0-1.992.232-2.721 1.32L7.734 7.847c.98-1.454 2.568-2.256 4.478-2.256h.044c3.194.02 5.097 1.975 5.287 5.388.108.046.216.094.321.142 1.49.7 2.58 1.761 3.154 3.07.797 1.82.871 4.79-1.548 7.158-1.85 1.81-4.094 2.628-7.277 2.65Zm1.003-11.69c-.242 0-.487.007-.739.021-1.836.103-2.98.946-2.916 2.143.067 1.256 1.452 1.839 2.784 1.767 1.224-.065 2.818-.543 3.086-3.71a10.5 10.5 0 0 0-2.215-.221z"/></svg>`;
+    this.tiktok_com     = `<svg viewBox="0 0 24 24"><path d="M12.525.02c1.31-.02 2.61-.01 3.91-.02.08 1.53.63 3.09 1.75 4.17 1.12 1.11 2.7 1.62 4.24 1.79v4.03c-1.44-.05-2.89-.35-4.2-.97-.57-.26-1.1-.59-1.62-.93-.01 2.92.01 5.84-.02 8.75-.08 1.4-.54 2.79-1.35 3.94-1.31 1.92-3.58 3.17-5.91 3.21-1.43.08-2.86-.31-4.08-1.03-2.02-1.19-3.44-3.37-3.65-5.71-.02-.5-.03-1-.01-1.49.18-1.9 1.12-3.72 2.58-4.96 1.66-1.44 3.98-2.13 6.15-1.72.02 1.48-.04 2.96-.04 4.44-.99-.32-2.15-.23-3.02.37-.63.41-1.11 1.04-1.36 1.75-.21.51-.15 1.07-.14 1.61.24 1.64 1.82 3.02 3.5 2.87 1.12-.01 2.19-.66 2.77-1.61.19-.33.4-.67.41-1.06.1-1.79.06-3.57.07-5.36.01-4.03-.01-8.05.02-12.07z"/></svg>`;
+    this.twitch_tv      = `<svg viewBox="0 0 24 24"><path d="M11.571 4.714h1.715v5.143H11.57zm4.715 0H18v5.143h-1.714zM6 0L1.714 4.286v15.428h5.143V24l4.286-4.286h3.428L22.286 12V0zm14.571 11.143l-3.428 3.428h-3.429l-3 3v-3H6.857V1.714h13.714Z"/></svg>`;
+    this.vk_com         = `<svg viewBox="0 0 24 24"><path d="m9.489.004.729-.003h3.564l.73.003.914.01.433.007.418.011.403.014.388.016.374.021.36.025.345.03.333.033c1.74.196 2.933.616 3.833 1.516.9.9 1.32 2.092 1.516 3.833l.034.333.029.346.025.36.02.373.025.588.012.41.013.644.009.915.004.98-.001 3.313-.003.73-.01.914-.007.433-.011.418-.014.403-.016.388-.021.374-.025.36-.03.345-.033.333c-.196 1.74-.616 2.933-1.516 3.833-.9.9-2.092 1.32-3.833 1.516l-.333.034-.346.029-.36.025-.373.02-.588.025-.41.012-.644.013-.915.009-.98.004-3.313-.001-.73-.003-.914-.01-.433-.007-.418-.011-.403-.014-.388-.016-.374-.021-.36-.025-.345-.03-.333-.033c-1.74-.196-2.933-.616-3.833-1.516-.9-.9-1.32-2.092-1.516-3.833l-.034-.333-.029-.346-.025-.36-.02-.373-.025-.588-.012-.41-.013-.644-.009-.915-.004-.98.001-3.313.003-.73.01-.914.007-.433.011-.418.014-.403.016-.388.021-.374.025-.36.03-.345.033-.333c.196-1.74.616-2.933 1.516-3.833.9-.9 2.092-1.32 3.833-1.516l.333-.034.346-.029.36-.025.373-.02.588-.025.41-.012.644-.013.915-.009ZM6.79 7.3H4.05c.13 6.24 3.25 9.99 8.72 9.99h.31v-3.57c2.01.2 3.53 1.67 4.14 3.57h2.84c-.78-2.84-2.83-4.41-4.11-5.01 1.28-.74 3.08-2.54 3.51-4.98h-2.58c-.56 1.98-2.22 3.78-3.8 3.95V7.3H10.5v6.92c-1.6-.4-3.62-2.34-3.71-6.92Z"/></svg>`;
+    this.whatsapp_com   = `<svg viewBox="0 0 24 24"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413Z"/></svg>`;
+    this.x_com          = `<svg viewBox="0 0 24 24"><path d="M14.234 10.162 22.977 0h-2.072l-7.591 8.824L7.251 0H.258l9.168 13.343L.258 24H2.33l8.016-9.318L16.749 24h6.993zm-2.837 3.299-.929-1.329L3.076 1.56h3.182l5.965 8.532.929 1.329 7.754 11.09h-3.182z"/></svg>`;
+    this.youtube_com    = `<svg viewBox="0 0 24 24"><path d="M23.498 6.186a3.016 3.016 0 0 0-2.122-2.136C19.505 3.545 12 3.545 12 3.545s-7.505 0-9.377.505A3.017 3.017 0 0 0 .502 6.186C0 8.07 0 12 0 12s0 3.93.502 5.814a3.016 3.016 0 0 0 2.122 2.136c1.871.505 9.376.505 9.376.505s7.505 0 9.377-.505a3.015 3.015 0 0 0 2.122-2.136C24 15.93 24 12 24 12s0-3.93-.502-5.814zM9.545 15.568V8.432L15.818 12l-6.273 3.568z"/></svg>`;
+    this.bsky_app       = this.bsky_social;
+    this.discord_gg     = this.discord_com;
+    this.github_io      = this.github_com;
+    this.t_me           = this.telegram_org;
+    this.youtu_be       = this.youtube_com;
+  }
 
   function LanguageData(){
 
@@ -4889,6 +5175,24 @@ const JRAS_CurrVersion = '2.4.4';
     };
     this.JRAS_GUI_AUTOUNMUTEVIDEOONSCREENMIDDLE = {
       ru: 'Автоматически включать звук при пересечении середины экрана'
+    };
+    this.JRAS_GUI_SHOWUSERLINKS = {
+      ru: 'Загружать пользовательские ссылки'
+    };
+    this.JRAS_GUI_SHOWUSERLINKSPROGRESSBAR = {
+      ru: 'Показывать прогрессбар ожидания загрузки пользовательских ссылок'
+    };
+    this.JRAS_GUI_LOADFAVORITEICOFORUSERLINKS = {
+      ru: 'Пытаться загрузить favorite.ico для неизвестных сайтов'
+    };
+    this.JRAS_GUI_SHOWUSERLINKSONPOST = {
+      ru: 'Пользовательские ссылки на посте'
+    };
+    this.JRAS_GUI_SHOWUSERLINKSONCOMMENT = {
+      ru: 'Пользовательские ссылки в комментариях'
+    };
+    this.JRAS_GUI_SHOWUSERLINKSCOUNT = {
+      ru: 'Показывать только это количество ссылок (0=все): '
     };
   }
 
