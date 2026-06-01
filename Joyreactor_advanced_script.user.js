@@ -3983,7 +3983,7 @@ const JRAS_CurrVersion = '2.5.1';
         color: rgb(255, 57, 57);
       }
       .jras-hidden-comm-bg{
-        background: repeating-linear-gradient(-55deg, #ff000010, #ff000010 10px, #ff000025 10px, #ff000025 20px );
+        background: repeating-linear-gradient(-55deg, #ff000010, #ff000010 10px, #ff000025 10px, #ff000025 20px ) !important;
       }
 
 
