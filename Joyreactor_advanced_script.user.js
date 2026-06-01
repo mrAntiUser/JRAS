@@ -14,7 +14,7 @@
 // @connect     api.joyreactor.cc
 // @require     http://ajax.googleapis.com/ajax/libs/jquery/2.2.0/jquery.min.js
 // @require     https://code.jquery.com/ui/1.11.4/jquery-ui.min.js
-// @version     2.5.0
+// @version     2.5.1
 // @grant       GM.getValue
 // @grant       GM.setValue
 // @grant       GM.listValues
@@ -28,9 +28,11 @@
 // @run-at      document-end
 // ==/UserScript==
 
-const JRAS_CurrVersion = '2.5.0';
+const JRAS_CurrVersion = '2.5.1';
 
 /* RELEASE NOTES
+ 2.5.1
+   + Добавил фон для заминусованных комментов
  2.5.0
    + линки пользователей из профиля
      + Опция надо ли вообще [true]
@@ -1667,7 +1669,8 @@ const JRAS_CurrVersion = '2.5.0';
               $parElm = $(elm).parent('div[id^=comment].txt');
             }
           }
-          $parElm.css({'color': 'rgb(255, 57, 57)'});
+          $parElm.addClass('jras-hidden-comm-color');
+          $parElm.parent('div[id^=comment].comment').addClass('jras-hidden-comm-bg');
         }
       }, delay.showHiddenComments * idx);
     })
@@ -3975,6 +3978,12 @@ const JRAS_CurrVersion = '2.5.0';
       .jras-nick-comment-link-cntnr{
         position: relative;
         top: 2px;
+      }
+      .jras-hidden-comm-color{
+        color: rgb(255, 57, 57);
+      }
+      .jras-hidden-comm-bg{
+        background: repeating-linear-gradient(-55deg, #ff000010, #ff000010 10px, #ff000025 10px, #ff000025 20px );
       }
 
 
