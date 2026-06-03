@@ -14,7 +14,7 @@
 // @connect     api.joyreactor.cc
 // @require     http://ajax.googleapis.com/ajax/libs/jquery/2.2.0/jquery.min.js
 // @require     https://code.jquery.com/ui/1.11.4/jquery-ui.min.js
-// @version     2.5.1
+// @version     2.5.2
 // @grant       GM.getValue
 // @grant       GM.setValue
 // @grant       GM.listValues
@@ -28,9 +28,11 @@
 // @run-at      document-end
 // ==/UserScript==
 
-const JRAS_CurrVersion = '2.5.1';
+const JRAS_CurrVersion = '2.5.2';
 
 /* RELEASE NOTES
+ 2.5.2
+   + чутка поправил фон для заминусованных комментов
  2.5.1
    + Добавил фон для заминусованных комментов
  2.5.0
@@ -3983,9 +3985,22 @@ const JRAS_CurrVersion = '2.5.1';
         color: rgb(255, 57, 57);
       }
       .jras-hidden-comm-bg{
-        background: repeating-linear-gradient(-55deg, #ff000010, #ff000010 10px, #ff000025 10px, #ff000025 20px ) !important;
+        position: relative;
+        background: transparent !important;
       }
-
+      .jras-hidden-comm-bg::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        z-index: 0;
+        pointer-events: none;
+        background: repeating-linear-gradient(-55deg, #ff000010, #ff000010 10px, #ff000025 10px, #ff000025 20px) !important;
+        mask-image: linear-gradient(90deg, transparent 0%, white 100%) !important;
+        -webkit-mask-image: linear-gradient(90deg, #00000050 0%, white 100%) !important;
+      }
 
       .jras-loader {
         border: 0.2em dotted;
