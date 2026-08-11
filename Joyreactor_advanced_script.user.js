@@ -1320,6 +1320,65 @@ const JRAS_CurrVersion = '2.5.2';
     return $(video).closest('div.content-container, div#post_list').length > 0;
   }
 
+  function intersectRects(a, b){
+    const left = Math.max(a.left, b.left);
+    const top = Math.max(a.top, b.top);
+    const right = Math.min(a.right, b.right);
+    const bottom = Math.min(a.bottom, b.bottom);
+    if (right <= left || bottom <= top){return null}
+    return {
+      left: left,
+      top: top,
+      right: right,
+      bottom: bottom,
+      width: right - left,
+      height: bottom - top
+    };
+  }
+
+  function getVideoActualVisibleRect(video){
+    if (!video || !video.getBoundingClientRect || !document.contains(video)){return null}
+    if (video.getClientRects && video.getClientRects().length === 0){return null}
+
+    let visibleRect = video.getBoundingClientRect();
+    if (visibleRect.width <= 0 || visibleRect.height <= 0){return null}
+
+    visibleRect = intersectRects(visibleRect, {
+      left: 0,
+      top: 0,
+      right: win.innerWidth || document.documentElement.clientWidth || 0,
+      bottom: win.innerHeight || document.documentElement.clientHeight || 0
+    });
+    if (!visibleRect){return null}
+
+    let parent = video.parentElement;
+    while (parent && parent !== document.body && parent !== document.documentElement){
+      const style = win.getComputedStyle ? win.getComputedStyle(parent) : null;
+      if (style && style.display === 'none'){return null}
+      if (style && style.visibility === 'hidden'){return null}
+      const overflow = style ? `${style.overflow} ${style.overflowX} ${style.overflowY}` : '';
+      if (/(auto|scroll|hidden|clip)/.test(overflow)){
+        const parentRect = parent.getBoundingClientRect();
+        visibleRect = intersectRects(visibleRect, parentRect);
+        if (!visibleRect){return null}
+      }
+      parent = parent.parentElement;
+    }
+
+    return visibleRect;
+  }
+
+  function isVideoActuallyVisible(video, minVisibleRatio){
+    const visibleRect = getVideoActualVisibleRect(video);
+    if (!visibleRect){return false}
+    if (!$.isNumeric(minVisibleRatio)){return true}
+
+    const videoRect = video.getBoundingClientRect();
+    const videoArea = videoRect.width * videoRect.height;
+    if (videoArea <= 0){return false}
+    return (visibleRect.width * visibleRect.height) / videoArea >= minVisibleRatio;
+  }
+
   function initVideoSoundControls($nodes){
     if (!userOptions.val('videoSoundOptions')){return}
     const $scope = $nodes ? $nodes : $('body');
@@ -1403,14 +1462,14 @@ const JRAS_CurrVersion = '2.5.2';
     if (!$videos.length){return}
     $videos.each(function(){
       if (!isVideoInContentContainer(this)){return}
-      applyVisibilitySoundState(this, isVisible);
+      applyVisibilitySoundState(this, isVisible && isVideoActuallyVisible(this));
     });
   }
 
   function setVideoVisibilityState(video, isVisible){
     if (!userOptions.val('videoSoundMuteOnVideoScroll')){return}
     if (!isVideoInContentContainer(video)){return}
-    applyVisibilitySoundState(video, isVisible);
+    applyVisibilitySoundState(video, isVisible && isVideoActuallyVisible(video));
   }
 
   function applyVisibilitySoundState(video, isVisible){
@@ -1557,6 +1616,7 @@ const JRAS_CurrVersion = '2.5.2';
   function ensureVideoSoundOn(video){
     if ((userOptions.val('autoUnmuteVideoNone'))){return}
     if (!isVideoInContentContainer(video)){return}
+    if (!isVideoActuallyVisible(video)){return}
     if (!video || !canAutoUnmuteVideo(video)){return}
     if (!video.muted && video.volume > 0){
       currentSoundVideo = video;
@@ -1597,7 +1657,7 @@ const JRAS_CurrVersion = '2.5.2';
     videoSoundHalfObserver = new IntersectionObserver(function(entries){
       entries.forEach(function(entry){
         if (entry.isIntersecting && entry.intersectionRatio >= 0.5){
-          if (userOptions.val('autoUnmuteVideoOnHalfScreen')){
+          if (userOptions.val('autoUnmuteVideoOnHalfScreen') && isVideoActuallyVisible(entry.target, 0.5)){
             ensureVideoSoundOn(entry.target);
           }
         }
@@ -1640,10 +1700,8 @@ const JRAS_CurrVersion = '2.5.2';
     let target = null;
     $('video').each(function(){
       if (!isVideoInContentContainer(this)){return}
-      const rect = this.getBoundingClientRect ? this.getBoundingClientRect() : null;
+      const rect = getVideoActualVisibleRect(this);
       if (!rect){return}
-      if (rect.bottom <= 0 || rect.top >= (win.innerHeight || document.documentElement.clientHeight || 0)){return}
-      if (rect.right <= 0 || rect.left >= (win.innerWidth || document.documentElement.clientWidth || 0)){return}
       if (rect.top <= midY && rect.bottom >= midY){
         target = this;
         return false;
