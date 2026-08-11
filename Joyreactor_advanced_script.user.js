@@ -14,7 +14,7 @@
 // @connect     api.joyreactor.cc
 // @require     http://ajax.googleapis.com/ajax/libs/jquery/2.2.0/jquery.min.js
 // @require     https://code.jquery.com/ui/1.11.4/jquery-ui.min.js
-// @version     2.5.2
+// @version     2.5.5
 // @grant       GM.getValue
 // @grant       GM.setValue
 // @grant       GM.listValues
@@ -28,9 +28,12 @@
 // @run-at      document-end
 // ==/UserScript==
 
-const JRAS_CurrVersion = '2.5.2';
+const JRAS_CurrVersion = '2.5.5';
 
 /* RELEASE NOTES
+ 2.5.5
+   * баг с включением звука видео под катом
+   * рефакторинг накопившихся изменений по работе с видео
  2.5.2
    + чутка поправил фон для заминусованных комментов
  2.5.1
