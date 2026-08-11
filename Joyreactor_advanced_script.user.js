@@ -14,7 +14,7 @@
 // @connect     api.joyreactor.cc
 // @require     http://ajax.googleapis.com/ajax/libs/jquery/2.2.0/jquery.min.js
 // @require     https://code.jquery.com/ui/1.11.4/jquery-ui.min.js
-// @version     2.5.2
+// @version     2.5.5
 // @grant       GM.getValue
 // @grant       GM.setValue
 // @grant       GM.listValues
@@ -28,9 +28,12 @@
 // @run-at      document-end
 // ==/UserScript==
 
-const JRAS_CurrVersion = '2.5.2';
+const JRAS_CurrVersion = '2.5.5';
 
 /* RELEASE NOTES
+ 2.5.5
+   * баг с включением звука видео под катом
+   * рефакторинг накопившихся изменений по работе с видео
  2.5.2
    + чутка поправил фон для заминусованных комментов
  2.5.1
@@ -43,264 +46,8 @@ const JRAS_CurrVersion = '2.5.2';
      + Опция сколько показывать ссылок (0 - показывать всё) [0]
      + Опция Показывать прогрессбар ожидания загрузки пользовательских ссылок [true]
      + Опция Пытаться загрузить favicon.ico для неизвестных сайтов [true]
- 2.4.4
-   + я не люблю свежие анусы
- 2.4.3
-   * fix "Звук видео в коментариях отключается в момент ухода видео с экрана" для видео в коментах на странице поста
-   * Поправлено расположение кнопки включения звука на reactor.cc.  Точнее там поправлен блок со ссылками на gif
- 2.4.1
-   + Звук видео в коментариях отключается в момент ухода видео с экрана
- 2.4.0 - https://old.reactor.cc/post/6247778
-   + Управление звуком видео
-      + Кнопка вкл/выкл звук
-      + Опция надо ли вообще [true]
-      + Опция при включении звука перематывать видео в начало [true]
-      + Опция Выключать звук когда пост уходит с экрана [true]
-      + Опция Выключать звук когда видео уходит с экрана [false]
-      + Опция автоматически включать звук при 50% видимости видео [false]
-      + Опция автоматически включать звук при средней точке экрана [true]
-   * Цитаты по-умолчанию отключены
- 2.3.0.1
-   * fix цитаты налезающие на элементы ниже
- 2.3.0
-   + механизм выделения и цитирования коментариев
-   + отображение пользователя при цитировании
-   + вывод ссылок на гифки так же в коментариях
- 2.2.11
-   + Сделал выделение цитат в коментах, если срока начинается с ">" то вся считается цитатой
- 2.2.10
-   * убрал тултип комента на ссылке в блоке самого комента
- 2.2.9
-   * Поправлено отображения прогресса звезды в тултипе юзера (Issue-95)
- 2.2.8
-   * Поправлен запрос размеров "гифок" для ссылок на...
- 2.2.7
-   * Исправлен предпросмотр постов и комментариев по наведению на ссылку
- 2.2.6
-   + Поменял отображение ссылок на скачивание гифок. Теперь выводятся с размерами (Issue-92)
- 2.2.5.4
-   * Баг определения элемента для добавления размера
- 2.2.5.3
-   + Размер в хинте для файлов webm, mp4 и gif
- 2.2.5.2
-   * Ссылки на видео в постах без гифок
- 2.2.5.1
-   * Баг ссылки на webm и mp4 вели на гифку
- 2.2.5 - https://old.reactor.cc/post/5511493
-   + Ссылки на гифку как в новом дизижине. В разных форматах webm, mp4 и gif (Issue-85)
- 2.2.4
-   * Нет тултипа на фендомных тегах (Issue-78)
- 2.2.3
-   * При попытке найти дату последнего входа, если у юзера введен всякий шлак
-       типа интересов, дата не находилась. (Issue-76)
- 2.2.2 - http://old.reactor.cc/post/3732196
-   + в тултип юзера выведена инфа о последнем входе (Issue-74)
-   * заминусованные коменты теперь открываются с задержкой (Issue-72)
- 2.2.0 - http://old.reactor.cc/post/3565867
-   + переработка механизма сохранения настроек (Issue-59)
-   + импорт/экспорт настроек (Issue-59)
-   + корректировка размера страницы после окончательной ее загрузки (Issue-55)
-   + корректировка ссылок на old (Issue-64)
-   + превью внутренних ссылок реактора. Только ссылки на пост или комент (Issue-58)
- 1.9.1 - http://old.reactor.cc/post/3533506
-   * Поддержка нового движка FireFox и нового GreaseMonkey (Issue-51)
- 1.9.0 - http://old.reactor.cc/post/3375590
-   * кнопки перехода в начало и конец поста (Issue-48)
- 1.8.9
-   * перенос длинных ников в тултипе
- 1.8.8
-   * Центрование контента (изображения, гифки, фреймы) (Issue-46)
-   * поправлена ширина коментов с новыми стилями на не черном олде
-   + Опция Центровать контент [true]
- 1.8.7
-   * Размер страницы (динамический стиль) теперь считается нормально при разворачивании разных элементов (Issue-43)
-   * В свете длинных тегов поправлены стили. Не в скрипте, а в JRAS styles
- 1.8.5
-   * Мелкие фиксы
- 1.8.4 - http://old.reactor.cc/post/3250349
-   + Опция: мне нужны только динамические эффекты нового стиля [false]
-   + Опции по поведению правого меню (Issue-39)
-   + Устанавливать высоту страницы по высоте правого меню [true]
-   + Показывать правое меню когда контент вышел за границы [true]
- 1.8.0 - http://reactor.cc/post/3249308
-   * Фикс определения цвета темы (Issue-13)
-   + Опция скрывать шарные кнопки в БУП [false] (Issue-18.1)
-   * Корректировка даты поста (Issue-33)
-   + Возможность скрыть правое меню и/или настроить ширину контента (Issue-36)
- Опции
-   + Корректировать дизайн и стиль сайта [false]
-   + Скрывать правое меню [true]
-   + Растягивать контент по границам экрана [true]
-   + Растягивать контент на (%) [90]
- 1.7.16
-   * Исправлен баг даты комментария, которая пропадала или вообще не появлялась (Issue-29)
- 1.7.15 - http://old.reactor.cc/post/3247143
-   * Исправлен баг сохранения настроек (спасибо Silent John за тесты и терпение) (Issue-25)
-   * Исправлен баг добавления в избранное на новом дизайне (Issue-27)
-   + Разная иконка для постов, которые уже в избранном и которые еще можно добавить (Issue-20)
-   + Вывод даты комментария. Только в старом дизайне и только при включенной опции аватаров для старого дизайна (Issue-17)
-   + Опция - "Показывать в коменте его дату" [true] в "Комментарии" > "Создавать аватары для старого дизайна"
-   + Опции теперь чекаются при клике по label'у (Issue-11)
-   + Опция - Анимировать перемещения блока' [true] (Issue-19)
-   + Опция - Скорость перемещения при анимации (1-9) [2]
- 1.7.2
-   * Переделал иконки кнопок шары в блоке управления постом (Issue-12)
- 1.7.1
-   + Тултип на юзере в блоке управления постом (Issue-7)
-   + Опция показывать тултип на юзере в блоке управления [true]
- 1.7.0 - http://old.reactor.cc/post/3243856
-   + Блок управления постом доступный в любом месте самого поста
-   + Информация (автор, дата)
-   + шары (все что было плюс добавил телеграм)
-   + рейтинг
-   + ссылки
- Опции
-   + Блок управления постом [true] (Issue-1)
-   + Только в полном посте [false]
-   + Скрывать блок шарных кнопок поста [false]
-   + Скрывать блок рейтинга поста [false]
-   + Верхний стопор для блока внутри поста (px) [10]
-   + Нижний стопор для блока внутри поста (px) [10]
-   + Верхняя позиция на экране (px) [30]
- 1.6.7 - http://old.reactor.cc/post/3235468
-   + Показывать в правом баре для лучших коментов [true]
-   + Загружать данные тега для Tooltip'а [true]
-   + Показывать в ленте [true]
-   + Показывать в полном посте [true]
-   + Показывать в правом баре для трендов [true]
-   + Показывать в правом баре для любимых тегов [true]
-   + Показывать в правом баре для интересного [true]
- 1.6.0 - http://old.reactor.cc/post/3233487
-   + Tooltip'ы для тегов
- 1.5.23
-   * fix таблиц с гифками на олде
-   + версия скрипта в заголовке окна скрипта
- 1.5.21 - http://old.reactor.cc/post/3151778
-   + fix таблиц на олде
-   * поправлено определение цветовой гаммы страницы
- 1.5.19
-   + user tooltip на лучшем комменте
- 1.5.18
-   * исправлен регексп определения стиля страницы
- 1.5.17
-   * поддержка сайта old.jr-proxy.com
- 1.5.16
-   * опечатки
- 1.5.15 - http://old.reactor.cc/post/3079550
-   + Скрывать комментарий без возможности просмотра [false]
-   + Показывать в заблокированном комментрарии ник юзера [true]
-   + Удалять пост из ленты полностью [false]
-   + Скрывать пост без возможности просмотра [false]
-   + Показывать в заблокированном посте ник юзера [true]
- 1.5.12
-   + Определение логина юзера по ссылке, а не по тексту (в свете Soldat AntiUser)
- 1.5.11 - http://old.reactor.cc/post/2832945
-   + В Tooltip'е юзера отметка о том Online ли он или нет (красный - нет, зеленый - да)
- 1.5.10
-   * Анимация показа/скрытия верхней панели
-   + Опция удаление Share buttons [false]
- 1.5.8
-   + Теперь работает на странице "Обсуждаемое"
- 1.5.7 - http://old.reactor.cc/post/2760618
-   + Показывать аватары пользователей в комментариях [true] (ТОЛЬКО СТАРЫЙ ДИЗАЙН)
-   + Показывать аватары только в полном посте [false] (ТОЛЬКО СТАРЫЙ ДИЗАЙН)
-   + Размер показываемых аватаров в пикселях [35] (ТОЛЬКО СТАРЫЙ ДИЗАЙН)
-   + Опция показывать сразу скрытые заминусованные коменты [false]
-   + Опция отмечать раскрытые заминусованные коменты [true]
-   * Поменял жирноту в Tooltip'е юзера
-   * Вернул на гифки линк "Ссылка на гифку" в старом дизайне
-   * мелкие исправления
- 1.5.0 - http://old.reactor.cc/post/2611233
-   + В Tooltip'е юзера информация модератор ли
-   + В Tooltip'е юзера информация из блока "Профиль"
- 1.4.11
-   * разрешил уменьшение комментариев для хрома
-   * обработка редиректных ссылок везде, а не только в посте
- 1.4.10
-   * при сворачивании к паренту (collapseToParent) не учитывалось текущее состояние ветвей и
-     некотрые ветви разворачивались если были свернуты
- 1.4.9 - http://old.reactor.cc/post/2536817
-   + добавлен новый адрес на котором работает скрипт - jr-proxy.com
-   + свернуть/развернуть все комментарии
-   + раскрытие редиректных ссылок. опция - [true]
-   + опция уменьшать комментарии только в полном посте [false]
- 1.4.3
-   + Уменьшение комментариев при раскрытии их в ленте (кроме хрома)
-   * мелкие исправления
- 1.4.0 - http://old.reactor.cc/post/2527831
-   + Уменьшение больших комментариев (опционально)
-   + Новые опции
-     - Уменьшать большие комментарии [true]
-     - Уменьшать если размер больше (px) [110]
-     - Уменьшать до (px) [72]
- 1.3.18
-   + Диалог настроек закрывается при нажатии "сохранить"
- 1.3.17 - http://old.reactor.cc/post/2524192
-   + опция "Убирать цветовую отметку донатера" в тултипах [false]
-   + опция при каком количестве медальки скрывать [60] (0 - показывать все)
-   * опция сколько показывать, если скрывать  [40]
-   * добавлены кнопки в GUI настроек
-     - Отправить мне персональное сообщение
-     - Удалить все сохраненные данные
-     - Настройки по умолчанию
-   * поправлены медальки в тултипе
-   + дерево комментариев теперь строится также и в старом дизайне при разворачивании коментов в ленте
-   + для комментариев маленькая кнопка collapseToParent при отсутствии большой collapseNode рисуется выше
-   * поправлена высота ника в тултипе
-   * мелкие исправления
- 1.3.6 - http://old.reactor.cc/post/2514832
-   + сворачивание комментариев наверх к паренту
-   * не блокировался юзер в комментариях при раскрытии их в ленте в новом дизайне
- 1.3.2 - http://old.reactor.cc/post/2513114
-   + отправка сообщения пользователю из tooltip'а
-   + возможность ограничить количество сразу выводимых в tooltip'е медалек
-   + плавающая верхняя панель в новой дизайне
-   + автоматическая отметка комментариев как прочитанных при сворачивании ветки
-   + настройки сохраняются для каждого пользователя реактора отдельно
-   + добавлены опции для настройки работы скрипта
-     - создавать ли дерево комментариев [true]
-     - дерево комментариев только для полного поста (в ленте при раскрытии не будет создаваться) [false]
-     - когда ветка комментариев сворачивается все дочерние коменты помечаются прочитанными [true]
-     - загружать ли данные пользователя для Tooltip'а [true]
-     - сколько медалек показывать при загрузке [40] (0 - все)
-     - зафиксировать верхнюю панель наверху окна (только новый дизайн) [true]
-     - скрывать зафиксированную верхнюю панель (только новый дизайн) [true]
-     - показывать Tooltip'ы в ленте [true]
-     - показывать Tooltip'ы в комментариях [true]
-     - показывать Tooltip'ы на странице ПМ [true]
-     - показывать Tooltip'ы на странице Люди [true]
-     - показывать Tooltip'ы в правом баре для юзеров топа [true]
-     - показывать Tooltip'ы в правом баре для аватарок [true]
-   * мелкие исправления
- 1.2.3
-   - некоторый фунционал был удален
-     Если вы обнаружили его недостачу и он вам нужен - пишите ПМ
- 1.2.2
-   * добавиил tooltip'ы на:
-     - страница личных сообщений
-     - страница люди
-     - топы в правой колонке
-     - на авах в правой колонке
-   * мелкие исправления
- 1.2.0 - http://old.reactor.cc/post/2504300
-   + просмотр информации по пользователю при наведении мыши на его ник
-   + возможность добавить в друзья, заблокировать пользователя из tooltip'а
-   * мелкие исправления
- 1.1.3
-   * в хроме на новом дизайне не строилось дерево комментариев при раскрытии их в ленте
-   * по той же причине не блокировались комментарии пользователей
- 1.1.0 - http://old.reactor.cc/post/2497823
-   + GUI для настройки JRAS
-   * не блокировались теги на новом дизайне
- 1.0.6
-   * в список заблокированных тегов, котрый выводится при блокировке поста
-     могло попасть содержимое поста, а не только теги
- 1.0.5
-   * в случае нахождения блокированного юзера в коментах, мог быть заблокирован пост
- 1.0.2
-   * Не работал в хроме из-за неверного определения адреса документа
- 1.0.0 - http://old.reactor.cc/post/2485300
-   + release
+
+  see more on https://old.reactor.cc/tag/jras
 
  */
 
@@ -335,18 +82,6 @@ const JRAS_CurrVersion = '2.5.2';
   const userUrlsByName = new Map();
   const socialMediaIco = new SocialMediaIcons();
 
-  const videoSoundStates = new WeakMap();
-  const videoSoundScrollStates = new WeakMap();
-  const videoSoundAutoChanges = new WeakMap();
-  let lastVideoVolume = loadVideoSoundVolume();
-  let videoSoundChangeToken = 0;
-  let videoSoundScrollObserver;
-  let videoSoundVideoScrollObserver;
-  let videoSoundCommentObserver;
-  let videoSoundHalfObserver;
-  let currentSoundVideo;
-  let videoSoundScreenMiddleRaf;
-  let currentScreenMiddleVideo;
 
   const quoteData = {
     $commentContainer: undefined,
@@ -360,6 +95,7 @@ const JRAS_CurrVersion = '2.5.2';
 
   const userOptions = initOptions();
   userOptions.loadUserData(page.currentUser);
+  const videoSoundController = new VideoSoundController({win: win, $: $, userOptions: userOptions, lng: lng});
   try{
     correctStyle();
     correctPostDate();
@@ -376,7 +112,7 @@ const JRAS_CurrVersion = '2.5.2';
     correctOldReactorLink();
     previewReactorLink();
     makeExtendedGifLinks();
-    setVideoSoundProc();
+    videoSoundController.init();
     makeQuotes();
     makePopuperQuote();
 
@@ -392,7 +128,7 @@ const JRAS_CurrVersion = '2.5.2';
     tagRemove(userOptions.data.BlockTags, true);
 
     subscribeShowComment();
-    subscribeVideoSoundObserver();
+    videoSoundController.subscribe();
 
     dynamicStyle();
 
@@ -1134,524 +870,6 @@ const JRAS_CurrVersion = '2.5.2';
     });
   }
 
-  function setVideoSoundProc(){
-    if (!userOptions.val('videoSoundOptions')){
-      return;
-    }
-    initVideoSoundControls();
-    initCommentVideoSoundObserver($('div.post_comment_list'));
-    initVideoSoundScrollObserver();
-    initVideoSoundVideoScrollObserver();
-    initVideoSoundHalfObserver();
-    initVideoSoundScreenMiddleObserver();
-  }
-
-  function loadVideoSoundVolume(){
-    // сохраним это значение отдельно от опций, для быстрого доступа мимо настроек
-    const savedVolume = parseFloat(win.localStorage.getItem('jras_video_volume'));
-    if ($.isNumeric(savedVolume)){
-      return Math.min(1, Math.max(0, savedVolume));
-    }
-    return 1;
-  }
-
-  function saveVideoSoundVolume(volume){
-    if (!$.isNumeric(volume)){return}
-    const safeVolume = Math.min(1, Math.max(0, volume));
-    lastVideoVolume = safeVolume;
-    win.localStorage.setItem('jras_video_volume', safeVolume);
-  }
-
-  function getVideoSoundVolume(){
-    if (!$.isNumeric(lastVideoVolume)){
-      lastVideoVolume = loadVideoSoundVolume();
-    }
-    return lastVideoVolume;
-  }
-
-  function getTargetVideoSoundVolume(){
-    const savedVolume = getVideoSoundVolume();
-    return ($.isNumeric(savedVolume) && savedVolume > 0) ? savedVolume : 1;
-  }
-
-  function applyVideoSoundVolume(video){
-    const volume = getVideoSoundVolume();
-    if ($.isNumeric(volume)){
-      setVideoVolumeAuto(video, volume);
-    }
-  }
-
-  function addVideoSoundAutoChange(video, count){
-    const prev = videoSoundAutoChanges.get(video) || 0;
-    videoSoundAutoChanges.set(video, prev + (count || 1));
-  }
-
-  function consumeVideoSoundAutoChange(video){
-    const prev = videoSoundAutoChanges.get(video) || 0;
-    if (prev <= 1){
-      videoSoundAutoChanges.delete(video);
-    }else{
-      videoSoundAutoChanges.set(video, prev - 1);
-    }
-    return prev > 0;
-  }
-
-  function setVideoMutedAuto(video, muted){
-    addVideoSoundAutoChange(video);
-    video.muted = muted;
-  }
-
-  function setVideoVolumeAuto(video, volume){
-    if (!$.isNumeric(volume)){return}
-    addVideoSoundAutoChange(video);
-    video.volume = volume;
-  }
-
-  function getVideoSoundState(video){
-    if (!video){return 'unknown'}
-    if (typeof video.mozHasAudio !== 'undefined'){
-      return video.mozHasAudio ? 'yes' : 'unknown';
-    }
-    if (video.audioTracks && typeof video.audioTracks.length === 'number'){
-      return video.audioTracks.length ? 'yes' : 'unknown';
-    }
-    if (typeof video.webkitAudioDecodedByteCount !== 'undefined'){
-      return video.webkitAudioDecodedByteCount > 0 ? 'yes' : 'unknown';
-    }
-    return 'unknown';
-  }
-
-  function updateVideoSoundButton(video){
-    const $btn = $(video).data('jrasSoundBtn');
-    if (!$btn || !$btn.length){return}
-    const isMuted = video.muted || video.volume === 0;
-    $btn.toggleClass('jras-video-sound-muted', isMuted);
-    $btn.text(isMuted ? '🔇' : '🔊');
-    $btn.attr('title', isMuted ? lng.getVal('JRAS_VIDEO_SOUND_UNMUTE') : lng.getVal('JRAS_VIDEO_SOUND_MUTE'));
-  }
-
-  function toggleVideoMute(video){
-    if (!video){return}
-    if (video.muted || video.volume === 0){
-      if (userOptions.val('restartVideoOnUnmute')){
-        try{
-          video.currentTime = 0;
-        }catch(e){}
-      }
-      video.volume = getTargetVideoSoundVolume();
-      video.muted = false;
-    }else{
-      video.muted = true;
-    }
-  }
-
-  function createVideoSoundButton(video){
-    const $holder = $(video).closest('.video_holder');
-    if (!$holder.length){return}
-    if ($holder.find('.jras-video-sound-btn').length){return}
-    const $btn = $('<div class="jras-video-sound-btn" />');
-    $btn.on('click', function(e){
-      e.preventDefault();
-      e.stopPropagation();
-      toggleVideoMute(video);
-    });
-    $holder.append($btn);
-    $(video).data('jrasSoundBtn', $btn);
-    updateVideoSoundButton(video);
-  }
-
-  function handleVideoVolumeChange(video){
-    const wasAutoChange = consumeVideoSoundAutoChange(video);
-    const prevState = videoSoundStates.get(video) || { muted: video.muted, volume: video.volume };
-    const isMuted = video.muted;
-    const currentVolume = video.volume;
-    const savedVolume = getVideoSoundVolume();
-
-    if (!wasAutoChange && !isMuted && prevState.muted && currentVolume === prevState.volume){
-      if ($.isNumeric(savedVolume) && savedVolume !== currentVolume){
-        setVideoVolumeAuto(video, savedVolume);
-      }
-    }
-
-    if (!wasAutoChange && !isMuted && $.isNumeric(currentVolume) && currentVolume !== savedVolume){
-      saveVideoSoundVolume(currentVolume);
-    }
-
-    if (!wasAutoChange){
-      videoSoundChangeToken += 1;
-      if (!isMuted && currentVolume > 0){
-        currentSoundVideo = video;
-      }else if (currentSoundVideo === video){
-        currentSoundVideo = null;
-      }
-    }
-    videoSoundStates.set(video, { muted: isMuted, volume: currentVolume });
-    updateVideoSoundButton(video);
-  }
-
-  function tryAttachVideoSoundButton(video){
-    const state = getVideoSoundState(video);
-    if (state === 'yes'){
-      createVideoSoundButton(video);
-      if (video.dataset){
-        video.dataset.jrasSoundHasAudio = '1';
-      }
-      return true;
-    }
-    return false;
-  }
-
-  function bindVideoSoundLoadListeners(video){
-    const tryAttach = function(){
-      if (tryAttachVideoSoundButton(video)){
-        $(video).off('loadedmetadata.jrasSound loadeddata.jrasSound canplay.jrasSound play.jrasSound playing.jrasSound timeupdate.jrasSound durationchange.jrasSound');
-      }
-    };
-    $(video).on('loadedmetadata.jrasSound loadeddata.jrasSound canplay.jrasSound play.jrasSound playing.jrasSound timeupdate.jrasSound durationchange.jrasSound', tryAttach);
-    $(video).on('loadstart.jrasSound', function(){
-      if (video.dataset){
-        delete video.dataset.jrasSoundHasAudio;
-      }
-    });
-  }
-
-  function isVideoInContentContainer(video){
-    if (!video){return false}
-    return $(video).closest('div.content-container, div#post_list').length > 0;
-  }
-
-  function initVideoSoundControls($nodes){
-    if (!userOptions.val('videoSoundOptions')){return}
-    const $scope = $nodes ? $nodes : $('body');
-    const $videos = $scope.is('video') ? $scope : $scope.find('video');
-    $videos.each(function(){
-      const video = this;
-      if (video.dataset && video.dataset.jrasSoundInit){return}
-      if (!isVideoInContentContainer(video)){return}
-      if (video.dataset){
-        video.dataset.jrasSoundInit = '1';
-      }
-      applyVideoSoundVolume(video);
-      videoSoundStates.set(video, { muted: video.muted, volume: video.volume });
-      $(video).on('volumechange.jrasSound', function(){
-        handleVideoVolumeChange(video);
-      });
-
-      if (!tryAttachVideoSoundButton(video)){
-        bindVideoSoundLoadListeners(video);
-      }
-      observeVideoForAutoSound(video);
-      observeVideoForSoundScroll(video);
-    });
-    initCommentVideoSoundObserver($nodes);
-    handleScreenMiddleAutoSound();
-  }
-
-  function initCommentVideoSoundObserver($nodes){
-    if (!('IntersectionObserver' in window)){return}
-    if (!videoSoundCommentObserver){
-      videoSoundCommentObserver = new IntersectionObserver(function(entries){
-        entries.forEach(function(entry){
-          if (!entry.isIntersecting || entry.intersectionRatio <= 0){
-            const video = entry.target;
-            if (!isVideoInContentContainer(video)){return}
-            if (!video.muted){
-              setVideoMutedAuto(video, true);
-            }
-          }
-        });
-      }, { root: null, threshold: 0.1 });
-    }
-    const $scope = $nodes ? $nodes : $('body');
-    const $videos = $scope.is('video') ? $scope : $scope.find('video');
-    $videos.each(function(){
-      if ($(this).closest('div.post_comment_list').length === 0 || !isVideoInContentContainer(this)){return}
-      observeOnce(this, videoSoundCommentObserver, 'jrasSoundCommentObserved');
-    });
-  }
-
-  function findPostContainers($nodes){
-    if (!$nodes){
-      return $('div[id^=postContainer].postContainer').filter(function(){
-        return $(this).closest('div.post_comment_list').length === 0;
-      });
-    }
-    const $arr = $();
-    $nodes.each(function(){
-      const $node = $(this);
-      if ($node.is('div[id^=postContainer].postContainer')
-        && $node.closest('div.post_comment_list').length === 0){
-        $arr.push(this);
-      }
-      $node.find('div[id^=postContainer].postContainer').each(function(){
-        if ($(this).closest('div.post_comment_list').length !== 0){return}
-        $arr.push(this);
-      });
-    });
-    return $arr;
-  }
-
-  function findPostVideos($post){
-    return $post.find('video').filter(function(){
-      return $(this).closest('div.post_comment_list').length === 0;
-    });
-  }
-
-  function setPostVisibilityState(post, isVisible){
-    if (!userOptions.val('videoSoundMuteOnPostScroll')){return}
-    const $videos = findPostVideos($(post));
-    if (!$videos.length){return}
-    $videos.each(function(){
-      if (!isVideoInContentContainer(this)){return}
-      applyVisibilitySoundState(this, isVisible);
-    });
-  }
-
-  function setVideoVisibilityState(video, isVisible){
-    if (!userOptions.val('videoSoundMuteOnVideoScroll')){return}
-    if (!isVideoInContentContainer(video)){return}
-    applyVisibilitySoundState(video, isVisible);
-  }
-
-  function applyVisibilitySoundState(video, isVisible){
-    if (!video){return}
-    if (!isVideoInContentContainer(video)){return}
-    if (isVisible){
-      const saved = videoSoundScrollStates.get(video);
-      if (!saved){return}
-      if (saved.token !== videoSoundChangeToken){
-        videoSoundScrollStates.delete(video);
-        return;
-      }
-      if ($.isNumeric(saved.volume) && saved.volume !== video.volume){
-        setVideoVolumeAuto(video, saved.volume);
-      }
-      if (saved.muted !== video.muted){
-        setVideoMutedAuto(video, saved.muted);
-      }
-      videoSoundScrollStates.delete(video);
-    }else{
-      if (!videoSoundScrollStates.has(video)){
-        videoSoundScrollStates.set(video, {
-          muted: video.muted,
-          volume: video.volume,
-          token: videoSoundChangeToken
-        });
-      }
-      if (!video.muted){
-        setVideoMutedAuto(video, true);
-      }
-    }
-  }
-
-  function observePostContainerForSound(post){
-    observeOnce(post, videoSoundScrollObserver, 'jrasSoundPostObserved');
-  }
-
-  function observeVideoForSoundScroll(video){
-    observeOnce(video, videoSoundVideoScrollObserver, 'jrasSoundVideoScrollObserved');
-  }
-
-  function observeOnce(element, observer, flagName){
-    if (!observer || !element){return}
-    if (element.dataset){
-      if (element.dataset[flagName]){return}
-      element.dataset[flagName] = '1';
-    }
-    observer.observe(element);
-  }
-
-  function createVisibilityObserver(callback){
-    if (!('IntersectionObserver' in window)){return null}
-    return new IntersectionObserver(function(entries){
-      entries.forEach(function(entry){
-        callback(entry);
-      });
-    }, { root: null, threshold: 0.1 });
-  }
-
-  function initVideoSoundScrollObserver(){
-    videoSoundScrollObserver = createVisibilityObserver(function(entry){
-      setPostVisibilityState(entry.target, entry.isIntersecting && entry.intersectionRatio > 0);
-    });
-    if (!videoSoundScrollObserver){return}
-
-    findPostContainers().each(function(){
-      observePostContainerForSound(this);
-    });
-
-    const postList = document.getElementById('post_list') || document.body;
-    const observer = new MutationObserver(function(mutations){
-      mutations.forEach(function(mutation){
-        if (mutation.type !== 'childList' || !mutation.addedNodes.length){return}
-        const $posts = findPostContainers($(mutation.addedNodes));
-        $posts.each(function(){
-          observePostContainerForSound(this);
-        });
-      });
-    });
-    observer.observe(postList, { childList: true, subtree: true });
-  }
-
-  function initVideoSoundVideoScrollObserver(){
-    videoSoundVideoScrollObserver = createVisibilityObserver(function(entry){
-      setVideoVisibilityState(entry.target, entry.isIntersecting && entry.intersectionRatio > 0);
-    });
-    if (!videoSoundVideoScrollObserver){return}
-
-    $('video').each(function(){
-      if (!isVideoInContentContainer(this)){return}
-      observeVideoForSoundScroll(this);
-    });
-  }
-
-  function subscribeVideoSoundObserver(){
-    const observer = new MutationObserver(function(mutations){
-      mutations.forEach(function(mutation){
-        if (mutation.type !== 'childList' || !mutation.addedNodes.length){return}
-        initVideoSoundControls($(mutation.addedNodes));
-      });
-    });
-    observer.observe(document.body, { childList: true, subtree: true });
-  }
-
-  function canAutoUnmuteVideo(video){
-    if (video.dataset && video.dataset.jrasSoundHasAudio === '1'){
-      return true;
-    }
-    const $btn = $(video).data('jrasSoundBtn');
-    if ($btn && $btn.length){
-      return true;
-    }
-    return getVideoSoundState(video) === 'yes';
-  }
-
-  function getOtherSoundedVideo(video){
-    if (currentSoundVideo && currentSoundVideo !== video && document.contains(currentSoundVideo)){
-      if (!currentSoundVideo.muted && currentSoundVideo.volume > 0){
-        return currentSoundVideo;
-      }
-    }
-    let otherVideo;
-    $('video').each(function(){
-      if (this === video){return}
-      if (!isVideoInContentContainer(this)){return}
-      if (!this.muted && this.volume > 0){
-        otherVideo = this;
-        return false;
-      }
-    });
-    return otherVideo;
-  }
-
-  function muteOtherVideos(activeVideo){
-    $('video').each(function(){
-      if (this === activeVideo){return}
-      if (!isVideoInContentContainer(this)){return}
-      if (!this.muted){
-        setVideoMutedAuto(this, true);
-      }
-    });
-  }
-
-  function ensureVideoSoundOn(video){
-    if ((userOptions.val('autoUnmuteVideoNone'))){return}
-    if (!isVideoInContentContainer(video)){return}
-    if (!video || !canAutoUnmuteVideo(video)){return}
-    if (!video.muted && video.volume > 0){
-      currentSoundVideo = video;
-      return;
-    }
-    const wasPlaying = !video.paused && !video.ended;
-    muteOtherVideos(video);
-    videoSoundChangeToken += 1;
-    const targetVolume = getTargetVideoSoundVolume();
-    if (video.volume !== targetVolume){
-      setVideoVolumeAuto(video, targetVolume);
-    }
-    if (video.muted){
-      setVideoMutedAuto(video, false);
-    }
-    const shouldRestart = userOptions.val('restartVideoOnUnmute');
-    if (shouldRestart){
-      video.currentTime = 0;
-    }
-    if (wasPlaying || shouldRestart){
-      video.play();
-    }
-    currentSoundVideo = video;
-  }
-
-  function observeVideoForAutoSound(video){
-    if (!videoSoundHalfObserver){return}
-    if (video.dataset && video.dataset.jrasSoundHalfObserved){return}
-    if (!isVideoInContentContainer(video)){return}
-    if (video.dataset){
-      video.dataset.jrasSoundHalfObserved = '1';
-    }
-    videoSoundHalfObserver.observe(video);
-  }
-
-  function initVideoSoundHalfObserver(){
-    if (!('IntersectionObserver' in window)){return}
-    videoSoundHalfObserver = new IntersectionObserver(function(entries){
-      entries.forEach(function(entry){
-        if (entry.isIntersecting && entry.intersectionRatio >= 0.5){
-          if (userOptions.val('autoUnmuteVideoOnHalfScreen')){
-            ensureVideoSoundOn(entry.target);
-          }
-        }
-      });
-    }, { root: null, threshold: [0.5] });
-
-    $('video').each(function(){
-      observeVideoForAutoSound(this);
-    });
-  }
-
-  function initVideoSoundScreenMiddleObserver(){
-    const onScroll = function(){
-      if (videoSoundScreenMiddleRaf){return}
-      videoSoundScreenMiddleRaf = win.requestAnimationFrame(function(){
-        videoSoundScreenMiddleRaf = null;
-        handleScreenMiddleAutoSound();
-      });
-    };
-    $(window).on('scroll', onScroll);
-    $(window).on('resize', onScroll);
-    onScroll();
-  }
-
-  function handleScreenMiddleAutoSound(){
-    if (!userOptions.val('autoUnmuteVideoOnScreenMiddle')){return}
-    const video = findVideoAtScreenMiddle();
-    if (!video){
-      currentScreenMiddleVideo = null;
-      return;
-    }
-    if (video === currentScreenMiddleVideo){return}
-    currentScreenMiddleVideo = video;
-    ensureVideoSoundOn(video);
-  }
-
-  function findVideoAtScreenMiddle(){
-    const midY = (win.innerHeight || document.documentElement.clientHeight || 0) / 2;
-    if (!midY){return null}
-    let target = null;
-    $('video').each(function(){
-      if (!isVideoInContentContainer(this)){return}
-      const rect = this.getBoundingClientRect ? this.getBoundingClientRect() : null;
-      if (!rect){return}
-      if (rect.bottom <= 0 || rect.top >= (win.innerHeight || document.documentElement.clientHeight || 0)){return}
-      if (rect.right <= 0 || rect.left >= (win.innerWidth || document.documentElement.clientWidth || 0)){return}
-      if (rect.top <= midY && rect.bottom >= midY){
-        target = this;
-        return false;
-      }
-    });
-    return target;
-  }
-
   function showHiddenComments($inElm){
     if (!userOptions.val('showHiddenComments')){
       return;
@@ -1775,8 +993,7 @@ const JRAS_CurrVersion = '2.5.2';
               makeUserTooltips($(mutation.addedNodes).find('span.reply-link > a:first-child'), 'a');
             }
             makeExtendedGifLinks($(mutation.addedNodes));
-            initVideoSoundControls($(mutation.addedNodes));
-            initCommentVideoSoundObserver($(mutation.addedNodes));
+            videoSoundController.initControls($(mutation.addedNodes));
             for (const itm of mutation.addedNodes) {
               removeRedirectLink($(itm));
               showHiddenComments($(itm));
@@ -4681,6 +3898,551 @@ const JRAS_CurrVersion = '2.5.2';
     });
     userOptions.data.BlockUsers = $propDialog.find('#jras-guiBlockUserList').val().split('\n');
     userOptions.data.BlockTags = $propDialog.find('#jras-guiBlockTagList').val().split('\n');
+  }
+
+  function VideoSoundController(deps) {
+    const win = deps.win;
+    const $ = deps.$;
+    const userOptions = deps.userOptions;
+    const lng = deps.lng;
+    const controller = this;
+
+    const videoSoundStates = new WeakMap();
+    const videoSoundAutoChanges = new WeakMap();
+    let lastVideoVolume = loadVideoSoundVolume();
+    let videoSoundScrollObserver;
+    let videoSoundVideoScrollObserver;
+    let videoSoundCommentObserver;
+    let videoSoundHalfObserver;
+    let videoSoundScreenMiddleRaf;
+    let currentScreenMiddleVideo;
+
+    this.init = function () {
+      if (!userOptions.val('videoSoundOptions')) {
+        return;
+      }
+      controller.initControls();
+      initCommentVideoSoundObserver($('div.post_comment_list'));
+      initVideoSoundScrollObserver();
+      initVideoSoundVideoScrollObserver();
+      initVideoSoundHalfObserver();
+      initVideoSoundScreenMiddleObserver();
+    };
+
+    function loadVideoSoundVolume() {
+      // сохраним это значение отдельно от опций, для быстрого доступа мимо настроек
+      const savedVolume = parseFloat(win.localStorage.getItem('jras_video_volume'));
+      if ($.isNumeric(savedVolume)) {
+        return Math.min(1, Math.max(0, savedVolume));
+      }
+      return 1;
+    }
+
+    function saveVideoSoundVolume(volume) {
+      if (!$.isNumeric(volume)) { return }
+      const safeVolume = Math.min(1, Math.max(0, volume));
+      lastVideoVolume = safeVolume;
+      win.localStorage.setItem('jras_video_volume', safeVolume);
+    }
+
+    function getVideoSoundVolume() {
+      if (!$.isNumeric(lastVideoVolume)) {
+        lastVideoVolume = loadVideoSoundVolume();
+      }
+      return lastVideoVolume;
+    }
+
+    function getTargetVideoSoundVolume() {
+      const savedVolume = getVideoSoundVolume();
+      return ($.isNumeric(savedVolume) && savedVolume > 0) ? savedVolume : 1;
+    }
+
+    function applyVideoSoundVolume(video) {
+      const volume = getVideoSoundVolume();
+      if ($.isNumeric(volume)) {
+        setVideoVolumeAuto(video, volume);
+      }
+    }
+
+    function addVideoSoundAutoChange(video, count) {
+      const prev = videoSoundAutoChanges.get(video) || 0;
+      videoSoundAutoChanges.set(video, prev + (count || 1));
+    }
+
+    function consumeVideoSoundAutoChange(video) {
+      const prev = videoSoundAutoChanges.get(video) || 0;
+      if (prev <= 1) {
+        videoSoundAutoChanges.delete(video);
+      } else {
+        videoSoundAutoChanges.set(video, prev - 1);
+      }
+      return prev > 0;
+    }
+
+    function setVideoMutedAuto(video, muted) {
+      addVideoSoundAutoChange(video);
+      video.muted = muted;
+    }
+
+    function setVideoVolumeAuto(video, volume) {
+      if (!$.isNumeric(volume)) { return }
+      addVideoSoundAutoChange(video);
+      video.volume = volume;
+    }
+
+    function getVideoSoundState(video) {
+      if (!video) { return 'unknown' }
+      if (typeof video.mozHasAudio !== 'undefined') {
+        return video.mozHasAudio ? 'yes' : 'unknown';
+      }
+      if (video.audioTracks && typeof video.audioTracks.length === 'number') {
+        return video.audioTracks.length ? 'yes' : 'unknown';
+      }
+      if (typeof video.webkitAudioDecodedByteCount !== 'undefined') {
+        return video.webkitAudioDecodedByteCount > 0 ? 'yes' : 'unknown';
+      }
+      return 'unknown';
+    }
+
+    function updateVideoSoundButton(video) {
+      const $btn = $(video).data('jrasSoundBtn');
+      if (!$btn || !$btn.length) { return }
+      const isMuted = video.muted || video.volume === 0;
+      $btn.toggleClass('jras-video-sound-muted', isMuted);
+      $btn.text(isMuted ? '🔇' : '🔊');
+      $btn.attr('title', isMuted ? lng.getVal('JRAS_VIDEO_SOUND_UNMUTE') : lng.getVal('JRAS_VIDEO_SOUND_MUTE'));
+    }
+
+    function toggleVideoMute(video) {
+      if (!video) { return }
+      if (video.muted || video.volume === 0) {
+        if (userOptions.val('restartVideoOnUnmute')) {
+          try {
+            video.currentTime = 0;
+          } catch (e) { }
+        }
+        video.volume = getTargetVideoSoundVolume();
+        video.muted = false;
+      } else {
+        video.muted = true;
+      }
+    }
+
+    function createVideoSoundButton(video) {
+      const $holder = $(video).closest('.video_holder');
+      if (!$holder.length) { return }
+      if ($holder.find('.jras-video-sound-btn').length) { return }
+      const $btn = $('<div class="jras-video-sound-btn" />');
+      $btn.on('click', function (e) {
+        e.preventDefault();
+        e.stopPropagation();
+        toggleVideoMute(video);
+      });
+      $holder.append($btn);
+      $(video).data('jrasSoundBtn', $btn);
+      updateVideoSoundButton(video);
+    }
+
+    function handleVideoVolumeChange(video) {
+      const wasAutoChange = consumeVideoSoundAutoChange(video);
+      const prevState = videoSoundStates.get(video) || { muted: video.muted, volume: video.volume };
+      const isMuted = video.muted;
+      const currentVolume = video.volume;
+      const savedVolume = getVideoSoundVolume();
+
+      if (!wasAutoChange && !isMuted && prevState.muted && currentVolume === prevState.volume) {
+        if ($.isNumeric(savedVolume) && savedVolume !== currentVolume) {
+          setVideoVolumeAuto(video, savedVolume);
+        }
+      }
+
+      if (!wasAutoChange && !isMuted && $.isNumeric(currentVolume) && currentVolume !== savedVolume) {
+        saveVideoSoundVolume(currentVolume);
+      }
+
+      videoSoundStates.set(video, { muted: isMuted, volume: currentVolume });
+      updateVideoSoundButton(video);
+    }
+
+    function tryAttachVideoSoundButton(video) {
+      const state = getVideoSoundState(video);
+      if (state === 'yes') {
+        createVideoSoundButton(video);
+        if (video.dataset) {
+          video.dataset.jrasSoundHasAudio = '1';
+        }
+        return true;
+      }
+      return false;
+    }
+
+    function bindVideoSoundLoadListeners(video) {
+      const tryAttach = function () {
+        if (tryAttachVideoSoundButton(video)) {
+          $(video).off('loadedmetadata.jrasSound loadeddata.jrasSound canplay.jrasSound play.jrasSound playing.jrasSound timeupdate.jrasSound durationchange.jrasSound');
+        }
+      };
+      $(video).on('loadedmetadata.jrasSound loadeddata.jrasSound canplay.jrasSound play.jrasSound playing.jrasSound timeupdate.jrasSound durationchange.jrasSound', tryAttach);
+      $(video).on('loadstart.jrasSound', function () {
+        if (video.dataset) {
+          delete video.dataset.jrasSoundHasAudio;
+        }
+      });
+    }
+
+    function isVideoInContentContainer(video) {
+      if (!video) { return false }
+      return $(video).closest('div.content-container, div#post_list').length > 0;
+    }
+
+    function intersectRects(a, b) {
+      const left = Math.max(a.left, b.left);
+      const top = Math.max(a.top, b.top);
+      const right = Math.min(a.right, b.right);
+      const bottom = Math.min(a.bottom, b.bottom);
+      if (right <= left || bottom <= top) { return null }
+      return {
+        left: left,
+        top: top,
+        right: right,
+        bottom: bottom,
+        width: right - left,
+        height: bottom - top
+      };
+    }
+
+    function getVideoActualVisibleRect(video) {
+      if (!video || !video.getBoundingClientRect || !document.contains(video)) { return null }
+      if (video.getClientRects && video.getClientRects().length === 0) { return null }
+
+      let visibleRect = video.getBoundingClientRect();
+      if (visibleRect.width <= 0 || visibleRect.height <= 0) { return null }
+
+      visibleRect = intersectRects(visibleRect, {
+        left: 0,
+        top: 0,
+        right: win.innerWidth || document.documentElement.clientWidth || 0,
+        bottom: win.innerHeight || document.documentElement.clientHeight || 0
+      });
+      if (!visibleRect) { return null }
+
+      let parent = video.parentElement;
+      while (parent && parent !== document.body && parent !== document.documentElement) {
+        const style = win.getComputedStyle ? win.getComputedStyle(parent) : null;
+        if (style && style.display === 'none') { return null }
+        if (style && style.visibility === 'hidden') { return null }
+        const overflow = style ? `${style.overflow} ${style.overflowX} ${style.overflowY}` : '';
+        if (/(auto|scroll|hidden|clip)/.test(overflow)) {
+          const parentRect = parent.getBoundingClientRect();
+          visibleRect = intersectRects(visibleRect, parentRect);
+          if (!visibleRect) { return null }
+        }
+        parent = parent.parentElement;
+      }
+
+      return visibleRect;
+    }
+
+    function isVideoActuallyVisible(video, minVisibleRatio) {
+      const visibleRect = getVideoActualVisibleRect(video);
+      if (!visibleRect) { return false }
+      if (!$.isNumeric(minVisibleRatio)) { return true }
+
+      const videoRect = video.getBoundingClientRect();
+      const videoArea = videoRect.width * videoRect.height;
+      if (videoArea <= 0) { return false }
+      return (visibleRect.width * visibleRect.height) / videoArea >= minVisibleRatio;
+    }
+
+    this.initControls = function ($nodes) {
+      if (!userOptions.val('videoSoundOptions')) { return }
+      const $scope = $nodes ? $nodes : $('body');
+      const $videos = $scope.is('video') ? $scope : $scope.find('video');
+      $videos.each(function () {
+        const video = this;
+        if (video.dataset && video.dataset.jrasSoundInit) { return }
+        if (!isVideoInContentContainer(video)) { return }
+        if (video.dataset) {
+          video.dataset.jrasSoundInit = '1';
+        }
+        applyVideoSoundVolume(video);
+        videoSoundStates.set(video, { muted: video.muted, volume: video.volume });
+        $(video).on('volumechange.jrasSound', function () {
+          handleVideoVolumeChange(video);
+        });
+
+        if (!tryAttachVideoSoundButton(video)) {
+          bindVideoSoundLoadListeners(video);
+        }
+        observeVideoForAutoSound(video);
+        observeVideoForSoundScroll(video);
+      });
+      initCommentVideoSoundObserver($nodes);
+      handleScreenMiddleAutoSound();
+    };
+
+    function initCommentVideoSoundObserver($nodes) {
+      if (!('IntersectionObserver' in window)) { return }
+      if (!videoSoundCommentObserver) {
+        videoSoundCommentObserver = new IntersectionObserver(function (entries) {
+          entries.forEach(function (entry) {
+            if (!entry.isIntersecting || entry.intersectionRatio <= 0) {
+              const video = entry.target;
+              if (!isVideoInContentContainer(video)) { return }
+              if (!video.muted) {
+                setVideoMutedAuto(video, true);
+              }
+            }
+          });
+        }, { root: null, threshold: 0.1 });
+      }
+      const $scope = $nodes ? $nodes : $('body');
+      const $videos = $scope.is('video') ? $scope : $scope.find('video');
+      $videos.each(function () {
+        if ($(this).closest('div.post_comment_list').length === 0 || !isVideoInContentContainer(this)) { return }
+        observeOnce(this, videoSoundCommentObserver, 'jrasSoundCommentObserved');
+      });
+    }
+
+    function findPostContainers($nodes) {
+      if (!$nodes) {
+        return $('div[id^=postContainer].postContainer').filter(function () {
+          return $(this).closest('div.post_comment_list').length === 0;
+        });
+      }
+      const $arr = $();
+      $nodes.each(function () {
+        const $node = $(this);
+        if ($node.is('div[id^=postContainer].postContainer')
+          && $node.closest('div.post_comment_list').length === 0) {
+          $arr.push(this);
+        }
+        $node.find('div[id^=postContainer].postContainer').each(function () {
+          if ($(this).closest('div.post_comment_list').length !== 0) { return }
+          $arr.push(this);
+        });
+      });
+      return $arr;
+    }
+
+    function findPostVideos($post) {
+      return $post.find('video').filter(function () {
+        return $(this).closest('div.post_comment_list').length === 0;
+      });
+    }
+
+    function setPostVisibilityState(post, isVisible) {
+      if (!userOptions.val('videoSoundMuteOnPostScroll')) { return }
+      const $videos = findPostVideos($(post));
+      if (!$videos.length) { return }
+      $videos.each(function () {
+        if (!isVideoInContentContainer(this)) { return }
+        applyVisibilitySoundState(this, isVisible && isVideoActuallyVisible(this));
+      });
+    }
+
+    function setVideoVisibilityState(video, isVisible) {
+      if (!userOptions.val('videoSoundMuteOnVideoScroll')) { return }
+      if (!isVideoInContentContainer(video)) { return }
+      applyVisibilitySoundState(video, isVisible && isVideoActuallyVisible(video));
+    }
+
+    function applyVisibilitySoundState(video, isVisible) {
+      if (!video) { return }
+      if (!isVideoInContentContainer(video)) { return }
+      if (isVisible) { return }
+      if (currentScreenMiddleVideo === video) {
+        currentScreenMiddleVideo = null;
+      }
+      if (!video.muted) {
+        setVideoMutedAuto(video, true);
+      }
+    }
+
+    function observePostContainerForSound(post) {
+      observeOnce(post, videoSoundScrollObserver, 'jrasSoundPostObserved');
+    }
+
+    function observeVideoForSoundScroll(video) {
+      observeOnce(video, videoSoundVideoScrollObserver, 'jrasSoundVideoScrollObserved');
+    }
+
+    function observeOnce(element, observer, flagName) {
+      if (!observer || !element) { return }
+      if (element.dataset) {
+        if (element.dataset[flagName]) { return }
+        element.dataset[flagName] = '1';
+      }
+      observer.observe(element);
+    }
+
+    function createVisibilityObserver(callback) {
+      if (!('IntersectionObserver' in window)) { return null }
+      return new IntersectionObserver(function (entries) {
+        entries.forEach(function (entry) {
+          callback(entry);
+        });
+      }, { root: null, threshold: 0.1 });
+    }
+
+    function initVideoSoundScrollObserver() {
+      videoSoundScrollObserver = createVisibilityObserver(function (entry) {
+        setPostVisibilityState(entry.target, entry.isIntersecting && entry.intersectionRatio > 0);
+      });
+      if (!videoSoundScrollObserver) { return }
+
+      findPostContainers().each(function () {
+        observePostContainerForSound(this);
+      });
+
+      const postList = document.getElementById('post_list') || document.body;
+      const observer = new MutationObserver(function (mutations) {
+        mutations.forEach(function (mutation) {
+          if (mutation.type !== 'childList' || !mutation.addedNodes.length) { return }
+          const $posts = findPostContainers($(mutation.addedNodes));
+          $posts.each(function () {
+            observePostContainerForSound(this);
+          });
+        });
+      });
+      observer.observe(postList, { childList: true, subtree: true });
+    }
+
+    function initVideoSoundVideoScrollObserver() {
+      videoSoundVideoScrollObserver = createVisibilityObserver(function (entry) {
+        setVideoVisibilityState(entry.target, entry.isIntersecting && entry.intersectionRatio > 0);
+      });
+      if (!videoSoundVideoScrollObserver) { return }
+
+      $('video').each(function () {
+        if (!isVideoInContentContainer(this)) { return }
+        observeVideoForSoundScroll(this);
+      });
+    }
+
+    this.subscribe = function () {
+      const observer = new MutationObserver(function (mutations) {
+        mutations.forEach(function (mutation) {
+          if (mutation.type !== 'childList' || !mutation.addedNodes.length) { return }
+          controller.initControls($(mutation.addedNodes));
+        });
+      });
+      observer.observe(document.body, { childList: true, subtree: true });
+    };
+
+    function canAutoUnmuteVideo(video) {
+      if (video.dataset && video.dataset.jrasSoundHasAudio === '1') {
+        return true;
+      }
+      const $btn = $(video).data('jrasSoundBtn');
+      if ($btn && $btn.length) {
+        return true;
+      }
+      return getVideoSoundState(video) === 'yes';
+    }
+
+    function muteOtherVideos(activeVideo) {
+      $('video').each(function () {
+        if (this === activeVideo) { return }
+        if (!isVideoInContentContainer(this)) { return }
+        if (!this.muted) {
+          setVideoMutedAuto(this, true);
+        }
+      });
+    }
+
+    function ensureVideoSoundOn(video) {
+      if ((userOptions.val('autoUnmuteVideoNone'))) { return }
+      if (!isVideoInContentContainer(video)) { return }
+      if (!isVideoActuallyVisible(video)) { return }
+      if (!video || !canAutoUnmuteVideo(video)) { return }
+      if (!video.muted && video.volume > 0) { return }
+      const wasPlaying = !video.paused && !video.ended;
+      muteOtherVideos(video);
+      const targetVolume = getTargetVideoSoundVolume();
+      if (video.volume !== targetVolume) {
+        setVideoVolumeAuto(video, targetVolume);
+      }
+      if (video.muted) {
+        setVideoMutedAuto(video, false);
+      }
+      const shouldRestart = userOptions.val('restartVideoOnUnmute');
+      if (shouldRestart) {
+        video.currentTime = 0;
+      }
+      if (wasPlaying || shouldRestart) {
+        video.play();
+      }
+    }
+
+    function observeVideoForAutoSound(video) {
+      if (!videoSoundHalfObserver) { return }
+      if (video.dataset && video.dataset.jrasSoundHalfObserved) { return }
+      if (!isVideoInContentContainer(video)) { return }
+      if (video.dataset) {
+        video.dataset.jrasSoundHalfObserved = '1';
+      }
+      videoSoundHalfObserver.observe(video);
+    }
+
+    function initVideoSoundHalfObserver() {
+      if (!('IntersectionObserver' in window)) { return }
+      videoSoundHalfObserver = new IntersectionObserver(function (entries) {
+        entries.forEach(function (entry) {
+          if (entry.isIntersecting && entry.intersectionRatio >= 0.5) {
+            if (userOptions.val('autoUnmuteVideoOnHalfScreen') && isVideoActuallyVisible(entry.target, 0.5)) {
+              ensureVideoSoundOn(entry.target);
+            }
+          }
+        });
+      }, { root: null, threshold: [0.5] });
+
+      $('video').each(function () {
+        observeVideoForAutoSound(this);
+      });
+    }
+
+    function initVideoSoundScreenMiddleObserver() {
+      const onScroll = function () {
+        if (videoSoundScreenMiddleRaf) { return }
+        videoSoundScreenMiddleRaf = win.requestAnimationFrame(function () {
+          videoSoundScreenMiddleRaf = null;
+          handleScreenMiddleAutoSound();
+        });
+      };
+      $(window).on('scroll', onScroll);
+      $(window).on('resize', onScroll);
+      onScroll();
+    }
+
+    function handleScreenMiddleAutoSound() {
+      if (!userOptions.val('autoUnmuteVideoOnScreenMiddle')) { return }
+      const video = findVideoAtScreenMiddle();
+      if (!video) {
+        currentScreenMiddleVideo = null;
+        return;
+      }
+      if (video === currentScreenMiddleVideo) { return }
+      currentScreenMiddleVideo = video;
+      ensureVideoSoundOn(video);
+    }
+
+    function findVideoAtScreenMiddle() {
+      const midY = (win.innerHeight || document.documentElement.clientHeight || 0) / 2;
+      if (!midY) { return null }
+      let target = null;
+      $('video').each(function () {
+        if (!isVideoInContentContainer(this)) { return }
+        const rect = getVideoActualVisibleRect(this);
+        if (!rect) { return }
+        if (rect.top <= midY && rect.bottom >= midY) {
+          target = this;
+          return false;
+        }
+      });
+      return target;
+    }
+
   }
 
   function PageData(){
