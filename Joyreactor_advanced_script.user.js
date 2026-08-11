@@ -95,7 +95,7 @@ const JRAS_CurrVersion = '2.5.5';
 
   const userOptions = initOptions();
   userOptions.loadUserData(page.currentUser);
-  const videoSoundController = new VideoSoundController({win: win, $: $, userOptions: userOptions, lng: lng});
+  const videoSoundController = new VideoSoundController({win: win, userOptions: userOptions, lng: lng});
   try{
     correctStyle();
     correctPostDate();
@@ -830,12 +830,17 @@ const JRAS_CurrVersion = '2.5.5';
       const ext = url.split('.').pop();
       const currItem = baseDiv.append(`
         <div class="jras-ext-gif-cont">
+          <span role="img" aria-label="download" class="anticon anticon-download">
+            <svg width="1em" height="1em" viewBox="0 0 16 16" xmlns="http://www.w3.org/2000/svg">
+              <path fill="#000000" fill-rule="evenodd" clip-rule="evenodd" d="M12 7a3 3 0 10-2.977-2.63l-2.94 1.47a3 3 0 100 4.319l2.94 1.47a3 3 0 10.895-1.789l-2.94-1.47a3.03 3.03 0 000-.74l2.94-1.47C10.456 6.68 11.19 7 12 7zm0-2a1 1 0 100-2 1 1 0 000 2zm0 8a1 1 0 100-2 1 1 0 000 2zM5 8a1 1 0 11-2 0 1 1 0 012 0z"/>
+            </svg>
+          </span>
+          <span role="img" aria-label="download" class="anticon anticon-download">
+            <svg width="1em" height="1em" viewBox="0 0 16 16" xmlns="http://www.w3.org/2000/svg">
+              <path fill="#000000" fill-rule="evenodd" d="M14,9 C14.5523,9 15,9.44772 15,10 L15,13 C15,14.1046 14.1046,15 13,15 L3,15 C1.89543,15 1,14.1046 1,13 L1,10 C1,9.44772 1.44772,9 2,9 C2.55228,9 3,9.44771 3,10 L3,13 L13,13 L13,10 C13,9.44771 13.4477,9 14,9 Z M8,1 C8.55228,1 9,1.44772 9,2 L9,6.58579 L10.2929,5.29289 C10.6834,4.90237 11.3166,4.90237 11.7071,5.29289 C12.0976,5.68342 12.0976,6.31658 11.7071,6.70711 L8,10.4142 L4.29289,6.70711 C3.90237,6.31658 3.90237,5.68342 4.29289,5.29289 C4.68342,4.90237 5.31658,4.90237 5.70711,5.29289 L7,6.58579 L7,2 C7,1.44772 7.44772,1 8,1 Z"/>
+            </svg>
+          </span>
           <a href="${url}" class="ant-btn css-s2p5hg jras-ext-gif-box">
-            <span role="img" aria-label="download" class="anticon anticon-download">
-              <svg viewBox="64 64 896 896" focusable="false" data-icon="download" width="1em" height="1em" fill="currentColor" aria-hidden="true">
-                <path d="M505.7 661a8 8 0 0012.6 0l112-141.7c4.1-5.2.4-12.9-6.3-12.9h-74.1V168c0-4.4-3.6-8-8-8h-60c-4.4 0-8 3.6-8 8v338.3H400c-6.7 0-10.4 7.7-6.3 12.9l112 141.8zM878 626h-60c-4.4 0-8 3.6-8 8v154H214V634c0-4.4-3.6-8-8-8h-60c-4.4 0-8 3.6-8 8v198c0 17.7 14.3 32 32 32h684c17.7 0 32-14.3 32-32V634c0-4.4-3.6-8-8-8z"></path>
-              </svg>
-            </span>
             <span>${ext}</span>
           </a>
           <span class="jras-ext-gif-box" ${!page.isSchemeLight()?'style="color :#7b7b7b;"':''} />
@@ -850,7 +855,7 @@ const JRAS_CurrVersion = '2.5.5';
           const tmp = response.responseHeaders.match(/Content-Length:\s?(\d+)/i);
           if (tmp){
             currItem.find('a').attr('title', lng.getVal('JRAS_EXTGIFTITLESIZESTR') + tmp[1] + ' bytes');
-            currItem.find('>span').text(niceBytes(tmp[1]));
+            currItem.find('>span:last-child').text(niceBytes(tmp[1]));
           };
         }
       });
@@ -3902,7 +3907,6 @@ const JRAS_CurrVersion = '2.5.5';
 
   function VideoSoundController(deps) {
     const win = deps.win;
-    const $ = deps.$;
     const userOptions = deps.userOptions;
     const lng = deps.lng;
     const controller = this;
