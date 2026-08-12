@@ -14,7 +14,7 @@
 // @connect     api.joyreactor.cc
 // @require     http://ajax.googleapis.com/ajax/libs/jquery/2.2.0/jquery.min.js
 // @require     https://code.jquery.com/ui/1.11.4/jquery-ui.min.js
-// @version     2.5.5
+// @version     2.5.8
 // @grant       GM.getValue
 // @grant       GM.setValue
 // @grant       GM.listValues
@@ -28,9 +28,11 @@
 // @run-at      document-end
 // ==/UserScript==
 
-const JRAS_CurrVersion = '2.5.5';
+const JRAS_CurrVersion = '2.5.8';
 
 /* RELEASE NOTES
+ 2.5.8
+   + В ExtendedGifLinks теперь иконка "download" является кнопкой, которая позволяет скачать файл
  2.5.5
    * баг с включением звука видео под катом
    * рефакторинг накопившихся изменений по работе с видео
@@ -38,7 +40,7 @@ const JRAS_CurrVersion = '2.5.5';
    + чутка поправил фон для заминусованных комментов
  2.5.1
    + Добавил фон для заминусованных комментов
- 2.5.0
+ 2.5.0 (https://old.reactor.cc/post/6322645)
    + линки пользователей из профиля
      + Опция надо ли вообще [true]
      + Опция Пользовательские ссылки на посте [true]
@@ -821,33 +823,165 @@ const JRAS_CurrVersion = '2.5.5';
     })
   }
 
+  function getMediaUrl(url){
+    if (!url) { return '' }
+    return new URL(url, location.href).href;
+  }
+
+  function getDownloadProgressPercent(loaded, total){
+    loaded = parseInt(loaded, 10);
+    total = parseInt(total, 10);
+    if (!total || total <= 0 || !loaded || loaded < 0) { return null }
+    return Math.max(0, Math.min(100, Math.floor((loaded / total) * 100)));
+  }
+
+  function setDownloadProgress($button, progressPercent){
+    if (!$button || !$button.length || progressPercent === null) { return }
+    progressPercent = Math.max(0, Math.min(100, progressPercent));
+    if (!$button.data('jrasDownloadIconHtml')) {
+      $button.data('jrasDownloadIconHtml', $button.html());
+    }
+    $button.html(makeDownloadProgressSvg(progressPercent));
+    // $button.attr('data-download-progress', progressPercent);
+    // $button.css('--jras-download-progress', progressPercent + '%');
+  }
+
+  function clearDownloadProgress($button){
+    if (!$button || !$button.length) { return }
+    const downloadIconHtml = $button.data('jrasDownloadIconHtml');
+    if (downloadIconHtml) {
+      $button.html(downloadIconHtml);
+      $button.removeData('jrasDownloadIconHtml');
+    }
+    $button.removeClass('jras-ext-gif-download-loading jras-ext-gif-download-error');
+    // $button.removeAttr('data-download-progress');
+    // $button.css('--jras-download-progress', '');
+  }
+
+  async function downloadMediaFile(url, fileName, $button){
+    if ($button && $button.hasClass('jras-ext-gif-download-loading')) { return }
+    if ($button) {
+      $button.removeClass('jras-ext-gif-download-error');
+      $button.addClass('jras-ext-gif-download-loading');
+      setDownloadProgress($button, 0);
+    }
+    try {
+      const blob = await loadMediaBlob(url, function(progressPercent){
+        setDownloadProgress($button, progressPercent);
+      });
+      setDownloadProgress($button, 100);
+      downloadMediaBlob(blob, fileName);
+      clearDownloadProgress($button);
+    } catch (e) {
+      if ($button) {
+        $button.removeClass('jras-ext-gif-download-loading');
+        $button.addClass('jras-ext-gif-download-error');
+      }
+      downloadMediaFileFallback(url, fileName);
+    }
+  }
+
+  function downloadMediaMakeA(fileName) {
+    const a = document.createElement('a');
+    a.download = fileName;
+    a.style.display = 'none';
+    document.body.appendChild(a);
+    return a;
+  }
+
+  function downloadMediaBlob(blob, fileName){
+    const objectUrl = URL.createObjectURL(blob);
+    const a = downloadMediaMakeA(fileName);
+    a.href = objectUrl;
+    a.click();
+    a.remove();
+    setTimeout(function(){ URL.revokeObjectURL(objectUrl) }, 1000);
+  }
+
+  function downloadMediaFileFallback(url, fileName){
+    const a = downloadMediaMakeA(fileName);
+    a.href = getMediaUrl(url);
+    a.click();
+    a.remove();
+  }
+
+  function loadMediaBlob(url, onProgress){
+    return new Promise(function(resolve, reject){
+      GMxmlhttpRequest({
+        method: 'GET',
+        url: getMediaUrl(url),
+        responseType: 'blob',
+        headers: {
+          'Referer': location.origin
+        },
+        onprogress: function(response) {
+          if (!onProgress) { return }
+          const progressPercent = getDownloadProgressPercent(response.loaded, response.total);
+          if (progressPercent !== null) {
+            onProgress(progressPercent);
+          }
+        },
+        onload: function(response) {
+          if (response.status < 200 || response.status >= 300) {
+            reject(response);
+            return;
+          }
+          resolve(response.response);
+        },
+        onerror: reject,
+        ontimeout: reject
+      });
+    });
+  }
+
+  function getMediaFileName(url, ext) {
+    let fileName = '';
+    try {
+      fileName = decodeURIComponent(new URL(url, location.href).pathname.split('/').pop() || '');
+    } catch (e) { }
+    if (!fileName) {
+      fileName = 'reactor-media' + (ext ? '.' + ext : '');
+    }
+    return fileName.replace(/[\\/:*?"<>|]+/g, '_');
+  }
+
+  function makeDownloadProgressSvg(progressPercent) {
+    return `
+      <svg width="1em" height="1em" viewBox="0 0 16 16" xmlns="http://www.w3.org/2000/svg">
+        <circle cx="8" cy="8" r="6" fill="none" stroke="#7b7b7b" stroke-opacity="0.25" stroke-width="2"/>
+        <circle cx="8" cy="8" r="6" fill="none" stroke="#0703f8" stroke-width="2" pathLength="100" stroke-dasharray="${progressPercent} 100" stroke-linecap="round" transform="rotate(-90 8 8)"/>
+      </svg>`;
+  }
+
   function makeExtendedGifLinks($nodes){
     if (!userOptions.val('extendedGifLinks')){
       return;
     }
-    let baseDiv;
+    let $baseDiv;
     const f = function(url){
-      const ext = url.split('.').pop();
-      const currItem = baseDiv.append(`
+      const mediaUrl = getMediaUrl(url);
+      const ext = mediaUrl.split('?')[0].split('#')[0].split('.').pop();
+      const fileName = getMediaFileName(mediaUrl, ext);
+      const currItem = $baseDiv.append(`
         <div class="jras-ext-gif-cont">
-          <span role="img" aria-label="download" class="anticon anticon-download">
+          <span role="button" tabindex="0" aria-label="download" title="Download" style="color:#171717 !important;" class="anticon anticon-download jras-ext-gif-download-btn">
             <svg width="1em" height="1em" viewBox="0 0 16 16" xmlns="http://www.w3.org/2000/svg">
-              <path fill="#000000" fill-rule="evenodd" clip-rule="evenodd" d="M12 7a3 3 0 10-2.977-2.63l-2.94 1.47a3 3 0 100 4.319l2.94 1.47a3 3 0 10.895-1.789l-2.94-1.47a3.03 3.03 0 000-.74l2.94-1.47C10.456 6.68 11.19 7 12 7zm0-2a1 1 0 100-2 1 1 0 000 2zm0 8a1 1 0 100-2 1 1 0 000 2zM5 8a1 1 0 11-2 0 1 1 0 012 0z"/>
+              <path fill="currentColor" fill-rule="evenodd" d="M14,9 C14.5523,9 15,9.44772 15,10 L15,13 C15,14.1046 14.1046,15 13,15 L3,15 C1.89543,15 1,14.1046 1,13 L1,10 C1,9.44772 1.44772,9 2,9 C2.55228,9 3,9.44771 3,10 L3,13 L13,13 L13,10 C13,9.44771 13.4477,9 14,9 Z M8,1 C8.55228,1 9,1.44772 9,2 L9,6.58579 L10.2929,5.29289 C10.6834,4.90237 11.3166,4.90237 11.7071,5.29289 C12.0976,5.68342 12.0976,6.31658 11.7071,6.70711 L8,10.4142 L4.29289,6.70711 C3.90237,6.31658 3.90237,5.68342 4.29289,5.29289 C4.68342,4.90237 5.31658,4.90237 5.70711,5.29289 L7,6.58579 L7,2 C7,1.44772 7.44772,1 8,1 Z"/>
             </svg>
           </span>
-          <span role="img" aria-label="download" class="anticon anticon-download">
-            <svg width="1em" height="1em" viewBox="0 0 16 16" xmlns="http://www.w3.org/2000/svg">
-              <path fill="#000000" fill-rule="evenodd" d="M14,9 C14.5523,9 15,9.44772 15,10 L15,13 C15,14.1046 14.1046,15 13,15 L3,15 C1.89543,15 1,14.1046 1,13 L1,10 C1,9.44772 1.44772,9 2,9 C2.55228,9 3,9.44771 3,10 L3,13 L13,13 L13,10 C13,9.44771 13.4477,9 14,9 Z M8,1 C8.55228,1 9,1.44772 9,2 L9,6.58579 L10.2929,5.29289 C10.6834,4.90237 11.3166,4.90237 11.7071,5.29289 C12.0976,5.68342 12.0976,6.31658 11.7071,6.70711 L8,10.4142 L4.29289,6.70711 C3.90237,6.31658 3.90237,5.68342 4.29289,5.29289 C4.68342,4.90237 5.31658,4.90237 5.70711,5.29289 L7,6.58579 L7,2 C7,1.44772 7.44772,1 8,1 Z"/>
-            </svg>
-          </span>
-          <a href="${url}" class="ant-btn css-s2p5hg jras-ext-gif-box">
+          <a href="${mediaUrl}" class="ant-btn css-s2p5hg jras-ext-gif-box">
             <span>${ext}</span>
           </a>
-          <span class="jras-ext-gif-box" ${!page.isSchemeLight()?'style="color :#7b7b7b;"':''} />
+          <span class="jras-ext-gif-box" ${page.isSchemeLight()?'':'style="color:#7b7b7b;"'} />
         </div>`).children().last();
+      currItem.find('.jras-ext-gif-download-btn').on('click', function(e){
+        e.preventDefault();
+        e.stopPropagation();
+        downloadMediaFile(mediaUrl, fileName, $(this));
+      });
       GMxmlhttpRequest({
         method: "HEAD",
-        url: location.protocol + url,
+        url: mediaUrl,
         headers: {
           'Referer': location.origin
         },
@@ -862,7 +996,7 @@ const JRAS_CurrVersion = '2.5.5';
     }
     const $nds = $nodes ? $nodes : $('body');
     $nds.find('div.image:not(:has(div.jras-ext-gif-cont)) span').filter('.video_gif_holder, .video_holder').each(function(idx, elm){
-      baseDiv = $(elm).append('<div class="gifbuttons"></div>').parent().find('div.gifbuttons');
+      $baseDiv = $(elm).append('<div class="gifbuttons"></div>').parent().find('div.gifbuttons');
 
       $(elm).find('video source').each(function(videoId, videoElm) {
         f($(videoElm).attr('src'));
@@ -3222,6 +3356,13 @@ const JRAS_CurrVersion = '2.5.5';
         background: repeating-linear-gradient(-55deg, #ff000010, #ff000010 10px, #ff000025 10px, #ff000025 20px) !important;
         mask-image: linear-gradient(90deg, transparent 0%, white 100%) !important;
         -webkit-mask-image: linear-gradient(90deg, #00000050 0%, white 100%) !important;
+      }
+      .jras-ext-gif-download-btn{
+        padding-left: 5px;
+      }
+      .jras-ext-gif-download-loading{
+      }
+      .jras-ext-gif-download-error{
       }
 
       .jras-loader {
