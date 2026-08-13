@@ -12,9 +12,13 @@
 // @include     *joyreactor.cc*
 // @include     *jr-proxy.com*
 // @connect     api.joyreactor.cc
+// @connect     img0.reactor.cc
+// @connect     img1.reactor.cc
+// @connect     img2.reactor.cc
+// @connect     img10.reactor.cc
 // @require     http://ajax.googleapis.com/ajax/libs/jquery/2.2.0/jquery.min.js
 // @require     https://code.jquery.com/ui/1.11.4/jquery-ui.min.js
-// @version     2.5.8
+// @version     2.5.9
 // @grant       GM.getValue
 // @grant       GM.setValue
 // @grant       GM.listValues
@@ -28,9 +32,11 @@
 // @run-at      document-end
 // ==/UserScript==
 
-const JRAS_CurrVersion = '2.5.8';
+const JRAS_CurrVersion = '2.5.9';
 
 /* RELEASE NOTES
+ 2.5.9
+   * небольшой фикс по доступу для userscript
  2.5.8
    + В ExtendedGifLinks теперь иконка "download" является кнопкой, которая позволяет скачать файл
  2.5.5
