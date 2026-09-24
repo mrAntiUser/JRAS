@@ -18,7 +18,7 @@
 // @connect     img10.reactor.cc
 // @require     http://ajax.googleapis.com/ajax/libs/jquery/2.2.0/jquery.min.js
 // @require     https://code.jquery.com/ui/1.11.4/jquery-ui.min.js
-// @version     2.5.9
+// @version     2.5.11
 // @grant       GM.getValue
 // @grant       GM.setValue
 // @grant       GM.listValues
@@ -32,9 +32,11 @@
 // @run-at      document-end
 // ==/UserScript==
 
-const JRAS_CurrVersion = '2.5.9';
+const JRAS_CurrVersion = '2.5.11';
 
 /* RELEASE NOTES
+ 2.5.11
+   * Функционал отправки личных сообщений был переписан с использованием GraphQL.
  2.5.9
    * небольшой фикс по доступу для userscript
  2.5.8
@@ -79,6 +81,7 @@ const JRAS_CurrVersion = '2.5.9';
   const GMxmlhttpRequest  = (gm3) ? GM_xmlhttpRequest : GM.xmlhttpRequest;
 
   const graphqlEndpoint = 'https://api.joyreactor.cc/graphql';
+  const graphqlRequests = new GraphQLRequests();
 
   const defUserName = 'Anonymous';
   const defLoadTooltipSize = 212;
@@ -155,251 +158,88 @@ const JRAS_CurrVersion = '2.5.9';
           propData: function(){return{ def: 'ru', type: 'combobox'}},
           values: function(){return lng.getLangs()}
         },
-        correctRedirectLink: { dt: null,
-          propData: function(){return { def: true, type: 'checkbox'}}
-        },
-        removeShareButtons: { dt: null,
-          propData: function(){return { def: false, type: 'checkbox'}}
-        },
-        makeAvatarOnOldDesign: { dt: null,
-          propData: function(){return { def: true, type: 'checkbox'}}
-        },
-        makeAvatarOnlyFullPost: { dt: null,
-          propData: function(){return { def: false, type: 'checkbox'}}
-        },
-        avatarHeight: { dt: null,
-          propData: function(){return { def: 35, type: 'number', min: 5, max: 300}}
-        },
-        makeTreeComments: { dt: null,
-          propData: function(){return { def: true, type: 'checkbox'}}
-        },
-        treeCommentsOnlyFullPost: { dt: null,
-          propData: function(){return { def: false, type: 'checkbox'}}
-        },
-        whenCollapseMakeRead: { dt: null,
-          propData: function(){return { def: true, type: 'checkbox'}}
-        },
-        isToBeLoadingUserData: { dt: null,
-          propData: function(){return { def: true, type: 'checkbox'}}
-        },
-        hideUserAwardsWhen: { dt: null,
-          propData: function(){return { def: 60, type: 'combobox'}},
-          values: function(){const retVal = {}; for(let i = 0; i < 101; i += 5){ if (i != 0 && i < 20){continue} retVal[i] = i} return retVal}
-        },
-        minShowUserAwards: { dt: null,
-          propData: function(){return { def: 40, type: 'combobox'}},
-          values: function(){const retVal = {}; for(let i = 10; i < 101; i += 10){ retVal[i] = i} return retVal}
-        },
-        fixedTopbar: { dt: null,
-          propData: function(){return { def: true, type: 'checkbox'}}
-        },
-        hideFixedTopbar: { dt: null,
-          propData: function(){return { def: true, type: 'checkbox'}}
-        },
-        showUTOnLine: { dt: null,
-          propData: function(){return { def: true, type: 'checkbox'}}
-        },
-        showUTOnComment: { dt: null,
-          propData: function(){return { def: true, type: 'checkbox'}}
-        },
-        showUTOnPrivateMess: { dt: null,
-          propData: function(){return { def: true, type: 'checkbox'}}
-        },
-        showUTOnPeople: { dt: null,
-          propData: function(){return { def: true, type: 'checkbox'}}
-        },
-        showUTOnSidebarTopUsers: { dt: null,
-          propData: function(){return { def: true, type: 'checkbox'}}
-        },
-        showUTOnTopComments: { dt: null,
-          propData: function(){return { def: true, type: 'checkbox'}}
-        },
-        showUTOnSidebarOnline: { dt: null,
-          propData: function(){return { def: true, type: 'checkbox'}}
-        },
-        showUTOnPostControl: { dt: null,
-          propData: function(){return { def: true, type: 'checkbox'}}
-        },
-        showHiddenComments: { dt: null,
-          propData: function(){return { def: false, type: 'checkbox'}}
-        },
-        showHiddenCommentsMark: { dt: null,
-          propData: function(){return { def: true, type: 'checkbox'}}
-        },
-        isToBeLoadingTagData: { dt: null,
-          propData: function(){return { def: true, type: 'checkbox'}}
-        },
-        showTTOnTrends: { dt: null,
-          propData: function(){return { def: true, type: 'checkbox'}}
-        },
-        showTTOnLikeTags: { dt: null,
-          propData: function(){return { def: true, type: 'checkbox'}}
-        },
-        showTTOnInteresting: { dt: null,
-          propData: function(){return { def: true, type: 'checkbox'}}
-        },
-        showTTOnLine: { dt: null,
-          propData: function(){return { def: true, type: 'checkbox'}}
-        },
-        showTTFullPost: { dt: null,
-          propData: function(){return { def: true, type: 'checkbox'}}
-        },
-        delUserComment: { dt: null,
-          propData: function(){return { def: false, type: 'checkbox'}}
-        },
-        showUserNameDelComment: { dt: null,
-          propData: function(){return { def: true, type: 'checkbox'}}
-        },
-        fullDelUserPost: { dt: null,
-          propData: function(){return { def: false, type: 'checkbox'}}
-        },
-        delUserPost: { dt: null,
-          propData: function(){return { def: false, type: 'checkbox'}}
-        },
-        showUserNameDelPost: { dt: null,
-          propData: function(){return { def: true, type: 'checkbox'}}
-        },
-        chatlaneToPacaki: { dt: null,// Убирать цветовую отметку донатера
-          propData: function(){return { def: false, type: 'checkbox'}}
-        },
-        collapseComments: { dt: null,
-          propData: function(){return { def: false, type: 'checkbox'}}
-        },
-        collapseCommentsOnlyFullPost: { dt: null,
-          propData: function(){return { def: false, type: 'checkbox'}}
-        },
-        collapseCommentWhenSize: { dt: null,
-          propData: function(){return { def: 110, type: 'number', min: 20, max: 10000}}
-        },
-        collapseCommentToSize: { dt: null,
-          propData: function(){return { def: 72, type: 'number', min: 20, max: 10000}}
-        },
-        pcbShowPostControl: { dt: null,
-          propData: function(){return { def: true, type: 'checkbox'}}
-        },
-        pcbShowInFullPost: { dt: null,
-          propData: function(){return { def: false, type: 'checkbox'}}
-        },
-        pcbHideJRShareBlock: { dt: null,
-          propData: function(){return { def: false, type: 'checkbox'}}
-        },
-        pcbHideJRRatingBlock: { dt: null,
-          propData: function(){return { def: false, type: 'checkbox'}}
-        },
-        pcbTopBorder: { dt: null,
-          propData: function(){return { def: 10, type: 'number', min: 0, max: 200}}
-        },
-        pcbBottomBorder: { dt: null,
-          propData: function(){return { def: 10, type: 'number', min: 0, max: 200}}
-        },
-        pcbTopScreenPos: { dt: null,
-          propData: function(){return { def: 30, type: 'number', min: 0, max: 200}}
-        },
-        showCommentDate: { dt: null,
-          propData: function(){return { def: true, type: 'checkbox'}}
-        },
-        pcbAnimateMove: { dt: null,
-          propData: function(){return { def: true, type: 'checkbox'}}
-        },
-        pcbAnimateMoveSpeed: { dt: null,
-          propData: function(){return { def: 2, type: 'number', min: 1, max: 9}}
-        },
-        pcbHideShareButoons: { dt: null,
-          propData: function(){return { def: false, type: 'checkbox'}}
-        },
-        stCorrectStyle: { dt: null,
-          propData: function(){return { def: false, type: 'checkbox'}}
-        },
-        stHideSideBar: { dt: null,
-          propData: function(){return { def: true, type: 'checkbox'}}
-        },
-        stStretchContent: { dt: null,
-          propData: function(){return { def: true, type: 'checkbox'}}
-        },
-        stStretchSize: { dt: null,
-          propData: function(){return { def: 90, type: 'number', min: 60, max: 100}}
-        },
-        stSideBarSizeToPage: { dt: null,
-          propData: function(){return { def: true, type: 'checkbox'}}
-        },
-        stShowSideBarOnHideContent: { dt: null,
-          propData: function(){return { def: true, type: 'checkbox'}}
-        },
-        stUseDynStyleChanges: { dt: null,
-          propData: function(){return { def: false, type: 'checkbox'}}
-        },
-        stCenterContent: { dt: null,
-          propData: function(){return { def: true, type: 'checkbox'}}
-        },
-        correctOldReactorLink: { dt: null,
-          propData: function(){return { def: true, type: 'checkbox'}}
-        },
-        previewReactorLink: { dt: null,
-          propData: function(){return { def: true, type: 'checkbox'}}
-        },
-        previewSizeX: { dt: null,
-          propData: function(){return { def: 50, type: 'number', min: 20, max: 80}}
-        },
-        previewSizeY: { dt: null,
-          propData: function(){return { def: 50, type: 'number', min: 20, max: 80}}
-        },
-        extendedGifLinks: { dt: null,
-          propData: function(){return { def: true, type: 'checkbox'}}
-        },
-        videoSoundOptions: { dt: null,
-          propData: function(){return { def: true, type: 'checkbox'}}
-        },
-        restartVideoOnUnmute: { dt: null,
-          propData: function(){return { def: true, type: 'checkbox'}}
-        },
-        videoSoundMuteOnPostScroll: { dt: null,
-          propData: function(){return { def: true, type: 'radio', group: 'videoSoundMuteOnScrollMode'}}
-        },
-        videoSoundMuteOnVideoScroll: { dt: null,
-          propData: function(){return { def: false, type: 'radio', group: 'videoSoundMuteOnScrollMode'}}
-        },
-        autoUnmuteVideoNone: { dt: null,
-          propData: function(){return { def: false, type: 'radio', group: 'autoUnmuteVideoMode'}}
-        },
-        autoUnmuteVideoOnHalfScreen: { dt: null,
-          propData: function(){return { def: false, type: 'radio', group: 'autoUnmuteVideoMode'}}
-        },
-        autoUnmuteVideoOnScreenMiddle: { dt: null,
-          propData: function(){return { def: true, type: 'radio', group: 'autoUnmuteVideoMode'}}
-        },
-        showUserLinks: { dt: null,
-          propData: function () { return { def: true, type: 'checkbox' } }
-        },
-        showUserLinksProgressbar: { dt: null,
-          propData: function () { return { def: true, type: 'checkbox' } }
-        },
-        loadFavoriteIcoForUserLinks: {
-          dt: null,
-          propData: function () { return { def: true, type: 'checkbox' } }
-        },
-        showUserLinksOnPost: { dt: null,
-          propData: function () { return { def: true, type: 'checkbox' } }
-        },
-        showUserLinksOnComment: {
-          dt: null,
-          propData: function () { return { def: true, type: 'checkbox' } }
-        },
-        showUserLinksCount: {
-          dt: null,
-          propData: function () { return { def: 0, type: 'number', min: 0, max: 99 } }
-        },
-        makeQuotesOnComments: { dt: null,
-          propData: function () { return { def: false, type: 'checkbox' } }
-        },
-        makeExtQuotes: { dt: null,
-          propData: function () { return { def: true, type: 'checkbox' } }
-        },
-        makeQuoteTool: { dt: null,
-          propData: function () { return { def: true, type: 'checkbox' } }
-        },
-        qTAddUserInfo: { dt: null,
-          propData: function () { return { def: true, type: 'checkbox' } }
-        },
+        correctRedirectLink: { dt: null, propData: function(){return { def: true, type: 'checkbox'}}},
+        removeShareButtons: { dt: null, propData: function(){return { def: false, type: 'checkbox'}}},
+        makeAvatarOnOldDesign: { dt: null, propData: function(){return { def: true, type: 'checkbox'}}},
+        makeAvatarOnlyFullPost: { dt: null, propData: function(){return { def: false, type: 'checkbox'}}},
+        avatarHeight: { dt: null, propData: function(){return { def: 35, type: 'number', min: 5, max: 300}}},
+        makeTreeComments: { dt: null, propData: function(){return { def: true, type: 'checkbox'}}},
+        treeCommentsOnlyFullPost: { dt: null, propData: function(){return { def: false, type: 'checkbox'}}},
+        whenCollapseMakeRead: { dt: null, propData: function(){return { def: true, type: 'checkbox'}}},
+        isToBeLoadingUserData: { dt: null, propData: function(){return { def: true, type: 'checkbox'}}},
+        hideUserAwardsWhen: { dt: null, propData: function(){return { def: 60, type: 'combobox'}},
+          values: function(){const retVal = {}; for(let i = 0; i < 101; i += 5){ if (i != 0 && i < 20){continue} retVal[i] = i} return retVal}},
+        minShowUserAwards: { dt: null, propData: function(){return { def: 40, type: 'combobox'}},
+          values: function(){const retVal = {}; for(let i = 10; i < 101; i += 10){ retVal[i] = i} return retVal}},
+        fixedTopbar: { dt: null, propData: function(){return { def: true, type: 'checkbox'}}},
+        hideFixedTopbar: { dt: null, propData: function(){return { def: true, type: 'checkbox'}}},
+        showUTOnLine: { dt: null, propData: function(){return { def: true, type: 'checkbox'}}},
+        showUTOnComment: { dt: null, propData: function(){return { def: true, type: 'checkbox'}}},
+        showUTOnPrivateMess: { dt: null, propData: function(){return { def: true, type: 'checkbox'}}},
+        showUTOnPeople: { dt: null, propData: function(){return { def: true, type: 'checkbox'}}},
+        showUTOnSidebarTopUsers: { dt: null, propData: function(){return { def: true, type: 'checkbox'}}},
+        showUTOnTopComments: { dt: null, propData: function(){return { def: true, type: 'checkbox'}}},
+        showUTOnSidebarOnline: { dt: null, propData: function(){return { def: true, type: 'checkbox'}}},
+        showUTOnPostControl: { dt: null, propData: function(){return { def: true, type: 'checkbox'}}},
+        showHiddenComments: { dt: null, propData: function(){return { def: false, type: 'checkbox'}}},
+        showHiddenCommentsMark: { dt: null, propData: function(){return { def: true, type: 'checkbox'}}},
+        isToBeLoadingTagData: { dt: null, propData: function(){return { def: true, type: 'checkbox'}}},
+        showTTOnTrends: { dt: null, propData: function(){return { def: true, type: 'checkbox'}}},
+        showTTOnLikeTags: { dt: null, propData: function(){return { def: true, type: 'checkbox'}}},
+        showTTOnInteresting: { dt: null, propData: function(){return { def: true, type: 'checkbox'}}},
+        showTTOnLine: { dt: null, propData: function(){return { def: true, type: 'checkbox'}}},
+        showTTFullPost: { dt: null, propData: function(){return { def: true, type: 'checkbox'}}},
+        delUserComment: { dt: null, propData: function(){return { def: false, type: 'checkbox'}}},
+        showUserNameDelComment: { dt: null, propData: function(){return { def: true, type: 'checkbox'}}},
+        fullDelUserPost: { dt: null, propData: function(){return { def: false, type: 'checkbox'}}},
+        delUserPost: { dt: null, propData: function(){return { def: false, type: 'checkbox'}}},
+        showUserNameDelPost: { dt: null, propData: function(){return { def: true, type: 'checkbox'}}},
+        chatlaneToPacaki: { dt: null, propData: function(){return { def: false, type: 'checkbox'}}},
+        collapseComments: { dt: null, propData: function(){return { def: false, type: 'checkbox'}}},
+        collapseCommentsOnlyFullPost: { dt: null, propData: function(){return { def: false, type: 'checkbox'}}},
+        collapseCommentWhenSize: { dt: null, propData: function(){return { def: 110, type: 'number', min: 20, max: 10000}}},
+        collapseCommentToSize: { dt: null, propData: function(){return { def: 72, type: 'number', min: 20, max: 10000}}},
+        pcbShowPostControl: { dt: null, propData: function(){return { def: true, type: 'checkbox'}}},
+        pcbShowInFullPost: { dt: null, propData: function(){return { def: false, type: 'checkbox'}}},
+        pcbHideJRShareBlock: { dt: null, propData: function(){return { def: false, type: 'checkbox'}}},
+        pcbHideJRRatingBlock: { dt: null, propData: function(){return { def: false, type: 'checkbox'}}},
+        pcbTopBorder: { dt: null, propData: function(){return { def: 10, type: 'number', min: 0, max: 200}}},
+        pcbBottomBorder: { dt: null, propData: function(){return { def: 10, type: 'number', min: 0, max: 200}}},
+        pcbTopScreenPos: { dt: null, propData: function(){return { def: 30, type: 'number', min: 0, max: 200}}},
+        showCommentDate: { dt: null, propData: function(){return { def: true, type: 'checkbox'}}},
+        pcbAnimateMove: { dt: null, propData: function(){return { def: true, type: 'checkbox'}}},
+        pcbAnimateMoveSpeed: { dt: null, propData: function(){return { def: 2, type: 'number', min: 1, max: 9}}},
+        pcbHideShareButoons: { dt: null, propData: function(){return { def: false, type: 'checkbox'}}},
+        stCorrectStyle: { dt: null, propData: function(){return { def: false, type: 'checkbox'}}},
+        stHideSideBar: { dt: null, propData: function(){return { def: true, type: 'checkbox'}}},
+        stStretchContent: { dt: null, propData: function(){return { def: true, type: 'checkbox'}}},
+        stStretchSize: { dt: null, propData: function(){return { def: 90, type: 'number', min: 60, max: 100}}},
+        stSideBarSizeToPage: { dt: null, propData: function(){return { def: true, type: 'checkbox'}}},
+        stShowSideBarOnHideContent: { dt: null, propData: function(){return { def: true, type: 'checkbox'}}},
+        stUseDynStyleChanges: { dt: null, propData: function(){return { def: false, type: 'checkbox'}}},
+        stCenterContent: { dt: null, propData: function(){return { def: true, type: 'checkbox'}}},
+        correctOldReactorLink: { dt: null, propData: function(){return { def: true, type: 'checkbox'}}},
+        previewReactorLink: { dt: null, propData: function(){return { def: true, type: 'checkbox'}}},
+        previewSizeX: { dt: null, propData: function(){return { def: 50, type: 'number', min: 20, max: 80}}},
+        previewSizeY: { dt: null, propData: function(){return { def: 50, type: 'number', min: 20, max: 80}}},
+        extendedGifLinks: { dt: null, propData: function(){return { def: true, type: 'checkbox'}}},
+        videoSoundOptions: { dt: null, propData: function(){return { def: true, type: 'checkbox'}}},
+        restartVideoOnUnmute: { dt: null, propData: function(){return { def: true, type: 'checkbox'}}},
+        videoSoundMuteOnPostScroll: { dt: null, propData: function(){return { def: true, type: 'radio', group: 'videoSoundMuteOnScrollMode'}}},
+        videoSoundMuteOnVideoScroll: { dt: null, propData: function(){return { def: false, type: 'radio', group: 'videoSoundMuteOnScrollMode'}}},
+        autoUnmuteVideoNone: { dt: null, propData: function(){return { def: false, type: 'radio', group: 'autoUnmuteVideoMode'}}},
+        autoUnmuteVideoOnHalfScreen: { dt: null, propData: function(){return { def: false, type: 'radio', group: 'autoUnmuteVideoMode'}}},
+        autoUnmuteVideoOnScreenMiddle: { dt: null, propData: function(){return { def: true, type: 'radio', group: 'autoUnmuteVideoMode'}}},
+        showUserLinks: { dt: null, propData: function () { return { def: true, type: 'checkbox' } }},
+        showUserLinksProgressbar: { dt: null, propData: function () { return { def: true, type: 'checkbox' } }},
+        loadFavoriteIcoForUserLinks: {dt: null, propData: function () { return { def: true, type: 'checkbox' } }},
+        showUserLinksOnPost: { dt: null, propData: function () { return { def: true, type: 'checkbox' } }},
+        showUserLinksOnComment: {dt: null, propData: function () { return { def: true, type: 'checkbox' } }},
+        showUserLinksCount: {dt: null, propData: function () { return { def: 0, type: 'number', min: 0, max: 99 } }},
+        makeQuotesOnComments: { dt: null, propData: function () { return { def: false, type: 'checkbox' } }},
+        makeExtQuotes: { dt: null, propData: function () { return { def: true, type: 'checkbox' } }},
+        makeQuoteTool: { dt: null, propData: function () { return { def: true, type: 'checkbox' } }},
+        qTAddUserInfo: { dt: null, propData: function () { return { def: true, type: 'checkbox' } }},
         qTInsertIntoShowingInput: { dt: null,
           propData: function () { return { def: 'newAnswerAlways', type: 'combobox' } },
           values: function () { return {
@@ -626,10 +466,6 @@ const JRAS_CurrVersion = '2.5.9';
   }
   function b64decode(str){
     return decodeURIComponent(escape(atob(str)));
-  }
-
-  function escapeGraphqlString(str) {
-    return String(str).replace(/\\/g, '\\\\').replace(/"/g, '\\"');
   }
 
   function removeRedirectLink($inElm){
@@ -2379,7 +2215,11 @@ const JRAS_CurrVersion = '2.5.9';
     const cacheKey = queryUserName.toLowerCase();
     if (!cacheKey) return Promise.resolve(null);
     if (userUrlsByName.has(cacheKey)) return userUrlsByName.get(cacheKey);
-    const userUrlsPromise = getGraphqlJsonSkipError(`query {user(username:"${escapeGraphqlString(queryUserName)}"){urls}}`)
+    const userUrlsPromise = getGraphqlJsonSkipError(
+      graphqlRequests.userUrls,
+      {username: queryUserName},
+      {operationName: 'UserUrls'}
+    )
       .then(json => {
         if (json === null) {
           userUrlsByName.delete(cacheKey);
@@ -2624,37 +2464,113 @@ const JRAS_CurrVersion = '2.5.9';
     $containerFor.find('img').css('border', 'none')
   }
 
+  async function preparePrivateMessage(username) {
+    const response = await graphqlRequest(
+      graphqlRequests.preparePrivateMessage,
+      {username},
+      {operationName: 'PreparePrivateMessage'}
+    );
+    const data = response && response.data;
+    if (!data || !data.me || !data.me.id) {
+      throw new Error(lng.getVal('JRAS_PM_AUTH_REQUIRED'));
+    }
+    if (!data.user || !data.user.id) {
+      throw new Error(lng.getVal('JRAS_PM_USER_NOT_FOUND'));
+    }
+    if (data.user.canSendPrivateMessage !== true) {
+      throw new Error(lng.getVal('JRAS_PM_FORBIDDEN'));
+    }
+    return data.user.id;
+  }
+
+  async function sendPrivateMessage(userId, text) {
+    const response = await graphqlRequest(
+      graphqlRequests.sendPrivateMessage,
+      {user: userId, text},
+      {operationName: 'SendPrivateMessage'}
+    );
+    const result = response && response.data && response.data.privateMessage;
+    if (!result || result.success !== true) {
+      throw new Error((result && result.message) || lng.getVal('JRAS_PM_FAILED'));
+    }
+  }
+
+  function privateMessageError(error, sending) {
+    if (sending && error && ['timeout', 'network_error', 'parse_error'].includes(error.type)) {
+      return lng.getVal('JRAS_PM_UNCONFIRMED');
+    }
+    if (error && Array.isArray(error.errors)) {
+      return error.errors.map(item => item.message).filter(Boolean).join('\n') || lng.getVal('JRAS_PM_FAILED');
+    }
+    return (error && error.message) || lng.getVal('JRAS_PM_FAILED');
+  }
+
   function sendPM(userName){
     let $pmDialog = $('body #jras-send-pm-dialog');
-    if(!$pmDialog[0]){
-      $pmDialog = $('body').append(`
-          <div id="jras-send-pm-dialog" title="" style="width: 100%;height: 100%;">
-            <form action="/private/create" method="POST" id="private_form" style="width: 100%;height: 100%;">
-              <div id="private_form_flash" style="display:none;"></div>
-              <input id="jras-send-pm-username" name="username" type="hidden" id="private_form_username" value="">
-              <textarea style="width: 100%;height: 70%;" id="private_form_text" name="text" rows="12" cols="76"></textarea>
-               <div class="ui-dialog-buttonpane ui-widget-content ui-helper-clearfix" style="margin:0; padding:0;border: none;">
-                 <div class="ui-dialog-buttonset">
-                    <input type="submit" value="" id="jras-send-pm-sendbutton">
-                 </div>
-                <div id="private_form_uploading" style="display: none;">
-                  <img src="http://css.joyreactor.cc/images/jquery-ui/ui-anim_basic_16x16.gif" alt="uploading...">
-                  <span id="jras-send-pm-sendmess"></span>
-                </div>
+    if (!$pmDialog.length) {
+      $pmDialog = $(`
+        <div id="jras-send-pm-dialog" style="width: 100%;height: 100%;">
+          <form id="jras-pm-form" style="width: 100%;height: 100%;">
+            <textarea style="width: 100%;box-sizing: border-box;" id="jras-pm-text" rows="12" cols="76"></textarea>
+            <div id="jras-pm-status" role="status" aria-live="polite" style="white-space: pre-wrap;max-height: 48px;overflow: auto;"></div>
+            <div class="ui-dialog-buttonpane ui-widget-content ui-helper-clearfix" style="margin:0;padding:0;border:none;">
+              <div class="ui-dialog-buttonset">
+                <input type="submit" value="" id="jras-send-pm-sendbutton">
               </div>
-            </form>
-          </div>
-        `).find('#jras-send-pm-dialog');
+            </div>
+          </form>
+        </div>
+      `).appendTo('body');
+      const state = {username: null, userId: null, preparing: false, sending: false, revision: 0, drafts: new Map()};
+      $pmDialog.data('pmState', state);
+      $pmDialog.find('#jras-pm-form').on('submit.jrasPM', async function(event) {
+        event.preventDefault();
+        event.stopPropagation();
+        if (state.preparing || state.sending || !state.userId) return;
+        const $text = $pmDialog.find('#jras-pm-text');
+        const $status = $pmDialog.find('#jras-pm-status');
+        const $button = $pmDialog.find('#jras-send-pm-sendbutton');
+        const text = $text.val();
+        if (!text.trim()) {
+          $status.text(lng.getVal('JRAS_PM_EMPTY'));
+          $text.focus();
+          return;
+        }
+        state.sending = true;
+        $button.prop('disabled', true);
+        $text.prop('readOnly', true);
+        $status.text(lng.getVal('JRAS_SENDPMDIALOG_SENDMESS'));
+        try {
+          await sendPrivateMessage(state.userId, text);
+          $text.val('');
+          state.drafts.delete(state.username);
+          $status.text(lng.getVal('JRAS_PM_SENT'));
+        } catch (error) {
+          $status.text(privateMessageError(error, true));
+        } finally {
+          state.sending = false;
+          $button.prop('disabled', false);
+          $text.prop('readOnly', false);
+        }
+      });
     }
-    $pmDialog.attr('title', lng.getVal('JRAS_SENDPMDIALOG_HEADERCAPTION') + userName);
-    $pmDialog.find('input#jras-send-pm-username').attr('value', userName);
-    $pmDialog.find('input#jras-send-pm-sendbutton').attr('value', lng.getVal('JRAS_SENDPMDIALOG_SENDBUTTON'));
-    const $pmSendMess = $pmDialog.find('span#jras-send-pm-sendmess');
-    $pmSendMess.text(lng.getVal('JRAS_SENDPMDIALOG_SENDMESS'));
-    if(!page.isSchemeLight()){
-      $pmSendMess.css('color', 'rgb(172, 174, 173)');
+    const state = $pmDialog.data('pmState');
+    if (state.sending) {
+      $pmDialog.dialog('open');
+      return;
     }
-
+    const $text = $pmDialog.find('#jras-pm-text');
+    if (state.username !== null) state.drafts.set(state.username, $text.val());
+    state.username = userName;
+    state.userId = null;
+    state.preparing = true;
+    const revision = ++state.revision;
+    $text.val(state.drafts.get(userName) || '');
+    const $button = $pmDialog.find('#jras-send-pm-sendbutton');
+    $button.val(lng.getVal('JRAS_SENDPMDIALOG_SENDBUTTON')).prop('disabled', true);
+    const $status = $pmDialog.find('#jras-pm-status');
+    $status.text(lng.getVal('JRAS_PM_CHECKING'));
+    $status.css('color', page.isSchemeLight() ? '' : 'rgb(172, 174, 173)');
     $pmDialog.dialog({
       resizable: false,
       minWidth: 300,
@@ -2663,24 +2579,22 @@ const JRAS_CurrVersion = '2.5.9';
       height: 300,
       title: lng.getVal('JRAS_SENDPMDIALOG_HEADERCAPTION') + userName,
       closeText: lng.getVal('JRAS_SENDPMDIALOG_CLOSEBUTTON'),
-      show: {
-        effect: "drop",
-        duration: 400
-      },
-      hide: {
-        effect: "scale",
-        duration: 300
-      },
+      show: {effect: 'drop', duration: 400},
+      hide: {effect: 'scale', duration: 300},
       open: function(){
-        let magicNumber = 40;  //высота нижней панели
-        if(page.isNewDesign){
-          magicNumber = 55;
-        }
-        $('textarea#private_form_text').css({
-          width: $(this).width(),
-          height: $(this).height() - magicNumber
-        });
+        $text.css('height', Math.max(60, $(this).height() - 95));
       }
+    });
+    preparePrivateMessage(userName).then(userId => {
+      if (state.revision !== revision) return;
+      state.userId = userId;
+      state.preparing = false;
+      $status.text('');
+      $button.prop('disabled', false);
+    }).catch(error => {
+      if (state.revision !== revision) return;
+      state.preparing = false;
+      $status.text(privateMessageError(error, false));
     });
   }
 
@@ -4596,6 +4510,26 @@ const JRAS_CurrVersion = '2.5.9';
 
   }
 
+  function GraphQLRequests() {
+    this.userUrls = `
+      query UserUrls($username: String!) {
+        user(username: $username) { urls }
+      }
+    `;
+    this.preparePrivateMessage = `
+      query PreparePrivateMessage($username: String!) {
+        me { id }
+        user(username: $username) { id canSendPrivateMessage }
+      }
+    `;
+    this.sendPrivateMessage = `
+      mutation SendPrivateMessage($user: ID!, $text: String!) {
+        privateMessage(user: $user, text: $text) { success message }
+      }
+    `;
+    Object.freeze(this);
+  }
+
   function PageData(){
     const getColorSchema = function(){ // light or dark
       let c = window.getComputedStyle($('body')[0], null).getPropertyValue('background-color');
@@ -4723,414 +4657,150 @@ const JRAS_CurrVersion = '2.5.9';
       ru: 'Русский',
       en: 'English'
     };
-    this.JRAS_POSTBLOCKBYUSER = {
-      ru: 'Пост заблокированного пользователя: '
-    };
-    this.JRAS_TOGGLEBUTTONCAPTIONHIDE = {
-      ru: 'Скрыть'
-    };
-    this.JRAS_TOGGLEBUTTONCAPTIONSHOW = {
-      ru: 'Показать'
-    };
-    this.JRAS_EXTGIFTITLESIZESTR = {
-      ru: 'Размер: '
-    };
-    this.JRAS_POSTBLOCKBYTAG = {
-      ru: 'Пост заблокированый по тегам: '
-    };
-    this.JRAS_COMMBLOCKBYUSER = {
-      ru: 'Комментарий заблокированного пользователя: '
-    };
-    this.JRAS_GUI_LANGUAGE = {
-      ru: 'Язык интерфейса: '
-    };
-    this.JRAS_GUI_MAKEAVATARONOLDDESIGN = {
-      ru: ' Создавать аватары для старого дизайна'
-    };
-    this.JRAS_GUI_MAKEAVATARONLYFULLPOST = {
-      ru: ' Создавать аватары только для полного поста'
-    };
-    this.JRAS_GUI_AVATARHEIGHT = {
-      ru: ' Размер аватара (px)'
-    };
-    this.JRAS_GUI_MAKETREECOMMENTS = {
-      ru: ' Создавать дерево комментариев'
-    };
-    this.JRAS_GUI_CORRECTREDIRECTLINK = {
-      ru: ' Раскрывать ссылки из редиректа'
-    };
-    this.JRAS_GUI_REMOVESHAREBUTTONS = {
-      ru: ' Удалить кнопки "Поделиться..." (vk, fb, twitter и т.п.)'
-    };
-    this.JRAS_GUI_TREECOMMENTSONLYFULLPOST = {
-      ru: ' Дерево комментариев только для полного поста'
-    };
-    this.JRAS_GUI_WHENCOLLAPSEMAKEREAD = {
-      ru: ' При сворачивании ветки комментариев все дочерние помечаются прочитанными'
-    };
-    this.JRAS_GUI_FIXEDTOPBAR = {
-      ru: ' Зафиксировать верхнюю панель наверху окна'
-    };
-    this.JRAS_GUI_HIDEFIXEDTOPBAR = {
-      ru: ' Скрывать зафиксированную верхнюю панель'
-    };
-    this.JRAS_GUI_ISTOBELOADINGUSERDATA = {
-      ru: ' Загружать данные пользователя для Tooltip\u0027а'
-    };
-    this.JRAS_GUI_HIDEUSERAWARDSWHEN = {
-      ru: ' Если медалек больше чем: '
-    };
-    this.JRAS_GUI_MINSHOWUSERAWARDS = {
-      ru: ' то показывать первые: '
-    };
-    this.JRAS_GUI_SHOWUTONLINE = {
-      ru: ' Показывать в ленте'
-    };
-    this.JRAS_GUI_SHOWUTONCOMMENT = {
-      ru: ' Показывать в комментариях'
-    };
-    this.JRAS_GUI_SHOWUTONPRIVATEMESS = {
-      ru: ' Показывать на странице ПМ'
-    };
-    this.JRAS_GUI_SHOWUTONPEOPLE = {
-      ru: ' Показывать на странице Люди'
-    };
-    this.JRAS_GUI_SHOWUTONSIDEBARTOPUSERS = {
-      ru: ' Показывать в правом баре для юзеров топа'
-    };
-    this.JRAS_GUI_SHOWUTONSIDEBARONLINE = {
-      ru: ' Показывать в правом баре для аватарок'
-    };
-    this.JRAS_GUI_SHOWUTONPOSTCONTROL = {
-      ru: ' Показывать на авторе в блоке управления постом'
-    };
-    this.JRAS_GUI_SHOWHIDDENCOMMENTS = {
-      ru: 'Загружать скрытые заминусованные коменты сразу'
-    };
-    this.JRAS_GUI_SHOWHIDDENCOMMENTSMARK = {
-      ru: 'Отмечать загруженные коменты'
-    };
-    this.JRAS_GUI_EXTENDEDGIFLINKS = {
-      ru: 'Ссылка на гифку как в новом дизижине'
-    };
-    this.JRAS_GUI_SHOWUTONTOPCOMMENTS = {
-      ru: ' Показывать в правом баре для лучших коментов'
-    };
-    this.JRAS_GUI_ISTOBELOADINGTAGDATA = {
-      ru: 'Загружать данные тега для Tooltip\u0027а'
-    };
-    this.JRAS_GUI_SHOWTTONLINE = {
-      ru: 'Показывать в ленте'
-    };
-    this.JRAS_GUI_SHOWTTFULLPOST = {
-      ru: 'Показывать в полном посте'
-    };
-    this.JRAS_GUI_SHOWTTONTRENDS = {
-      ru: ' Показывать в правом баре для трендов'
-    };
-    this.JRAS_GUI_SHOWTTONLIKETAGS = {
-      ru: ' Показывать в правом баре для любимых тегов'
-    };
-    this.JRAS_GUI_SHOWTTONINTERESTING = {
-      ru: ' Показывать в правом баре для интересного'
-    };
-    this.JRAS_GUI_CHATLANETOPACAKI = {
-      ru: ' Убирать цветовую отметку донатера'
-    };
-    this.JRAS_GUI_DELUSERCOMMENT = {
-      ru: 'Скрывать комментарий без возможности просмотра'
-    };
-    this.JRAS_GUI_SHOWUSERNAMEDELCOMMENT = {
-      ru: 'Показывать в заблокированном комментарии ник юзера'
-    };
-    this.JRAS_GUI_FULLDELUSERPOST = {
-      ru: 'Удалять пост из ленты полностью'
-    };
-    this.JRAS_GUI_DELUSERPOST = {
-      ru: 'Скрывать пост без возможности просмотра'
-    };
-    this.JRAS_GUI_SHOWUSERNAMEDELPOST = {
-      ru: 'Показывать в заблокированном посте ник юзера'
-    };
-    this.JRAS_GUI_BLOCKUSERLIST = {
-      ru: 'Заблокированные пользователи'
-    };
-    this.JRAS_GUI_BLOCKTAGLIST = {
-      ru: 'Заблокированные теги'
-    };
-    this.JRAS_GUI_COLLAPSECOMMENTS = {
-      ru: 'Уменьшать большие комментарии'
-    };
-    this.JRAS_GUI_COLLAPSECOMMENTSONLYFULLPOST = {
-      ru: 'Уменьшать большие комментарии только в полном посте'
-    };
-    this.JRAS_GUI_COLLAPSECOMMENTWHENSIZE = {
-      ru: 'Уменьшать если размер больше (px)'
-    };
-    this.JRAS_GUI_COLLAPSECOMMENTTOSIZE = {
-      ru: 'Уменьшать до (px)'
-    };
-    this.JRAS_GUI_BTNSAVE = {
-      ru: 'Сохранить'
-    };
-    this.JRAS_GUI_BTNSENDPMME = {
-      ru: 'Отправить мне персональное сообщение'
-    };
-    this.JRAS_GUI_BTNDELETESETT = {
-      ru: 'Удалить все сохраненные данные'
-    };
-    this.JRAS_GUI_BTNRESETSETT = {
-      ru: 'Настройки по умолчанию'
-    };
-    this.JRAS_GUI_TABMAIN = {
-      ru: 'Общие'
-    };
-    this.JRAS_GUI_TABBLOCK = {
-      ru: 'Блокировки'
-    };
-    this.JRAS_GUI_TABTOOLTIP = {
-      ru: 'Tooltip\u0027ы'
-    };
-    this.JRAS_GUI_TABCOMMENTS = {
-      ru: 'Комментарии'
-    };
-    this.JRAS_GUI_TABSTYLE = {
-      ru: 'Стиль'
-    };
-    this.JRAS_GUI_TABEXPIMP = {
-      ru: 'Экспорт/Импорт'
-    };
-    this.JRAS_LOADINGUSERDATA = {
-      ru: 'Загрузка данных...'
-    };
-    this.JRAS_SENDPRIVMESS = {
-      ru: 'Отправить сообщение'
-    };
-    this.JRAS_ADDFRIEND = {
-      ru: 'Добавить в друзья'
-    };
-    this.JRAS_REMOVEFRIEND = {
-      ru: 'Удалить из друзей'
-    };
-    this.JRAS_ADDTAGFAV = {
-      ru: 'Подписаться на тег'
-    };
-    this.JRAS_REMOVETAGFAV = {
-      ru: 'Отписаться от тега'
-    };
-    this.JRAS_TOOLTIP_MODERATOR = {
-      ru: 'Модератор...'
-    };
-    this.JRAS_TOOLTIP_TAGMODERATORS = {
-      ru: 'Модераторы...'
-    };
-    this.JRAS_TOOLTIP_STATISTICS = {
-      ru: 'Статистика: '
-    };
-    this.JRAS_TOOLTIP_POSTS = {
-      ru: 'Постов (х/л): '
-    };
-    this.JRAS_TOOLTIP_COMMENTS = {
-      ru: 'Комментариев:'
-    };
-    this.JRAS_TOOLTIP_REG = {
-      ru: 'Регистрация: '
-    };
-    this.JRAS_TOOLTIP_LASTLOGIN = {
-      ru: 'Посл. раз был: '
-    };
-    this.JRAS_BLOCKUSER_JR = {
-      ru: 'Блокировать юзера (JR)'
-    };
-    this.JRAS_UNBLOCKUSER_JR = {
-      ru: 'Разблокировать юзера (JR)'
-    };
-    this.JRAS_BLOCKUSER_JRAS = {
-      ru: 'Блокировать юзера (JRAS)'
-    };
-    this.JRAS_UNBLOCKUSER_JRAS = {
-      ru: 'Разблокировать юзера (JRAS)'
-    };
-    this.JRAS_BLOCKTAG_JR = {
-      ru: 'Блокировать тег (JR)'
-    };
-    this.JRAS_UNBLOCKTAG_JR = {
-      ru: 'Разблокировать тег (JR)'
-    };
-    this.JRAS_BLOCKTAG_JRAS = {
-      ru: 'Блокировать тег (JRAS)'
-    };
-    this.JRAS_UNBLOCKTAG_JRAS = {
-      ru: 'Разблокировать тег (JRAS)'
-    };
-    this.JRAS_COMMENTS_EXPANDCOLL_ALL = {
-      ru: 'Свернуть/развернуть всё'
-    };
-    this.JRAS_SENDPMDIALOG_SENDBUTTON = {
-      ru: 'Отправить'
-    };
-    this.JRAS_SENDPMDIALOG_CLOSEBUTTON = {
-      ru: 'Закрыть'
-    };
-    this.JRAS_SENDPMDIALOG_HEADERCAPTION = {
-      ru: 'Отправка сообщения для '
-    };
-    this.JRAS_SENDPMDIALOG_SENDMESS = {
-      ru: 'Отправка данных...'
-    };
-    this.JRAS_GUI_PCBSHOWPOSTCONTROL = {
-      ru: 'Блок управления постом'
-    };
-    this.JRAS_GUI_PCBSHOWINFULLPOST = {
-      ru: 'Только в полном посте'
-    };
-    this.JRAS_GUI_PCBHIDEJRSHAREBLOCK = {
-      ru: 'Скрывать блок шарных кнопок поста'
-    };
-    this.JRAS_GUI_PCBHIDEJRRATINGBLOCK = {
-      ru: 'Скрывать блок рейтинга поста'
-    };
-    this.JRAS_GUI_PCBTOPBORDER = {
-      ru: 'Верхний стопор для блока внутри поста (px)'
-    };
-    this.JRAS_GUI_PCBBOTTOMBORDER = {
-      ru: 'Нижний стопор для блока внутри поста (px)'
-    };
-    this.JRAS_GUI_PCBTOPSCREENPOS = {
-      ru: 'Верхняя позиция на экране (px)'
-    };
-    this.JRAS_ADDFAVORITE = {
-      ru: 'Добавить в избранное'
-    };
-    this.JRAS_REMOVEFAVORITE = {
-      ru: 'Удалить из избранного'
-    };
-    this.JRAS_GUI_SHOWCOMMENTDATE = {
-      ru: 'Показывать в коменте его дату'
-    };
-    this.JRAS_GUI_PCBANIMATEMOVE = {
-      ru: 'Анимировать перемещения блока'
-    };
-    this.JRAS_GUI_PCBANIMATEMOVESPEED = {
-      ru: 'Скорость перемещения при анимации (1-9)'
-    };
-    this.JRAS_GUI_PCBHIDESHAREBUTOONS = {
-      ru: 'Скрыть кнопки шары оставить только избранное'
-    };
-    this.JRAS_GUI_STCORRECTSTYLE = {
-      ru: 'Корректировать дизайн и стиль сайта'
-    };
-    this.JRAS_GUI_STHIDESIDEBAR = {
-      ru: 'Скрывать правое меню'
-    };
-    this.JRAS_GUI_STSTRETCHCONTENT = {
-      ru: 'Растягивать контент по границам экрана'
-    };
-    this.JRAS_GUI_STSTRETCHSIZE = {
-      ru: 'Растягивать контент на (%)'
-    };
-    this.JRAS_GUI_STSIDEBARSIZETOPAGE = {
-      ru: 'Устанавливать высоту страницы по высоте правого меню'
-    };
-    this.JRAS_GUI_STSHOWSIDEBARONHIDECONTENT = {
-      ru: 'Показывать правое меню когда контент вышел за границы'
-    };
-    this.JRAS_GUI_STUSEDYNSTYLECHANGES = {
-      ru: 'Мне нужны только динамические эффекты нового стиля (я использую JRAS style)'
-    };
-    this.JRAS_GUI_STCENTERCONTENT = {
-      ru: 'Центровать контент'
-    };
-    this.JRAS_GUI_EXPIMP = {
-      ru: 'Данные экпорта/импорта'
-    };
-    this.JRAS_GUI_BTNIMPORT = {
-      ru: 'Импортировать данные'
-    };
-    this.JRAS_GUI_CORRECTOLDREACTORLINK = {
-      ru: 'Поправить ссылки на old.reactor'
-    };
-    this.JRAS_GUI_PREVIEWREACTORLINK = {
-      ru: 'Превью для внутренних ссылок на посты и коменты'
-    };
-    this.JRAS_GUI_PREVIEWSIZEX = {
-      ru: 'Размер тултипа превью по горизонтали. % от окна страницы'
-    };
-    this.JRAS_GUI_PREVIEWSIZEY = {
-      ru: 'Размер тултипа превью по ветрикали. % от окна страницы'
-    };
-    this.JRAS_GUI_MAKEQUOTESONCOMMENTS = {
-      ru: 'Цитаты из строк начинающихся с символа ">"'
-    };
-    this.JRAS_GUI_QUOTEPOPUPERHINT = {
-      ru: 'Процитировать выделенный текст.\n Можно использовать хоткеи (перекрывает настройки)'
-    };
-    this.JRAS_GUI_MAKEEXTQUOTES = {
-      ru: 'Расширенная цитата (заголовок + текст)'
-    };
-    this.JRAS_GUI_MAKEQUOTETOOL = {
-      ru: 'Инструмент цитирования'
-    };
-    this.JRAS_GUI_QTADDUSERINFO = {
-      ru: 'При цитировании добавлять информацию о пользователе, которого цитируют'
-    };
-    this.JRAS_GUI_QTINSERTINTOSHOWINGINPUT = {
-      ru: 'Вставлять цитату в:'
-    };
-    this.JRAS_GUI_NEWANSWERALWAYS = {
-      ru: 'открывать форму ответа на цитируемое сообщение [ctrl]'
-    };
-    this.JRAS_GUI_FINDOPENEDFORM = {
-      ru: 'найти уже открытую форму ответа [shift]'
-    };
-    this.JRAS_GUI_ADDCOMMENTFORM = {
-      ru: 'форму создания нового коментария [ctrl+shift]'
-    };
-    this.JRAS_GUI_VIDEOSOUNDOPTIONS = {
-      ru: 'Управлять звуком на видео'
-    };
-    this.JRAS_VIDEO_SOUND_MUTE = {
-      ru: 'Выключить звук'
-    };
-    this.JRAS_VIDEO_SOUND_UNMUTE = {
-      ru: 'Включить звук'
-    };
-    this.JRAS_GUI_RESTARTVIDEOONUNMUTE = {
-      ru: 'При включении звука начинать видео сначала'
-    };
-    this.JRAS_GUI_VIDEOSOUNDMUTEONPOSTSCROLL = {
-      ru: 'Выключать звук когда пост уходит с экрана'
-    };
-    this.JRAS_GUI_VIDEOSOUNDMUTEONVIDEOSCROLL = {
-      ru: 'Выключать звук когда видео уходит с экрана'
-    };
-    this.JRAS_GUI_AUTOUNMUTEVIDEONONE = {
-      ru: 'Не включать звук автоматически'
-    };
-    this.JRAS_GUI_AUTOUNMUTEVIDEOONHALFSCREEN = {
-      ru: 'Автоматически включать звук при 50% видимости видео'
-    };
-    this.JRAS_GUI_AUTOUNMUTEVIDEOONSCREENMIDDLE = {
-      ru: 'Автоматически включать звук при пересечении середины экрана'
-    };
-    this.JRAS_GUI_SHOWUSERLINKS = {
-      ru: 'Загружать пользовательские ссылки'
-    };
-    this.JRAS_GUI_SHOWUSERLINKSPROGRESSBAR = {
-      ru: 'Показывать прогрессбар ожидания загрузки пользовательских ссылок'
-    };
-    this.JRAS_GUI_LOADFAVORITEICOFORUSERLINKS = {
-      ru: 'Пытаться загрузить favicon.ico для неизвестных сайтов'
-    };
-    this.JRAS_GUI_SHOWUSERLINKSONPOST = {
-      ru: 'Пользовательские ссылки на посте'
-    };
-    this.JRAS_GUI_SHOWUSERLINKSONCOMMENT = {
-      ru: 'Пользовательские ссылки в комментариях'
-    };
-    this.JRAS_GUI_SHOWUSERLINKSCOUNT = {
-      ru: 'Показывать только это количество ссылок (0=все): '
-    };
+    this.JRAS_POSTBLOCKBYUSER = {ru: 'Пост заблокированного пользователя: '};
+    this.JRAS_TOGGLEBUTTONCAPTIONHIDE = {ru: 'Скрыть'};
+    this.JRAS_TOGGLEBUTTONCAPTIONSHOW = {ru: 'Показать'};
+    this.JRAS_EXTGIFTITLESIZESTR = {ru: 'Размер: '};
+    this.JRAS_POSTBLOCKBYTAG = {ru: 'Пост заблокированый по тегам: '};
+    this.JRAS_COMMBLOCKBYUSER = {ru: 'Комментарий заблокированного пользователя: '};
+    this.JRAS_GUI_LANGUAGE = {ru: 'Язык интерфейса: '};
+    this.JRAS_GUI_MAKEAVATARONOLDDESIGN = {ru: ' Создавать аватары для старого дизайна'};
+    this.JRAS_GUI_MAKEAVATARONLYFULLPOST = {ru: ' Создавать аватары только для полного поста'};
+    this.JRAS_GUI_AVATARHEIGHT = {ru: ' Размер аватара (px)'};
+    this.JRAS_GUI_MAKETREECOMMENTS = {ru: ' Создавать дерево комментариев'};
+    this.JRAS_GUI_CORRECTREDIRECTLINK = {ru: ' Раскрывать ссылки из редиректа'};
+    this.JRAS_GUI_REMOVESHAREBUTTONS = {ru: ' Удалить кнопки "Поделиться..." (vk, fb, twitter и т.п.)'};
+    this.JRAS_GUI_TREECOMMENTSONLYFULLPOST = {ru: ' Дерево комментариев только для полного поста'};
+    this.JRAS_GUI_WHENCOLLAPSEMAKEREAD = {ru: ' При сворачивании ветки комментариев все дочерние помечаются прочитанными'};
+    this.JRAS_GUI_FIXEDTOPBAR = {ru: ' Зафиксировать верхнюю панель наверху окна'};
+    this.JRAS_GUI_HIDEFIXEDTOPBAR = {ru: ' Скрывать зафиксированную верхнюю панель'};
+    this.JRAS_GUI_ISTOBELOADINGUSERDATA = {ru: ' Загружать данные пользователя для Tooltip\u0027а'};
+    this.JRAS_GUI_HIDEUSERAWARDSWHEN = {ru: ' Если медалек больше чем: '};
+    this.JRAS_GUI_MINSHOWUSERAWARDS = {ru: ' то показывать первые: '};
+    this.JRAS_GUI_SHOWUTONLINE = {ru: ' Показывать в ленте'};
+    this.JRAS_GUI_SHOWUTONCOMMENT = {ru: ' Показывать в комментариях'};
+    this.JRAS_GUI_SHOWUTONPRIVATEMESS = {ru: ' Показывать на странице ПМ'};
+    this.JRAS_GUI_SHOWUTONPEOPLE = {ru: ' Показывать на странице Люди'};
+    this.JRAS_GUI_SHOWUTONSIDEBARTOPUSERS = {ru: ' Показывать в правом баре для юзеров топа'};
+    this.JRAS_GUI_SHOWUTONSIDEBARONLINE = {ru: ' Показывать в правом баре для аватарок'};
+    this.JRAS_GUI_SHOWUTONPOSTCONTROL = {ru: ' Показывать на авторе в блоке управления постом'};
+    this.JRAS_GUI_SHOWHIDDENCOMMENTS = {ru: 'Загружать скрытые заминусованные коменты сразу'};
+    this.JRAS_GUI_SHOWHIDDENCOMMENTSMARK = {ru: 'Отмечать загруженные коменты'};
+    this.JRAS_GUI_EXTENDEDGIFLINKS = {ru: 'Ссылка на гифку как в новом дизижине'};
+    this.JRAS_GUI_SHOWUTONTOPCOMMENTS = {ru: ' Показывать в правом баре для лучших коментов'};
+    this.JRAS_GUI_ISTOBELOADINGTAGDATA = {ru: 'Загружать данные тега для Tooltip\u0027а'};
+    this.JRAS_GUI_SHOWTTONLINE = {ru: 'Показывать в ленте'};
+    this.JRAS_GUI_SHOWTTFULLPOST = {ru: 'Показывать в полном посте'};
+    this.JRAS_GUI_SHOWTTONTRENDS = {ru: ' Показывать в правом баре для трендов'};
+    this.JRAS_GUI_SHOWTTONLIKETAGS = {ru: ' Показывать в правом баре для любимых тегов'};
+    this.JRAS_GUI_SHOWTTONINTERESTING = {ru: ' Показывать в правом баре для интересного'};
+    this.JRAS_GUI_CHATLANETOPACAKI = {ru: ' Убирать цветовую отметку донатера'};
+    this.JRAS_GUI_DELUSERCOMMENT = {ru: 'Скрывать комментарий без возможности просмотра'};
+    this.JRAS_GUI_SHOWUSERNAMEDELCOMMENT = {ru: 'Показывать в заблокированном комментарии ник юзера'};
+    this.JRAS_GUI_FULLDELUSERPOST = {ru: 'Удалять пост из ленты полностью'};
+    this.JRAS_GUI_DELUSERPOST = {ru: 'Скрывать пост без возможности просмотра'};
+    this.JRAS_GUI_SHOWUSERNAMEDELPOST = {ru: 'Показывать в заблокированном посте ник юзера'};
+    this.JRAS_GUI_BLOCKUSERLIST = {ru: 'Заблокированные пользователи'};
+    this.JRAS_GUI_BLOCKTAGLIST = {ru: 'Заблокированные теги'};
+    this.JRAS_GUI_COLLAPSECOMMENTS = {ru: 'Уменьшать большие комментарии'};
+    this.JRAS_GUI_COLLAPSECOMMENTSONLYFULLPOST = {ru: 'Уменьшать большие комментарии только в полном посте'};
+    this.JRAS_GUI_COLLAPSECOMMENTWHENSIZE = {ru: 'Уменьшать если размер больше (px)'};
+    this.JRAS_GUI_COLLAPSECOMMENTTOSIZE = {ru: 'Уменьшать до (px)'};
+    this.JRAS_GUI_BTNSAVE = {ru: 'Сохранить'};
+    this.JRAS_GUI_BTNSENDPMME = {ru: 'Отправить мне персональное сообщение'};
+    this.JRAS_GUI_BTNDELETESETT = {ru: 'Удалить все сохраненные данные'};
+    this.JRAS_GUI_BTNRESETSETT = {ru: 'Настройки по умолчанию'};
+    this.JRAS_GUI_TABMAIN = {ru: 'Общие'};
+    this.JRAS_GUI_TABBLOCK = {ru: 'Блокировки'};
+    this.JRAS_GUI_TABTOOLTIP = {ru: 'Tooltip\u0027ы'};
+    this.JRAS_GUI_TABCOMMENTS = {ru: 'Комментарии'};
+    this.JRAS_GUI_TABSTYLE = {ru: 'Стиль'};
+    this.JRAS_GUI_TABEXPIMP = {ru: 'Экспорт/Импорт'};
+    this.JRAS_LOADINGUSERDATA = {ru: 'Загрузка данных...'};
+    this.JRAS_SENDPRIVMESS = {ru: 'Отправить сообщение'};
+    this.JRAS_ADDFRIEND = {ru: 'Добавить в друзья'};
+    this.JRAS_REMOVEFRIEND = {ru: 'Удалить из друзей'};
+    this.JRAS_ADDTAGFAV = {ru: 'Подписаться на тег'};
+    this.JRAS_REMOVETAGFAV = {ru: 'Отписаться от тега'};
+    this.JRAS_TOOLTIP_MODERATOR = {ru: 'Модератор...'};
+    this.JRAS_TOOLTIP_TAGMODERATORS = {ru: 'Модераторы...'};
+    this.JRAS_TOOLTIP_STATISTICS = {ru: 'Статистика: '};
+    this.JRAS_TOOLTIP_POSTS = {ru: 'Постов (х/л): '};
+    this.JRAS_TOOLTIP_COMMENTS = {ru: 'Комментариев:'};
+    this.JRAS_TOOLTIP_REG = {ru: 'Регистрация: '};
+    this.JRAS_TOOLTIP_LASTLOGIN = {ru: 'Посл. раз был: '};
+    this.JRAS_BLOCKUSER_JR = {ru: 'Блокировать юзера (JR)'};
+    this.JRAS_UNBLOCKUSER_JR = {ru: 'Разблокировать юзера (JR)'};
+    this.JRAS_BLOCKUSER_JRAS = {ru: 'Блокировать юзера (JRAS)'};
+    this.JRAS_UNBLOCKUSER_JRAS = {ru: 'Разблокировать юзера (JRAS)'};
+    this.JRAS_BLOCKTAG_JR = {ru: 'Блокировать тег (JR)'};
+    this.JRAS_UNBLOCKTAG_JR = {ru: 'Разблокировать тег (JR)'};
+    this.JRAS_BLOCKTAG_JRAS = {ru: 'Блокировать тег (JRAS)'};
+    this.JRAS_UNBLOCKTAG_JRAS = {ru: 'Разблокировать тег (JRAS)'};
+    this.JRAS_COMMENTS_EXPANDCOLL_ALL = {ru: 'Свернуть/развернуть всё'};
+    this.JRAS_PM_AUTH_REQUIRED = {ru: 'Нет авторизации.'};
+    this.JRAS_PM_USER_NOT_FOUND = {ru: 'Получатель не найден.'};
+    this.JRAS_PM_FORBIDDEN = { ru: 'Пользователь запретил отправка ему сообщений.'};
+    this.JRAS_PM_FAILED = {ru: 'Не удалось отправить сообщение.'};
+    this.JRAS_PM_UNCONFIRMED = {ru: 'Не удалось подтвердить отправку. Перед повторной отправкой проверьте личные сообщения: сообщение могло уже уйти.'};
+    this.JRAS_PM_EMPTY = {ru: 'Введите текст сообщения.'};
+    this.JRAS_PM_SENT = {ru: 'Сообщение отправлено.'};
+    this.JRAS_PM_CHECKING = {ru: 'Проверка получателя и авторизации...'};
+    this.JRAS_SENDPMDIALOG_SENDBUTTON = {ru: 'Отправить'};
+    this.JRAS_SENDPMDIALOG_CLOSEBUTTON = {ru: 'Закрыть'};
+    this.JRAS_SENDPMDIALOG_HEADERCAPTION = {ru: 'Отправка сообщения для '};
+    this.JRAS_SENDPMDIALOG_SENDMESS = {ru: 'Отправка данных...'};
+    this.JRAS_GUI_PCBSHOWPOSTCONTROL = {ru: 'Блок управления постом'};
+    this.JRAS_GUI_PCBSHOWINFULLPOST = {ru: 'Только в полном посте'};
+    this.JRAS_GUI_PCBHIDEJRSHAREBLOCK = {ru: 'Скрывать блок шарных кнопок поста'};
+    this.JRAS_GUI_PCBHIDEJRRATINGBLOCK = {ru: 'Скрывать блок рейтинга поста'};
+    this.JRAS_GUI_PCBTOPBORDER = {ru: 'Верхний стопор для блока внутри поста (px)'};
+    this.JRAS_GUI_PCBBOTTOMBORDER = {ru: 'Нижний стопор для блока внутри поста (px)'};
+    this.JRAS_GUI_PCBTOPSCREENPOS = {ru: 'Верхняя позиция на экране (px)'};
+    this.JRAS_ADDFAVORITE = {ru: 'Добавить в избранное'};
+    this.JRAS_REMOVEFAVORITE = {ru: 'Удалить из избранного'};
+    this.JRAS_GUI_SHOWCOMMENTDATE = {ru: 'Показывать в коменте его дату'};
+    this.JRAS_GUI_PCBANIMATEMOVE = {ru: 'Анимировать перемещения блока'};
+    this.JRAS_GUI_PCBANIMATEMOVESPEED = {ru: 'Скорость перемещения при анимации (1-9)'};
+    this.JRAS_GUI_PCBHIDESHAREBUTOONS = {ru: 'Скрыть кнопки шары оставить только избранное'};
+    this.JRAS_GUI_STCORRECTSTYLE = {ru: 'Корректировать дизайн и стиль сайта'};
+    this.JRAS_GUI_STHIDESIDEBAR = {ru: 'Скрывать правое меню'};
+    this.JRAS_GUI_STSTRETCHCONTENT = {ru: 'Растягивать контент по границам экрана'};
+    this.JRAS_GUI_STSTRETCHSIZE = {ru: 'Растягивать контент на (%)'};
+    this.JRAS_GUI_STSIDEBARSIZETOPAGE = {ru: 'Устанавливать высоту страницы по высоте правого меню'};
+    this.JRAS_GUI_STSHOWSIDEBARONHIDECONTENT = {ru: 'Показывать правое меню когда контент вышел за границы'};
+    this.JRAS_GUI_STUSEDYNSTYLECHANGES = {ru: 'Мне нужны только динамические эффекты нового стиля (я использую JRAS style)'};
+    this.JRAS_GUI_STCENTERCONTENT = {ru: 'Центровать контент'};
+    this.JRAS_GUI_EXPIMP = {ru: 'Данные экпорта/импорта'};
+    this.JRAS_GUI_BTNIMPORT = {ru: 'Импортировать данные'};
+    this.JRAS_GUI_CORRECTOLDREACTORLINK = {ru: 'Поправить ссылки на old.reactor'};
+    this.JRAS_GUI_PREVIEWREACTORLINK = {ru: 'Превью для внутренних ссылок на посты и коменты'};
+    this.JRAS_GUI_PREVIEWSIZEX = {ru: 'Размер тултипа превью по горизонтали. % от окна страницы'};
+    this.JRAS_GUI_PREVIEWSIZEY = {ru: 'Размер тултипа превью по ветрикали. % от окна страницы'};
+    this.JRAS_GUI_MAKEQUOTESONCOMMENTS = {ru: 'Цитаты из строк начинающихся с символа ">"'};
+    this.JRAS_GUI_QUOTEPOPUPERHINT = {ru: 'Процитировать выделенный текст.\n Можно использовать хоткеи (перекрывает настройки)'};
+    this.JRAS_GUI_MAKEEXTQUOTES = {ru: 'Расширенная цитата (заголовок + текст)'};
+    this.JRAS_GUI_MAKEQUOTETOOL = {ru: 'Инструмент цитирования'};
+    this.JRAS_GUI_QTADDUSERINFO = {ru: 'При цитировании добавлять информацию о пользователе, которого цитируют'};
+    this.JRAS_GUI_QTINSERTINTOSHOWINGINPUT = {ru: 'Вставлять цитату в:'};
+    this.JRAS_GUI_NEWANSWERALWAYS = {ru: 'открывать форму ответа на цитируемое сообщение [ctrl]'};
+    this.JRAS_GUI_FINDOPENEDFORM = {ru: 'найти уже открытую форму ответа [shift]'};
+    this.JRAS_GUI_ADDCOMMENTFORM = {ru: 'форму создания нового коментария [ctrl+shift]'};
+    this.JRAS_GUI_VIDEOSOUNDOPTIONS = {ru: 'Управлять звуком на видео'};
+    this.JRAS_VIDEO_SOUND_MUTE = {ru: 'Выключить звук'};
+    this.JRAS_VIDEO_SOUND_UNMUTE = {ru: 'Включить звук'};
+    this.JRAS_GUI_RESTARTVIDEOONUNMUTE = {ru: 'При включении звука начинать видео сначала'};
+    this.JRAS_GUI_VIDEOSOUNDMUTEONPOSTSCROLL = {ru: 'Выключать звук когда пост уходит с экрана'};
+    this.JRAS_GUI_VIDEOSOUNDMUTEONVIDEOSCROLL = {ru: 'Выключать звук когда видео уходит с экрана'};
+    this.JRAS_GUI_AUTOUNMUTEVIDEONONE = {ru: 'Не включать звук автоматически'};
+    this.JRAS_GUI_AUTOUNMUTEVIDEOONHALFSCREEN = {ru: 'Автоматически включать звук при 50% видимости видео'};
+    this.JRAS_GUI_AUTOUNMUTEVIDEOONSCREENMIDDLE = {ru: 'Автоматически включать звук при пересечении середины экрана'};
+    this.JRAS_GUI_SHOWUSERLINKS = {ru: 'Загружать пользовательские ссылки'};
+    this.JRAS_GUI_SHOWUSERLINKSPROGRESSBAR = {ru: 'Показывать прогрессбар ожидания загрузки пользовательских ссылок'};
+    this.JRAS_GUI_LOADFAVORITEICOFORUSERLINKS = {ru: 'Пытаться загрузить favicon.ico для неизвестных сайтов'};
+    this.JRAS_GUI_SHOWUSERLINKSONPOST = {ru: 'Пользовательские ссылки на посте'};
+    this.JRAS_GUI_SHOWUSERLINKSONCOMMENT = {ru: 'Пользовательские ссылки в комментариях'};
+    this.JRAS_GUI_SHOWUSERLINKSCOUNT = {ru: 'Показывать только это количество ссылок (0=все): '};
   }
 
   $(window).on('load', function () {
